@@ -61,9 +61,9 @@ function showPanel(target) {
   document.querySelectorAll('.choice-btn').forEach((b) => b.classList.toggle('active', b.dataset.target === target));
   const panel = document.getElementById('stepPanel');
   if (target === 'android') {
-    panel.innerHTML = renderSteps(G.android, `<div class="fallback-box">🔁 ${esc(G.android.ifNotWork)}</div>`);
+    panel.innerHTML = renderSteps(G.android, `<div class="fallback-box">${esc(G.android.ifNotWork)}</div>`);
   } else if (target === 'iphone') {
-    panel.innerHTML = renderSteps(G.iphone, `<div class="fallback-box">🔁 ${esc(G.iphone.ifNotWork)}</div>`);
+    panel.innerHTML = renderSteps(G.iphone, `<div class="fallback-box">${esc(G.iphone.ifNotWork)}</div>`);
   } else {
     panel.innerHTML = renderSteps(G.manualAndroid) + '<hr/>' + renderSteps(G.manualIphone);
   }
@@ -138,7 +138,7 @@ async function renderNetwork() {
   document.getElementById('wifiCopyBtn').addEventListener('click', async (e) => {
     try {
       await navigator.clipboard.writeText(network.password);
-      e.target.textContent = '✅ Đã sao chép';
+      e.target.textContent = 'Đã sao chép';
     } catch (err) { e.target.textContent = 'Không sao chép được – hãy gõ tay'; }
   });
 

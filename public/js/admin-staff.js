@@ -11,12 +11,12 @@ async function loadStaffTab() {
           <b>${s.full_name}</b> <span class="text-muted">(${s.username})</span>
           <span class="badge badge-blue">${ROLE_LABELS[s.role] || s.role}</span>
           <span class="badge ${s.is_active ? 'badge-green' : 'badge-gray'}">${s.is_active ? 'Đang hoạt động' : 'Đã khóa'}</span>
-          ${s.is_locked ? '<span class="badge badge-red" title="Tạm khóa 15 phút do đăng nhập sai nhiều lần liên tiếp">🔒 Tạm khóa (sai mật khẩu)</span>' : ''}
-          ${s.must_change_password ? '<span class="badge badge-yellow" title="Đang dùng mật khẩu tạm, hệ thống sẽ bắt đổi ở lần đăng nhập tới">⏳ Chờ đổi mật khẩu</span>' : ''}
+          ${s.is_locked ? '<span class="badge badge-red" title="Tạm khóa 15 phút do đăng nhập sai nhiều lần liên tiếp">Tạm khóa (sai mật khẩu)</span>' : ''}
+          ${s.must_change_password ? '<span class="badge badge-yellow" title="Đang dùng mật khẩu tạm, hệ thống sẽ bắt đổi ở lần đăng nhập tới">Chờ đổi mật khẩu</span>' : ''}
           ${s.role === 'OFFICER' ? (s.counter_code ? `<span class="badge badge-yellow">Quầy ${s.counter_code}</span>` : '<span class="text-muted" style="font-size:0.85rem;">Chưa gán quầy — vào tab Điều phối để gán</span>') : ''}
         </div>
         <div class="flex gap-8">
-          <button class="btn btn-outline action-chip" ${actionAttr('resetStaffPassword', s.id)}>🔑 Đặt lại mật khẩu</button>
+          <button class="btn btn-outline action-chip" ${actionAttr('resetStaffPassword', s.id)}>Đặt lại mật khẩu</button>
           ${s.role === 'SUPER_ADMIN' ? '' : `<button class="btn ${s.is_active ? 'btn-danger' : 'btn-success'} action-chip" ${actionAttr('toggleStaffActive', s.id, !s.is_active)}>${s.is_active ? 'Khóa' : 'Kích hoạt'}</button>`}
         </div>
       </div>`).join('') || '<p class="text-muted">Chưa có tài khoản nào.</p>';

@@ -23,7 +23,7 @@ async function loadMonitor() {
         </div>
         <div>
           <div style="font-size:1.6rem;font-weight:800;">${h.waiting_count} chờ</div>
-          <div style="font-size:0.8rem;">AWT ~ ${h.avg_wait_minutes}p</div>
+          <div style="font-size:0.8rem;">Chờ khoảng ${h.avg_wait_minutes} phút</div>
         </div>
       </div>`).join('');
 

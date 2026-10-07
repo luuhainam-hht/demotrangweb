@@ -4,86 +4,73 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Trang chủ - Hỗ trợ Tra cứu Thủ tục Hành chính</title>
-<link rel="stylesheet" href="css/common.css?v=9" />
+<link rel="stylesheet" href="css/common.css?v=10" />
 <link rel="icon" href="assets/logoKiosk-icon-transparent.png" type="image/png" />
 <style>
-  .category-grid { margin-top: 8px; }
-  footer.site-footer { text-align: center; padding: 30px; color: var(--color-text-muted); font-size: 0.85rem; }
-  .empty-search { text-align: center; padding: 30px; color: var(--color-text-muted); }
-  .faq-quick-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 12px; margin-bottom: 30px; }
-  .faq-quick {
-    display: flex; align-items: center; gap: 12px; min-height: 64px;
-    background: #fff; border: 2px solid var(--color-border); border-radius: 14px;
-    padding: 14px 18px; text-decoration: none; color: var(--color-text);
-    font-size: 1.05rem; font-weight: 600; line-height: 1.45;
-  }
-  .faq-quick:hover { border-color: var(--color-primary); background: #f8fbff; }
-  .faq-quick .q-ico { font-size: 1.5rem; flex-shrink: 0; }
+  .empty-search { padding: 24px 0; color: var(--color-text-muted); }
 </style>
 </head>
-<body data-chatbot-auto-open="true" data-show-hours-banner="true">
+<body data-show-hours-banner="true">
 
-<div class="container">
-  <section class="hero-banner">
-    <h1>Hỗ trợ Tra cứu &amp; Kiểm tra Hồ sơ Hành chính</h1>
-    <p>Hệ thống thông minh giúp bạn tra cứu nhanh chóng, chuẩn bị đầy đủ giấy tờ
-       và tiết kiệm thời gian khi thực hiện các thủ tục hành chính công.</p>
+<main class="container home">
+  <section class="home-hero">
+    <div class="home-hero-main">
+      <h1>Tra cứu thủ tục hành chính</h1>
+      <p class="home-lead">Xem giấy tờ cần chuẩn bị, lệ phí và thời gian tiếp nhận trước khi lấy số. Chuẩn bị đủ một lần, không phải về lấy thêm.</p>
+      <form class="hero-search-row" id="searchForm" autocomplete="off" role="search">
+        <label class="sr-only" for="searchInput">Tên thủ tục</label>
+        <input id="searchInput" type="text" placeholder="Ví dụ: khai sinh, sang tên sổ đỏ, đăng ký hộ kinh doanh" />
+        <button type="submit" class="btn btn-primary">Tìm thủ tục</button>
+      </form>
+    </div>
+    <aside class="home-status" aria-labelledby="statusTitle">
+      <h2 id="statusTitle">Tại Trung tâm lúc này</h2>
+      <dl>
+        <div><dt>Quầy đang tiếp nhận</dt><dd id="statOpenCounters">–</dd></div>
+        <div><dt>Người đang chờ</dt><dd id="statWaiting">–</dd></div>
+        <div><dt>Thủ tục có hướng dẫn</dt><dd id="statServices">–</dd></div>
+      </dl>
+      <a class="home-status-link" href="huong-dan.html">Cách lấy số thứ tự</a>
+    </aside>
+  </section>
 
-    <form class="hero-search-row" id="searchForm" autocomplete="off">
-      <input id="searchInput" type="text" placeholder="Nhập tên thủ tục bạn muốn tìm kiếm (VD: Khai sinh, Đất đai...)" />
-      <button type="submit" class="btn btn-primary">Tra cứu →</button>
-    </form>
-
-    <div class="hero-stats" id="heroStats">
-      <div class="hero-stat"><div class="val" id="statOpenCounters">-</div><div class="lbl">Quầy đang mở</div></div>
-      <div class="hero-stat"><div class="val" id="statWaiting">-</div><div class="lbl">Người đang chờ</div></div>
-      <div class="hero-stat"><div class="val" id="statServices">-</div><div class="lbl">Thủ tục hỗ trợ</div></div>
+  <section class="home-block" aria-labelledby="helpTitle">
+    <h2 id="helpTitle">Bạn cần hỗ trợ việc gì?</h2>
+    <div class="help-list">
+      <a href="huong-dan-dien-mau.html" class="help-item"><strong>Cách điền tờ khai</strong><span>Hướng dẫn từng ô, có ví dụ điền sẵn.</span></a>
+      <a href="nop-ho-so-truc-tuyen.html" class="help-item"><strong>Nộp hồ sơ qua mạng</strong><span>Các bước trên Cổng dịch vụ công, đăng nhập bằng VNeID.</span></a>
+      <a href="ket-noi-wifi.html" class="help-item"><strong>Kết nối Wi-Fi</strong><span>Quét mã QR hoặc nhập mật khẩu theo hướng dẫn.</span></a>
+      <a href="hoi-dap.html" class="help-item"><strong>Hỏi đáp</strong><span>Câu hỏi người dân hay hỏi, có ghi nguồn văn bản.</span></a>
     </div>
   </section>
 
-  <div class="section-heading">
-    <div>
-      <div class="eyebrow">Hỗ trợ người dân</div>
-      <h2>Bạn cần giúp gì?</h2>
+  <section class="home-block" aria-labelledby="faqTitle">
+    <div class="section-heading">
+      <h2 id="faqTitle">Câu hỏi hay gặp</h2>
+      <a href="hoi-dap.html" class="view-all">Xem tất cả câu hỏi</a>
     </div>
-  </div>
-  <div class="grid grid-4 support-grid" style="margin-bottom:28px;">
-    <a href="huong-dan-dien-mau.html" class="card-link category-card"><div class="card"><h3>📝 Cách điền giấy tờ</h3><p class="desc">Hướng dẫn điền từng ô của tờ khai, có ví dụ.</p><div class="meta">Xem hướng dẫn →</div></div></a>
-    <a href="nop-ho-so-truc-tuyen.html" class="card-link category-card"><div class="card"><h3>💻 Nộp hồ sơ qua mạng</h3><p class="desc">Các bước nộp hồ sơ trên Cổng dịch vụ công.</p><div class="meta">Xem hướng dẫn →</div></div></a>
-    <a href="ket-noi-wifi.html" class="card-link category-card"><div class="card"><h3>📶 Kết nối Wi-Fi</h3><p class="desc">Quét mã QR, có hướng dẫn cho Android và iPhone.</p><div class="meta">Xem hướng dẫn →</div></div></a>
-    <a href="hoi-dap.html" class="card-link category-card"><div class="card"><h3>❓ Hỏi đáp</h3><p class="desc">Giải đáp chi tiết các thắc mắc thường gặp, có ghi rõ nguồn.</p><div class="meta">Xem hỏi đáp →</div></div></a>
-  </div>
+    <div class="faq-quick-row" id="faqQuickRow"></div>
+  </section>
 
-  <div class="section-heading">
-    <div>
-      <div class="eyebrow">Thắc mắc thường gặp</div>
-      <h2>Nhiều người hỏi nhất</h2>
-      <p>Bấm vào một câu hỏi để xem câu trả lời chi tiết, kèm nguồn tham khảo.</p>
+  <section class="home-block" aria-labelledby="categoryTitle">
+    <div class="section-heading">
+      <div>
+        <h2 id="categoryTitle">Thủ tục thường làm</h2>
+        <p id="categorySub">Chọn một thủ tục để xem giấy tờ cần mang theo.</p>
+      </div>
     </div>
-    <a href="hoi-dap.html" class="view-all">Xem tất cả câu hỏi →</a>
-  </div>
-  <div class="faq-quick-row" id="faqQuickRow"></div>
-
-  <div class="section-heading">
-    <div>
-      <div class="eyebrow" id="categoryEyebrow">Danh mục nổi bật</div>
-      <h2 id="categoryTitle">Các thủ tục phổ biến</h2>
-      <p id="categorySub">Truy cập nhanh các thủ tục hành chính được thực hiện nhiều nhất.</p>
-    </div>
-    <a href="huong-dan.html" class="view-all">Xem hướng dẫn sử dụng →</a>
-  </div>
-  <div class="grid grid-4 category-grid" id="categoryGrid"></div>
-</div>
+    <div class="service-list" id="categoryGrid"></div>
+  </section>
+</main>
 
 <footer class="site-footer">
-  © Hệ thống Hỗ trợ Tra cứu Thủ tục Hành chính Công<br/>
-  Không tìm thấy điều bạn cần? Xem <a href="hoi-dap.html">trang Hỏi đáp</a> hoặc bấm biểu tượng 💬 ở góc phải để hỏi Trợ lý AI.
+  <p>Không tìm thấy thủ tục cần làm? Xem <a href="hoi-dap.html">trang Hỏi đáp</a>, hỏi Trợ lý ở góc dưới bên phải, hoặc hỏi cán bộ tại bàn hướng dẫn.</p>
 </footer>
 
 <script src="js/header.js?v=4"></script>
 <script src="js/deviceHeartbeat.js?v=1"></script>
 <script src="js/chatbot.js?v=9"></script>
 <script src="js/searchSuggest.js"></script>
-<script src="js/index.js?v=2"></script>
+<script src="js/index.js?v=3"></script>
 </body>
 </html>

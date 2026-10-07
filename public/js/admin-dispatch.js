@@ -64,8 +64,8 @@ function counterRowHtml(c, fields, officers) {
           ${fields.map((f) => `<option value="${f.id}" ${f.id === c.field_id ? 'selected' : ''}>${f.name}</option>`).join('')}
         </select>
         <div class="flex gap-8">
-          <button class="btn btn-outline action-chip" ${actionAttr('editCounter', c.id, c.code, c.name)}>✏️ Sửa</button>
-          <button class="btn btn-danger action-chip" ${actionAttr('deleteCounter', c.id)}>🗑️ Xóa</button>
+          <button class="btn btn-outline action-chip" ${actionAttr('editCounter', c.id, c.code, c.name)}>Sửa</button>
+          <button class="btn btn-danger action-chip" ${actionAttr('deleteCounter', c.id)}>Xóa</button>
         </div>
       </div>
       <div class="counter-row-bottom">

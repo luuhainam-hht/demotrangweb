@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Giao diện Cán bộ Quầy</title>
-<link rel="stylesheet" href="css/common.css?v=9" />
+<title>Quầy tiếp nhận - Một Cửa Thông Minh</title>
+<link rel="stylesheet" href="css/common.css?v=10" />
 <link rel="icon" href="assets/logoKiosk-icon-transparent.png" type="image/png" />
 <style>
   .layout { display: grid; grid-template-columns: 320px 1fr; gap: 20px; }
@@ -40,7 +40,7 @@
 </head>
 <body>
 <div class="topbar">
-  <h1>🖥️ Giao diện Cán bộ Quầy</h1>
+  <h1>Quầy tiếp nhận</h1>
   <div class="flex gap-16" style="align-items:center;">
     <span id="todayStats" class="badge badge-blue"></span>
     <span id="counterSelectWrap"></span>
@@ -53,7 +53,7 @@
   <div class="layout">
     <!-- ============ ACTIVE SLOT PANEL ============ -->
     <div class="card">
-      <h3>Active Slot</h3>
+      <h3>Đang phục vụ</h3>
       <div id="activeSlotBox" class="active-slot">
         <p class="text-muted">Chưa có vé đang xử lý</p>
       </div>
@@ -63,7 +63,7 @@
     <!-- ============ CONVEYOR / QUEUE PANEL ============ -->
     <div class="card">
       <div class="flex-between">
-        <h3>Băng chuyền Hàng đợi (FIFO)</h3>
+        <h3>Người đang chờ</h3>
         <span id="queueCount" class="badge badge-blue">0 vé</span>
       </div>
       <div id="conveyorList"></div>
@@ -74,7 +74,7 @@
 <!-- ============ MODAL: YEU CAU BO SUNG ============ -->
 <div id="supplementModal" class="modal-overlay hidden">
   <div class="modal-box">
-    <h2>📝 Yêu cầu Bổ sung Hồ sơ</h2>
+    <h2>Yêu cầu Bổ sung Hồ sơ</h2>
     <p class="text-muted">Tích chọn các giấy tờ công dân còn thiếu:</p>
     <div id="supplementChecklist"></div>
     <div class="flex gap-12 mt-16">
@@ -87,7 +87,7 @@
 <!-- ============ MODAL: PHIEU QR QUAY LAI (nang cap 10/2026, muc 6.17 bao cao) ============ -->
 <div id="reentryModal" class="modal-overlay hidden">
   <div class="modal-box reentry-slip">
-    <h2 style="margin-top:0;">🔁 Phiếu quay lại sau khi bổ sung</h2>
+    <h2 style="margin-top:0;">Phiếu quay lại sau khi bổ sung</h2>
     <div class="slip-number" id="reentryTicketNumber">—</div>
     <p style="margin:0;">Giấy tờ cần bổ sung:</p>
     <ul id="reentryMissingList"></ul>
@@ -96,7 +96,7 @@
     <p class="text-muted" id="reentryIssued" style="font-size:0.8rem;"></p>
     <div class="flex gap-12 mt-16 no-print">
       <button class="btn btn-outline" style="flex:1" data-action="closeReentryModal">Đóng</button>
-      <button class="btn btn-primary" style="flex:1" data-action="printReentrySlip">🖨️ In phiếu</button>
+      <button class="btn btn-primary" style="flex:1" data-action="printReentrySlip">In phiếu</button>
     </div>
   </div>
 </div>

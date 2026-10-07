@@ -44,7 +44,7 @@
           <p class="qa-short">${esc(faq.short)}</p>
           ${details ? `<ul class="qa-details">${details}</ul>` : ''}
           ${faq.note ? `<div class="qa-note"><b>Lưu ý:</b> ${esc(faq.note)}</div>` : ''}
-          ${faq.link ? `<a class="btn btn-outline qa-link" href="${esc(faq.link)}">${esc(linkLabel(faq.link))} →</a>` : ''}
+          ${faq.link ? `<a class="btn btn-outline qa-link" href="${esc(faq.link)}">${esc(linkLabel(faq.link))}</a>` : ''}
           <div class="qa-meta">
             <span class="badge-status ${esc(faq.status)}">${esc(faq.statusLabel || faq.status)}</span>
             ${sources ? `<ul class="qa-sources">${sources}</ul>`
@@ -55,7 +55,7 @@
   }
 
   function renderTopics() {
-    const all = [{ id: 'ALL', icon: '📚', name: 'Tất cả' }].concat(topics);
+    const all = [{ id: 'ALL', icon: '', name: 'Tất cả' }].concat(topics);
     topicRow.innerHTML = all.map((t) =>
       `<button type="button" class="topic-chip" data-topic="${esc(t.id)}" aria-pressed="${t.id === activeTopic}">
          <span aria-hidden="true">${esc(t.icon)}</span> ${esc(t.name)}
@@ -118,7 +118,7 @@
           <p class="big-text">Chưa có câu hỏi sẵn nào khớp với điều bạn tìm.</p>
           <p class="text-muted">Bạn thử gõ ngắn hơn (VD chỉ gõ "sang tên" hoặc "khai sinh"),
              hoặc hỏi thẳng Trợ lý AI bằng lời của bạn.</p>
-          <button type="button" class="btn btn-primary btn-lg mt-16" data-action="faqAskAssistant">💬 Hỏi Trợ lý AI</button>
+          <button type="button" class="btn btn-primary btn-lg mt-16" data-action="faqAskAssistant">Hỏi Trợ lý AI</button>
         </div>`;
       return;
     }

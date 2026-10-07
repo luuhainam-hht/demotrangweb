@@ -9,7 +9,7 @@ function esc(value) {
     .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 }
 
-const DEVICE_LABEL = { KIOSK: '🖥️ Kiosk', LED_BOARD: '📺 Bảng LED', PA_SPEAKER: '🔊 Loa PA' };
+const DEVICE_LABEL = { KIOSK: 'Kiosk', LED_BOARD: 'Bảng LED', PA_SPEAKER: 'Loa PA' };
 const DEVICE_BADGE = { ONLINE: 'badge-green', DEGRADED: 'badge-yellow', OFFLINE: 'badge-red' };
 const DEVICE_TEXT = { ONLINE: 'Trực tuyến', DEGRADED: 'Chưa bật loa', OFFLINE: 'Mất tín hiệu' };
 

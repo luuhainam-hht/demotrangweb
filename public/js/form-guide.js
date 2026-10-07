@@ -45,7 +45,7 @@ async function loadList() {
           <div class="card">
             <h3>${esc(f.form_name)}</h3>
             <p class="desc">Thủ tục: ${esc(f.service_name)}</p>
-            <div class="meta">Xem cách điền →</div>
+            <div class="meta">Xem cách điền</div>
           </div>
         </a>`).join('')
       : '<div class="empty-state">Chưa có tờ khai nào có hướng dẫn. Vui lòng hỏi cán bộ hỗ trợ.</div>';
@@ -69,7 +69,7 @@ function renderGuide(data, serviceId) {
   document.getElementById('guideTitle').textContent = form.form_name;
   document.getElementById('guideIntro').textContent = guide.intro || '';
   document.getElementById('guideLocation').innerHTML =
-    `📍 <b>Lấy phôi tờ khai tại:</b> ${esc(form.shelf_name)} → ${esc(form.tray_number)} → ${esc(form.desk_area)}`;
+    `<b>Lấy phôi tờ khai tại:</b> ${esc(form.shelf_name)} → ${esc(form.tray_number)} → ${esc(form.desk_area)}`;
 
   document.getElementById('fieldList').innerHTML = (guide.fields || []).map((f, i) => `
     <li class="field-item">

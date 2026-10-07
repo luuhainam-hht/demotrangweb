@@ -115,7 +115,7 @@
       const banner = document.createElement('div');
       banner.className = 'hours-banner';
       banner.setAttribute('role', 'status');
-      banner.innerHTML = '<span class="hours-banner-icon">🕒</span><div></div>';
+      banner.innerHTML = '<span class="hours-banner-icon"></span><div></div>';
       banner.querySelector('div').textContent = hours.message;
       const header = document.querySelector('.site-header');
       if (header) header.insertAdjacentElement('afterend', banner);
@@ -132,7 +132,7 @@
   offlineBar.className = 'offline-banner';
   offlineBar.setAttribute('role', 'alert');
   offlineBar.hidden = true;
-  offlineBar.innerHTML = '<span aria-hidden="true">📡</span> Máy đang mất kết nối mạng — tạm thời chưa lấy số được. Thông tin giấy tờ, hỏi đáp vẫn xem được. Hệ thống sẽ tự kết nối lại.';
+  offlineBar.innerHTML = '<span aria-hidden="true"></span> Máy đang mất kết nối mạng — tạm thời chưa lấy số được. Thông tin giấy tờ, hỏi đáp vẫn xem được. Hệ thống sẽ tự kết nối lại.';
   document.body.appendChild(offlineBar);
   const syncOffline = () => { offlineBar.hidden = navigator.onLine; };
   window.addEventListener('online', syncOffline);

@@ -6,17 +6,15 @@ function renderCategoryCards(services, opts) {
     return;
   }
   grid.innerHTML = services.map((s) => `
-    <a href="kiosk-checklist.html?serviceId=${s.id}" class="card-link category-card">
-      <div class="card">
-        <h3>${s.name}</h3>
-        <p class="desc">${s.field_name} • SLA ${s.sla_minutes} phút</p>
-        <div class="meta">Xem giấy tờ cần chuẩn bị →</div>
-      </div>
+    <a href="kiosk-checklist.html?serviceId=${s.id}" class="service-row">
+      <span class="service-row-name">${escHtml(s.name)}</span>
+      <span class="service-row-meta">${escHtml(s.field_name)}</span>
+      <span class="service-row-meta">Tiếp nhận khoảng ${Number(s.sla_minutes) || '-'} phút</span>
+      <span class="service-row-fee">${Number(s.fee_amount) > 0 ? Number(s.fee_amount).toLocaleString('vi-VN') + ' đ' : 'Miễn phí'}</span>
     </a>
   `).join('');
 
   if (opts.title) {
-    document.getElementById('categoryEyebrow').textContent = 'Kết quả tra cứu';
     document.getElementById('categoryTitle').textContent = opts.title;
     document.getElementById('categorySub').textContent = `Tìm thấy ${services.length} thủ tục phù hợp.`;
   }
@@ -24,7 +22,7 @@ function renderCategoryCards(services, opts) {
 
 function renderCategorySkeleton() {
   document.getElementById('categoryGrid').innerHTML = Array.from({ length: 8 })
-    .map(() => '<div class="skeleton-card" style="height:130px;"></div>').join('');
+    .map(() => '<div class="skeleton-card" style="height:58px;margin-bottom:6px;"></div>').join('');
 }
 
 async function loadPopularServices() {
@@ -40,7 +38,7 @@ async function performSearch(keyword) {
   renderCategorySkeleton();
   try {
     const services = await fetch(`/api/kiosk/services?q=${encodeURIComponent(keyword)}`).then((r) => r.json());
-    renderCategoryCards(services, { title: `Kết quả cho "${keyword}"` });
+    renderCategoryCards(services, { title: `Kết quả tìm "${keyword}"` });
     document.getElementById('categoryGrid').scrollIntoView({ behavior: 'smooth', block: 'start' });
   } catch (e) { /* bo qua */ }
 }
@@ -68,7 +66,7 @@ fetch('/api/kiosk/counters/status')
 // ---- Khoi "Thac mac thuong gap" tren Trang chu ----
 // Lay 6 cau hoi tieu bieu, moi chu de 1-2 cau, tu chinh kho tri thuc (/api/kiosk/faq) de khong
 // phai chep lai noi dung cau hoi o frontend - sua trong src/data/faqKnowledge.js la trang chu doi theo.
-const FAQ_HIGHLIGHT_IDS = ['HT-02', 'HT-04', 'TT-01', 'HTI-01', 'DD-01', 'HO-03'];
+const FAQ_HIGHLIGHT_IDS = ['HT-02', 'HT-04', 'TT-01', 'HTI-01', 'DD-01', 'HO-04'];
 
 function escHtml(str) {
   return String(str == null ? '' : str)
@@ -89,10 +87,7 @@ async function loadFaqHighlights() {
     const picked = FAQ_HIGHLIGHT_IDS.map((id) => byId[id]).filter(Boolean);
     const list = picked.length ? picked : all.slice(0, 6);
     row.innerHTML = list.map((f) => `
-      <a class="faq-quick" href="hoi-dap.html#faq-${escHtml(f.id)}">
-        <span class="q-ico" aria-hidden="true">❓</span>
-        <span>${escHtml(f.q)}</span>
-      </a>`).join('');
+      <a class="faq-quick" href="hoi-dap.html#faq-${escHtml(f.id)}">${escHtml(f.q)}</a>`).join('');
   } catch (e) {
     // Khong tai duoc thi an han khoi nay di, khong de lai khung xam trong tren Trang chu.
     row.innerHTML = '';

@@ -71,8 +71,8 @@ async function loadChecklist(serviceId) {
           <input type="checkbox" value="${esc(d.code)}" />
           <span>${esc(d.name)}${d.mandatory ? ' <b style="color:var(--color-danger)">*</b>' : ''}</span>
         </label>
-        ${d.hint ? `<div class="doc-hint">💡 ${esc(d.hint)}</div>` : ''}
-        ${d.hasFillGuide ? `<a class="btn btn-outline doc-guide-btn" href="${guideUrl(data.service.id)}">📝 Xem cách điền tờ khai này</a>` : ''}
+        ${d.hint ? `<div class="doc-hint">${esc(d.hint)}</div>` : ''}
+        ${d.hasFillGuide ? `<a class="btn btn-outline doc-guide-btn" href="${guideUrl(data.service.id)}">Xem cách điền tờ khai này</a>` : ''}
       </div>
     `).join('');
     renderServiceExtra(data.extra);
@@ -93,14 +93,14 @@ function renderServiceExtra(extra) {
   if (!extra) { box.innerHTML = ''; return; }
 
   const rows = [
-    ['📍', 'Nơi nộp hồ sơ', extra.where],
-    ['⏳', 'Thời hạn giải quyết theo quy định', extra.slaNote],
-    ['💻', 'Nộp trực tuyến', extra.online],
-    ['⚖️', 'Căn cứ', extra.legal]
+    ['', 'Nơi nộp hồ sơ', extra.where],
+    ['', 'Thời hạn giải quyết theo quy định', extra.slaNote],
+    ['', 'Nộp trực tuyến', extra.online],
+    ['', 'Căn cứ', extra.legal]
   ].filter((r) => r[2]);
 
   const tips = (extra.tips || []).map((t) => `<li>${esc(t)}</li>`).join('');
-  const warnings = (extra.warnings || []).map((w) => `<p class="svc-warning">⚠️ ${esc(w)}</p>`).join('');
+  const warnings = (extra.warnings || []).map((w) => `<p class="svc-warning">${esc(w)}</p>`).join('');
   const faqs = (extra.relatedFaqs || [])
     .map((f) => `<li><a href="hoi-dap.html#faq-${esc(f.id)}">${esc(f.q)}</a></li>`).join('');
   const sources = (extra.sources || [])
@@ -115,7 +115,7 @@ function renderServiceExtra(extra) {
       ${tips ? `<h4>Lưu ý quan trọng</h4><ul class="svc-tips">${tips}</ul>` : ''}
       ${warnings}
       ${extra.status === 'UNVERIFIED'
-        ? '<p class="svc-warning">⚠️ Phần thông tin ở trên CHƯA ĐƯỢC ĐỐI CHIẾU bằng nguồn chính thức — hãy hỏi cán bộ tại quầy để chắc chắn.</p>'
+        ? '<p class="svc-warning">Phần thông tin ở trên CHƯA ĐƯỢC ĐỐI CHIẾU bằng nguồn chính thức — hãy hỏi cán bộ tại quầy để chắc chắn.</p>'
         : `<p class="svc-status"><span class="badge-status ${esc(extra.status)}">${esc(extra.statusLabel || extra.status)}</span></p>`}
       ${faqs ? `<h4>Câu hỏi liên quan</h4><ul class="svc-faqs">${faqs}</ul>` : ''}
       ${sources ? `<details class="svc-sources"><summary>Nguồn tham khảo</summary><ul>${sources}</ul></details>` : ''}
@@ -136,7 +136,7 @@ function renderChecklistStatus() {
   if (missingDocs.length > 0) {
     box.innerHTML = `
       <div class="checklist-status checklist-status-missing">
-        <span class="icon">⚠️</span>
+        <span class="icon"></span>
         <div>
           <div>Còn thiếu ${missingDocs.length} giấy tờ bắt buộc</div>
           <div class="sub">${missingDocs.map((d) => d.name).join(', ')}</div>
@@ -145,7 +145,7 @@ function renderChecklistStatus() {
   } else {
     box.innerHTML = `
       <div class="checklist-status checklist-status-ok">
-        <span class="icon">✅</span>
+        <span class="icon"></span>
         <div>Đã đủ giấy tờ bắt buộc — sẵn sàng lấy số thứ tự!</div>
       </div>`;
   }
@@ -259,10 +259,10 @@ function showMissingDocsGuide(result) {
   if (form) {
     document.getElementById('formLocationBox').innerHTML = `
       <div class="location-box">
-        <b>📍 Vị trí lấy phôi tờ khai:</b> ${esc(form.shelf_name)} → ${esc(form.tray_number)} → ${esc(form.desk_area)}<br/>
+        <b>Vị trí lấy phôi tờ khai:</b> ${esc(form.shelf_name)} → ${esc(form.tray_number)} → ${esc(form.desk_area)}<br/>
         <div class="mt-16"><b>Tờ khai:</b> ${esc(form.form_name)}</div>
       </div>
-      ${currentService.hasFillGuide ? `<a class="btn btn-primary btn-block mt-16" href="${guideUrl(currentService.service.id)}">📝 Xem cách điền tờ khai từng bước</a>` : ''}`;
+      ${currentService.hasFillGuide ? `<a class="btn btn-primary btn-block mt-16" href="${guideUrl(currentService.service.id)}">Xem cách điền tờ khai từng bước</a>` : ''}`;
   } else {
     document.getElementById('formLocationBox').innerHTML = '<p class="text-muted">Vui lòng liên hệ quầy hỗ trợ để được hướng dẫn.</p>';
   }

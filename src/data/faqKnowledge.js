@@ -629,12 +629,11 @@ const FAQS = [
     id: 'HO-03', topic: 'HOTRO', status: 'SYSTEM',
     q: 'Màn hình chữ nhỏ quá, tôi nhìn không rõ thì làm sao?',
     aliases: ['chữ nhỏ quá', 'phóng to chữ', 'nhìn không rõ', 'tăng cỡ chữ', 'khó đọc'],
-    short: 'Trên thanh màu xanh đậm ở trên cùng mọi trang có nút chỉnh "Cỡ chữ": Vừa, To, Rất to. Bên cạnh còn nút "Tương phản cao" và "Đọc to trang này".',
+    short: 'Bạn phóng to trang ngay trên trình duyệt: trên máy tính bấm giữ phím Ctrl rồi bấm phím + (dấu cộng); trên điện thoại đặt hai ngón tay lên màn hình rồi kéo ra xa nhau.',
     details: [
-      'Chọn "Rất to" là chữ và cả các nút bấm đều to lên, dễ bấm trúng hơn.',
-      '"Tương phản cao" chuyển sang nền trắng, chữ đen đậm, viền rõ — hợp khi mắt kém hoặc ngoài trời nắng.',
-      '"Đọc to trang này" sẽ đọc nội dung thành tiếng; bấm lần nữa để dừng.',
-      'Hệ thống nhớ lựa chọn của bạn, sang trang khác vẫn giữ nguyên.'
+      'Muốn trở lại cỡ chữ ban đầu trên máy tính: bấm Ctrl và phím số 0.',
+      'Tại máy Kiosk của Trung tâm, cán bộ hướng dẫn có thể đọc giúp hoặc thao tác cùng bạn.',
+      'Trợ lý AI ở góc dưới bên phải trả lời ngắn gọn, bạn có thể hỏi thay vì đọc cả trang.'
     ]
   },
   {
