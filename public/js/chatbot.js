@@ -28,6 +28,16 @@
   // doc SSID/mat khau THAT ma may nay dang ket noi, khac voi WIFI_SSID/WIFI_PASSWORD Admin nhap
   // tay trong Cau hinh Tham so (dung lam du lieu huong dan van ban chung cho AI/rule-based).
   const WIFI_SERVICE_URL = 'http://localhost:5000/api/current-wifi';
+
+  // Chi goi Dich vu Wi-Fi cuc bo (localhost:5000) tren MAY KIOSK that: may da gan ma ?device=KIOSK-xx
+  // (deviceHeartbeat.js) hoac dang mo web qua localhost / IP mang LAN. Truoc day MOI nguoi mo web cong
+  // khai (dien thoai, may van phong) deu goi localhost:5000 -> loi do ERR_CONNECTION_REFUSED trong
+  // console va Chrome moi con hien hop thoai xin quyen "truy cap thiet bi trong mang cuc bo".
+  function isKioskMachine() {
+    try { if (localStorage.getItem('hcc_kiosk_device')) return true; } catch (e) { /* bo qua */ }
+    return /^(localhost|127\.0\.0\.1|\[::1\]|10\.\d+\.\d+\.\d+|192\.168\.\d+\.\d+|172\.(1[6-9]|2\d|3[01])\.\d+\.\d+)$/.test(window.location.hostname);
+  }
+
   const WIFI_KEYWORDS = ['wifi', 'wi-fi', 'wi fi', 'mang wifi', 'ket noi mang', 'mat khau wifi', 'internet'];
   let qrLibPromise = null;
 
@@ -270,7 +280,7 @@
   // neu khong goi duoc (may khong phai Kiosk / dich vu chua chay) thi dung Wi-Fi do Admin cau hinh
   // (GET /api/kiosk/wifi-qr, gom ca kieu bao mat WPA/WEP/nopass).
   async function loadWifiData() {
-    try {
+    if (isKioskMachine()) try {
       const res = await fetchWithTimeout(WIFI_SERVICE_URL, 2500);
       const data = await res.json();
       // Dich vu chay nhung khong doc duoc Wi-Fi (may dung day mang, loi netsh...) -> dung Wi-Fi Admin cau hinh.

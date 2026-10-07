@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Hỏi đáp - Giải đáp thắc mắc thủ tục hành chính</title>
 <meta name="description" content="Giải đáp chi tiết các thắc mắc thường gặp về thủ tục hành chính: lấy số thứ tự, giấy tờ tùy thân, hộ tịch, đất đai, hộ kinh doanh, nộp hồ sơ qua mạng." />
-<link rel="stylesheet" href="css/common.css?v=8" />
+<link rel="stylesheet" href="css/common.css?v=9" />
 <link rel="stylesheet" href="css/guide-pages.css?v=2" />
 <link rel="icon" href="assets/logoKiosk-icon-transparent.png" type="image/png" />
 <style>
@@ -69,36 +69,35 @@
     .faq-search-row .btn { width: 100%; }
   }
 </style>
-<script src="js/a11y.js?v=2"></script>
 </head>
 <body data-chatbot-auto-open="false">
 
-<div class="faq-wrap" data-a11y-read-scope>
+<div class="faq-wrap">
   <section class="faq-hero">
     <h1>Hỏi đáp – Giải đáp thắc mắc</h1>
     <p>Gõ điều bạn đang băn khoăn, hoặc chọn một nhóm bên dưới. Mỗi câu trả lời đều ghi rõ
        <b>nguồn tham khảo</b> và <b>mức độ xác thực</b> để bạn biết chỗ nào cần hỏi lại cán bộ.</p>
   </section>
 
-  <form class="faq-search-row" id="faqSearchForm" autocomplete="off" role="search" data-a11y-skip>
+  <form class="faq-search-row" id="faqSearchForm" autocomplete="off" role="search">
     <label for="faqSearchInput" class="hidden">Tìm câu hỏi</label>
     <input id="faqSearchInput" type="search" placeholder="VD: mất phiếu số, sang tên sổ đỏ bao lâu, lệ phí khai sinh..." />
     <button type="submit" class="btn btn-primary btn-lg">🔍 Tìm</button>
   </form>
-  <p class="faq-search-hint" data-a11y-skip>Không cần gõ đúng chính tả hay đủ dấu — cứ gõ như bạn nói.</p>
+  <p class="faq-search-hint">Không cần gõ đúng chính tả hay đủ dấu — cứ gõ như bạn nói.</p>
 
-  <div class="topic-row" id="topicRow" role="group" aria-label="Lọc theo nhóm chủ đề" data-a11y-skip></div>
+  <div class="topic-row" id="topicRow" role="group" aria-label="Lọc theo nhóm chủ đề"></div>
 
   <div id="faqResultCount" class="result-count hidden" role="status"></div>
   <div id="faqList" aria-live="polite"></div>
 
-  <div class="card ask-box mt-24" data-a11y-skip>
+  <div class="card ask-box mt-24">
     <h2>Vẫn chưa tìm thấy câu trả lời?</h2>
     <p class="text-muted">Hỏi Trợ lý AI bằng chính lời của bạn, hoặc hỏi trực tiếp cán bộ tại quầy hỗ trợ.</p>
     <button type="button" class="btn btn-primary btn-lg mt-16" data-action="faqAskAssistant">💬 Hỏi Trợ lý AI</button>
   </div>
 
-  <div class="card mt-24 unverified-card" data-a11y-skip>
+  <div class="card mt-24 unverified-card">
     <h3>Xin đọc kỹ</h3>
     <p class="big-text">Nội dung trên trang này là <b>thông tin tham khảo</b> giúp bạn chuẩn bị trước,
       <b>không thay thế</b> văn bản pháp luật hay hướng dẫn của cán bộ. Mức tiền và thời hạn có thể
@@ -110,8 +109,8 @@
 
 <script src="js/apiClient.js"></script>
 <script src="js/actionDelegate.js"></script>
-<script src="js/header.js?v=3"></script>
-<script src="js/chatbot.js?v=8"></script>
+<script src="js/header.js?v=4"></script>
+<script src="js/chatbot.js?v=9"></script>
 <script src="js/hoi-dap.js?v=1"></script>
 </body>
 </html>

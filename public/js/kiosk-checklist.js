@@ -13,7 +13,9 @@ function guideUrl(serviceId) {
 }
 
 function tapFeedback() {
-  if (navigator.vibrate) navigator.vibrate(12);
+  // Chi rung khi nguoi dung da cham vao trang (trinh duyet chan va bao loi neu goi som hon).
+  const active = navigator.userActivation ? navigator.userActivation.hasBeenActive : true;
+  if (active && navigator.vibrate) navigator.vibrate(12);
 }
 
 const STEP_ORDER = ['home', 'checklist', 'ticket'];

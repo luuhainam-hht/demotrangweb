@@ -6,6 +6,15 @@
 // mang THAT may dang ket noi - xem wifi-local-service/); khong co thi dung Wi-Fi Admin cau hinh.
 const WIFI_SERVICE_URL = 'http://localhost:5000/api/current-wifi';
 
+// Chi goi Dich vu Wi-Fi cuc bo (localhost:5000) tren MAY KIOSK that: may da gan ma ?device=KIOSK-xx
+// (deviceHeartbeat.js) hoac dang mo web qua localhost / IP mang LAN. Truoc day MOI nguoi mo web cong
+// khai (dien thoai, may van phong) deu goi localhost:5000 -> loi do ERR_CONNECTION_REFUSED trong
+// console va Chrome moi con hien hop thoai xin quyen "truy cap thiet bi trong mang cuc bo".
+function isKioskMachine() {
+  try { if (localStorage.getItem('hcc_kiosk_device')) return true; } catch (e) { /* bo qua */ }
+  return /^(localhost|127\.0\.0\.1|\[::1\]|10\.\d+\.\d+\.\d+|192\.168\.\d+\.\d+|172\.(1[6-9]|2\d|3[01])\.\d+\.\d+)$/.test(window.location.hostname);
+}
+
 function esc(value) {
   return String(value == null ? '' : value).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
@@ -20,10 +29,12 @@ function fetchWithTimeout(url, ms) {
 }
 
 async function loadNetwork(configured) {
-  try {
-    const data = await (await fetchWithTimeout(WIFI_SERVICE_URL, 2500)).json();
-    if (data && data.success) return { ...data, from: 'local' };
-  } catch (err) { /* khong phai may Kiosk hoac dich vu chua chay - dung du lieu cau hinh */ }
+  if (isKioskMachine()) {
+    try {
+      const data = await (await fetchWithTimeout(WIFI_SERVICE_URL, 2500)).json();
+      if (data && data.success) return { ...data, from: 'local' };
+    } catch (err) { /* dich vu chua chay - dung du lieu cau hinh */ }
+  }
   if (configured && configured.ssid) {
     return { ssid: configured.ssid, password: configured.password || '', qrString: configured.payload, qrSupported: true, from: 'config' };
   }

@@ -2,8 +2,6 @@
 // vao moi trang, khong phai lap lai markup logo/nav o tung file HTML.
 //
 // Thay doi 2026-09:
-//  - Nut "Chu to hon" cu (1 muc, zoom 1.08) da chuyen sang THANH TRO NANG rieng (js/a11y.js)
-//    voi 3 muc co chu + tuong phan cao + doc to. Khong giu 2 noi chinh co chu de tranh lech nhau.
 //  - Tren dien thoai, 6 lien ket dieu huong gio gom vao 1 nut "Menu" (truoc day bi bop lai
 //    con 0.8rem, rat kho bam - chinh la nhom nguoi dung ma he thong phuc vu nhieu nhat).
 (function () {

@@ -154,6 +154,18 @@ wsHub.init(server); // WebSocket tich hop chung port voi HTTP server
 // Render (va cac PaaS khac) tu gan cong qua bien PORT - phai uu tien no truoc SERVER_PORT.
 const PORT = process.env.PORT || process.env.SERVER_PORT || 3000;
 
+// Nang cap 2.0.1: thieu chuoi ket noi CSDL tren may chu cloud (Render) -> bao loi RO RANG thay vi
+// de pg tu ket noi localhost:5432 roi chet voi ECONNREFUSED kho hieu. Day la nguyen nhan pho bien
+// nhat khien deploy Render "Failed": bien DATABASE_URL khai bao sync:false trong render.yaml nen
+// moi service tao tu Blueprint PHAI tu dan chuoi Neon vao tab Environment.
+if (!process.env.DATABASE_URL && !process.env.DB_HOST && process.env.RENDER) {
+  console.error('==================================================================================');
+  console.error('THIEU BIEN MOI TRUONG DATABASE_URL. Vao Render Dashboard -> service nay -> Environment');
+  console.error('-> Add Environment Variable: DATABASE_URL = chuoi ket noi Neon (postgresql://...neon.tech/...)');
+  console.error('==================================================================================');
+  process.exit(1);
+}
+
 runMigrations.run()
   .then(() => configService.loadAll())
   .then(() => {

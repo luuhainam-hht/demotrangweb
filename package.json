@@ -1,6 +1,6 @@
 {
   "name": "smart-public-queue-system",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "He thong Hanh chinh cong Mot cua Thong minh - Smart Public Administrative Queue & Kiosk Dispatcher System",
   "main": "src/server.js",
   "scripts": {

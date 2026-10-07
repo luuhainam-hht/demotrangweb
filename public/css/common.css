@@ -81,9 +81,6 @@ body {
   margin-right: 6px;
 }
 
-/* (Nut "Chu to hon" 1 muc cu da duoc thay bang THANH TRO NANG 3 muc o js/a11y.js
-   + phan cuoi file nay - khong con .site-font-toggle.) */
-
 /* ============== Focus ro rang khi dieu huong bang ban phim (Accessibility) ============== */
 .btn:focus-visible, .card-link:focus-visible, .service-item:focus-visible,
 .site-nav-link:focus-visible, .chatbot-fab:focus-visible, .chatbot-chip:focus-visible,
@@ -466,22 +463,8 @@ th { color: var(--color-text-muted); font-weight: 600; text-transform: uppercase
 
 .chatbot-link { color: var(--color-primary-dark, #1d4ed8); font-weight: 700; text-decoration: underline; }
 
-/* =====================================================================================
-   NÂNG CẤP TRỢ NĂNG & GIAO DIỆN DỄ ĐỌC (thêm 2026-09)
-   Mục tiêu: một giao diện phục vụ ĐƯỢC CẢ người cao tuổi lẫn người trẻ, thay vì làm 2 bản.
-   Nguyên tắc:
-     1. Nền tảng đọc được: cỡ chữ gốc 17px (cũ 16px), giãn dòng 1.6, vùng bấm tối thiểu 48px
-        (khuyến nghị WCAG 2.1 AAA 2.5.5 Target Size), tương phản chữ/nền đạt WCAG AA.
-     2. Người dùng tự chỉnh: 3 mức cỡ chữ + chế độ tương phản cao + đọc to (js/a11y.js),
-        trạng thái nhớ qua localStorage nên giữ nguyên khi chuyển trang.
-     3. Không phá bố cục cũ: toàn bộ nằm ở CUỐI file nên ghi đè các quy tắc phía trên theo
-        thứ tự cascade, không phải sửa rải rác từng dòng.
-   LƯU Ý khi sửa: KHÔNG thêm <script> inline hay onclick= (CSP ở server.js chặn tuyệt đối).
-   ===================================================================================== */
-
 :root {
   --font-base: 17px;
-  --a11y-zoom: 1;
   --tap-min: 48px;
   --line-body: 1.6;
   /* Xanh đậm hơn --color-primary (#2563eb) - dùng cho CHỮ trên nền sáng để đạt tương phản
@@ -492,15 +475,14 @@ th { color: var(--color-text-muted); font-weight: 600; text-transform: uppercase
 /* 3 mức cỡ chữ. Dùng `zoom` (không phải chỉ font-size) để nút bấm, ô nhập, khoảng cách
    cùng to lên theo - người lớn tuổi khó bấm trúng nút nhỏ y như khó đọc chữ nhỏ.
    Firefox hỗ trợ zoom từ bản 126 (2024); trình duyệt quá cũ chỉ đơn giản là không phóng to. */
-html[data-font-level='large']  { --a11y-zoom: 1.15; }
-html[data-font-level='xlarge'] { --a11y-zoom: 1.32; }
-body { font-size: var(--font-base); line-height: var(--line-body); zoom: var(--a11y-zoom); }
+
+body { font-size: var(--font-base); line-height: var(--line-body);  }
 
 /* Các phần tử position:fixed tính theo 100vw sẽ bị tràn khi body được zoom -> chia lại cho
    đúng hệ số zoom. Thiếu đoạn này, ở mức "Rất to" khung chat bị đẩy lọt ra ngoài màn hình. */
-.chatbot-panel { max-width: calc((100vw - 40px) / var(--a11y-zoom)); }
+.chatbot-panel { max-width: calc(100vw - 40px); }
 @media (max-width: 480px) {
-  .chatbot-panel { width: calc((100vw - 24px) / var(--a11y-zoom)); }
+  .chatbot-panel { width: calc(100vw - 24px); }
 }
 
 /* ---------- Kích thước chữ nền: to hơn bản cũ ở những chỗ người dân phải đọc ---------- */
@@ -549,43 +531,6 @@ input[type='checkbox'], input[type='radio'] { min-height: 0; width: 26px; height
   text-underline-offset: 2px;
 }
 
-/* ---------- Thanh trợ năng (render bởi js/a11y.js) ---------- */
-.a11y-bar {
-  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
-  padding: 7px 20px;
-  background: #0f2d5c; color: #fff;
-  font-size: 0.95rem;
-}
-.a11y-bar-label { font-weight: 700; display: flex; align-items: center; gap: 6px; margin-right: 2px; }
-.a11y-group { display: flex; align-items: center; gap: 6px; }
-.a11y-group-label { opacity: 0.85; font-size: 0.9rem; }
-.a11y-btn {
-  background: rgba(255,255,255,0.12); color: #fff;
-  border: 1.5px solid rgba(255,255,255,0.35); border-radius: 999px;
-  padding: 7px 14px; font-size: 0.95rem; font-weight: 700; cursor: pointer;
-  min-height: 40px; display: inline-flex; align-items: center; gap: 6px;
-  font-family: inherit;
-}
-.a11y-btn:hover { background: rgba(255,255,255,0.24); }
-.a11y-btn[aria-pressed='true'] { background: #fff; color: #0f2d5c; border-color: #fff; }
-.a11y-btn:focus-visible { outline: 3px solid #fde047; outline-offset: 2px; }
-.a11y-sep { width: 1px; height: 26px; background: rgba(255,255,255,0.28); }
-.a11y-spacer { flex: 1; }
-@media (max-width: 860px) {
-  .a11y-bar { padding: 7px 14px; gap: 7px; font-size: 0.88rem; }
-  .a11y-bar-label span.a11y-label-text { display: none; }
-  .a11y-group-label { display: none; }
-  .a11y-spacer { display: none; }
-}
-
-/* Bỏ qua điều hướng, tới thẳng nội dung (người dùng bàn phím / đọc màn hình) */
-.skip-link {
-  position: absolute; left: -9999px; top: 0; z-index: 999;
-  background: #0f2d5c; color: #fff; padding: 14px 22px; border-radius: 0 0 12px 0;
-  font-weight: 700; text-decoration: none;
-}
-.skip-link:focus { left: 0; }
-
 /* ---------- Header: gọn trên điện thoại (trước đây 5 liên kết bị bóp lại rất khó bấm) ---------- */
 .site-nav-toggle {
   display: none; align-items: center; gap: 8px;
@@ -625,63 +570,7 @@ input[type='checkbox'], input[type='radio'] { min-height: 0; width: 26px; height
 /* Bảng dài trên điện thoại: cuộn ngang trong khung thay vì đẩy vỡ cả trang */
 .table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
 
-/* ---------- CHẾ ĐỘ TƯƠNG PHẢN CAO ----------
-   Dành cho người mắt kém / đục thủy tinh thể / dùng máy ngoài trời nắng.
-   Đổi biến màu ở gốc nên áp dụng được cho mọi thành phần mà không phải viết lại từng lớp. */
-html[data-contrast='high'] {
-  --color-bg: #ffffff;
-  --color-surface: #ffffff;
-  --color-text: #000000;
-  --color-text-muted: #1a1a1a;
-  --color-border: #000000;
-  --color-primary: #0b3d91;
-  --color-primary-dark: #062a68;
-  --color-primary-text: #062a68;
-  --color-success: #0a6b2e;
-  --color-danger: #a4121a;
-  --color-warning: #8a4b00;
-  --gradient-brand: linear-gradient(135deg, #062a68, #0b3d91);
-  --shadow-card: none;
-}
-html[data-contrast='high'] body { background: #fff; }
-html[data-contrast='high'] .card,
-html[data-contrast='high'] .checklist-item,
-html[data-contrast='high'] .big-step,
-html[data-contrast='high'] .dvc-step,
-html[data-contrast='high'] .field-item,
-html[data-contrast='high'] .rule-item,
-html[data-contrast='high'] .step-item {
-  border: 2px solid #000 !important; box-shadow: none !important; background: #fff !important;
-}
-html[data-contrast='high'] .hero-banner { background: #fff !important; border: 2px solid #000; }
-html[data-contrast='high'] .text-muted,
-html[data-contrast='high'] .category-card p.desc,
-html[data-contrast='high'] .faq-item p { color: #1a1a1a !important; }
 /* Chữ tô gradient (ticket-number, hero-stat) gần như không đọc được ở chế độ tương phản cao */
-html[data-contrast='high'] .hero-stat .val,
-html[data-contrast='high'] .ticket-number,
-html[data-contrast='high'] .track-number {
-  background: none !important; -webkit-text-fill-color: #062a68; color: #062a68 !important;
-}
-html[data-contrast='high'] .btn-primary { background: #062a68 !important; color: #fff !important; box-shadow: none !important; }
-html[data-contrast='high'] .btn-outline { border: 2px solid #000; color: #000; }
-html[data-contrast='high'] .badge,
-html[data-contrast='high'] .src-chip,
-html[data-contrast='high'] .chatbot-chip { border: 1.5px solid #000 !important; }
-html[data-contrast='high'] .badge-green { background: #c8f2d4; color: #063d1b; }
-html[data-contrast='high'] .badge-yellow { background: #ffeeb8; color: #4a3000; }
-html[data-contrast='high'] .badge-red { background: #ffd6d6; color: #6b0a10; }
-html[data-contrast='high'] a { text-decoration: underline; }
-html[data-contrast='high'] .site-header { border-bottom: 3px solid #000; }
-html[data-contrast='high'] .skeleton-card { background: #e8e8e8; animation: none; }
-
-/* Đang được đọc to (js/a11y.js) - tô sáng đoạn đang đọc để người nghe bám theo được */
-.a11y-reading {
-  background: #fff3bf;
-  box-shadow: 0 0 0 3px #fff3bf;
-  border-radius: 4px;
-}
-html[data-contrast='high'] .a11y-reading { background: #ffe066; box-shadow: 0 0 0 3px #ffe066; }
 
 /* ---------- Tôn trọng thiết lập "giảm chuyển động" của hệ điều hành ----------
    Hiệu ứng nhấp nháy/trượt gây chóng mặt với người tiền đình, và làm người lớn tuổi
@@ -697,10 +586,9 @@ html[data-contrast='high'] .a11y-reading { background: #ffe066; box-shadow: 0 0 
 
 /* Focus rõ hơn nữa: viền vàng bên trong + xanh bên ngoài, thấy được trên cả nền sáng lẫn tối */
 :focus-visible { outline: 3px solid var(--color-primary); outline-offset: 2px; }
-.a11y-bar :focus-visible { outline-color: #fde047; }
 
 @media print {
-  .a11y-bar, .skip-link, .site-nav-toggle { display: none !important; }
+  .site-nav-toggle { display: none !important; }
 }
 
 /* ---------- Khung Trợ lý AI: chữ cũ 0.88rem quá nhỏ với người lớn tuổi ---------- */
@@ -723,25 +611,6 @@ html[data-contrast='high'] .a11y-reading { background: #ffe066; box-shadow: 0 0 
    no day nut "Tra cuu" de len chinh minh. Cho input tu co gian theo cho trong con lai. */
 .hero-search-row input { flex: 1 1 auto; width: auto; min-width: 0; }
 .faq-search-row input { flex: 1 1 auto; width: auto; min-width: 0; }
-
-/* Thanh trợ năng: gọn trên điện thoại (thu sau 1 nút), trải ra trên màn hình rộng */
-.a11y-controls { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; flex: 1; }
-.a11y-controls[hidden] { display: none; }
-.a11y-bar-toggle {
-  display: none; align-items: center; gap: 8px;
-  background: rgba(255,255,255,0.12); color: #fff;
-  border: 1.5px solid rgba(255,255,255,0.35); border-radius: 999px;
-  padding: 9px 16px; font-size: 0.95rem; font-weight: 700; font-family: inherit;
-  min-height: 44px; cursor: pointer;
-}
-.a11y-bar-toggle:hover { background: rgba(255,255,255,0.24); }
-.a11y-bar-toggle:focus-visible { outline: 3px solid #fde047; outline-offset: 2px; }
-@media (max-width: 860px) {
-  .a11y-bar { flex-direction: column; align-items: stretch; }
-  .a11y-bar-toggle { display: inline-flex; justify-content: center; }
-  .a11y-controls { padding-top: 8px; }
-  .a11y-bar-label { display: none; }
-}
 
 /* Liên kết "xem tất cả" đứng riêng một mình (không nằm trong đoạn văn) vẫn là một đích bấm —
    cho nó vùng bấm đủ lớn thay vì chỉ cao bằng dòng chữ. */

@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Bảng LED - Gọi số Trung tâm</title>
-<link rel="stylesheet" href="css/common.css?v=8" />
+<link rel="stylesheet" href="css/common.css?v=9" />
 <link rel="icon" href="assets/logoKiosk-icon-transparent.png" type="image/png" />
 <style>
   /* BANG LED treo tuong: nguoi dan dung/ngoi cach man hinh 3-8 met, trong do co nguoi cao tuoi
@@ -63,11 +63,13 @@
   @media (orientation: portrait) {
     .led-grid { grid-template-columns: 1fr; }
     .led-card .ticket-num { font-size: clamp(3.5rem, 13vw, 9rem); }
+    /* Trang thai bang chu (ĐÓNG QUẦY...) dai gap nhieu lan so thu tu: khong dung co chu cua so,
+       cho phep xuong dong - truoc day tran ra ngoai man hinh doc hep. */
+    .led-card .ticket-num-text { font-size: clamp(1.4rem, 6vw, 3rem); white-space: normal; }
   }
 </style>
-<script src="js/a11y.js?v=2"></script>
 </head>
-<body data-a11y-bar="false">
+<body>
 <div class="led-wrap">
   <div class="led-header">
     <h1>🔊 TRUNG TÂM HÀNH CHÍNH CÔNG - BẢNG GỌI SỐ</h1>
@@ -82,6 +84,6 @@
 <script src="js/actionDelegate.js"></script>
 <script src="js/deviceHeartbeat.js?v=1"></script>
 <script src="js/display.js?v=4"></script>
-<script src="js/header.js?v=3"></script>
+<script src="js/header.js?v=4"></script>
 </body>
 </html>

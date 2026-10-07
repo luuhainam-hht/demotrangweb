@@ -101,8 +101,6 @@ smart-queue-system/
     ├── assets/logoKiosk-trimmed-transparent.png  # Logo wordmark đã cắt viền trắng + nền trong
     │                                    suốt, dùng cho header/login (tạo bằng Pillow, xem mục 3)
     ├── assets/logoKiosk-icon-transparent.png     # Chỉ phần icon "K" (vuông), dùng làm favicon
-    ├── js/a11y.js                     # Thanh trợ năng dùng chung (3 mức cỡ chữ + tương phản cao
-    │                                    + đọc to trang) - nạp trong <head> của MỌI trang (mục 3)
     ├── js/header.js                   # Header dùng chung (logo + nav) - tự gắn vào mọi trang
     ├── js/chatbot.js                  # Widget Trợ lý AI - tự gắn vào mọi trang (xem mục 3)
     ├── js/actionDelegate.js           # Event delegation (data-action=...) thay cho onclick=...
@@ -279,18 +277,7 @@ khẩu riêng (tối thiểu 8 ký tự, có cả chữ và số) trước khi v
   **không cần migration CSDL**), hiện ở cuối màn hình đối chiếu giấy tờ và được ghép thẳng vào câu
   trả lời của chatbot. ⚠️ Phân biệt: `sla_minutes` trong CSDL là **phút phục vụ tại quầy**, còn
   `slaNote` là **thời hạn trả kết quả hồ sơ theo quy định** — hai con số rất dễ bị nhầm.
-- **Trợ năng — phục vụ được cả người cao tuổi lẫn người trẻ trên MỘT giao diện** (`public/js/a11y.js`
-  + phần cuối `css/common.css`): thanh công cụ ở trên cùng mọi trang có **3 mức cỡ chữ**
-  (Vừa / To / Rất to), **chế độ tương phản cao** (nền trắng, chữ đen, viền rõ — cho mắt kém hoặc
-  dùng ngoài nắng) và **đọc to trang này** (Web Speech API, giọng `vi-VN` nếu máy có, tô sáng đoạn
-  đang đọc). Lựa chọn được nhớ qua `localStorage` nên giữ nguyên khi chuyển trang và khi quay lại.
-  Nền tảng đi kèm: cỡ chữ gốc 17px (cũ 16px), giãn dòng 1.6, **mọi nút/ô nhập cao tối thiểu 48px**,
-  màu chữ phụ đổi sang `#55627a` để đạt tương phản WCAG AA, `prefers-reduced-motion` được tôn trọng,
-  liên kết trong nội dung luôn gạch chân, có liên kết "Bỏ qua, tới nội dung chính" cho người dùng
-  bàn phím. Trên điện thoại: thanh trợ năng thu sau 1 nút, menu điều hướng gom vào nút "Menu", các
-  lưới `grid-3`/`grid-4` co lại theo màn hình (trước đây **không có** quy tắc co, bị vỡ trên điện
-  thoại), và Trợ lý AI **không tự bung ra** (khung chat phủ gần hết màn hình nhỏ).
-  Cỡ chữ dùng `zoom` trên `<body>` để nút bấm to lên cùng chữ — Firefox hỗ trợ `zoom` từ bản 126.
+- **Giao diện dễ đọc**: cỡ chữ gốc 17px, giãn dòng 1.6, mọi nút/ô nhập cao tối thiểu 48px, màu chữ đạt tương phản WCAG AA. (Thanh "Trợ năng" — chỉnh cỡ chữ/tương phản/đọc to — đã được gỡ bỏ ở bản 2.0.1.)
 - **Bảng LED (`display.html`)**: cỡ chữ tính theo `vw` (không phải px cố định) để đọc được từ xa
   trên cả màn hình 32 inch lẫn TV 65 inch, số thứ tự không ngắt dòng (tránh đọc nhầm thành 2 số),
   ẩn menu điều hướng và nút Trợ lý AI vì không ai bấm được vào màn hình treo tường.
