@@ -78,17 +78,12 @@ if errorlevel 1 (
   if not "!CHON!"=="2" goto lay_ve
 )
 
-rem GitHub có commit mới hơn máy (VD sửa từ máy khác) - kéo về trước khi đẩy.
-set "BEHIND=0"
-for /f %%n in ('git rev-list --count HEAD..origin/%BRANCH% 2^>nul') do set "BEHIND=%%n"
-if not "!BEHIND!"=="0" (
-  echo  GitHub đang có !BEHIND! commit mới hơn máy này. Đang kéo về và ghép...
-  git pull -q --rebase --autostash origin %BRANCH%
-  if errorlevel 1 (
-    echo  [LỖI] Không ghép tự động được vì cùng một đoạn bị sửa ở hai nơi.
-    echo        Chạy: git rebase --abort   rồi nhờ người hỗ trợ.
-    goto loi
-  )
+rem GitHub có bản mới hơn máy (VD sửa từ máy khác, hoặc vừa cập nhật code) - ghép vào trước.
+call "%~dp0tu-dong-github\dong-bo-voi-github.bat" %BRANCH%
+if errorlevel 1 (
+  echo  [DỪNG] Có file bị sửa ở cả máy này và trên GitHub - không ghép tự động để tránh mất code.
+  echo         Chụp màn hình danh sách trên gửi người hỗ trợ.
+  goto loi
 )
 
 rem ------------------------------------------------------------------------------

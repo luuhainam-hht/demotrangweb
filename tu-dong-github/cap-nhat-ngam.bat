@@ -64,6 +64,13 @@ if not errorlevel 1 (
 findstr /x /c:".env" ".gitignore" >nul 2>&1
 if errorlevel 1 echo .env>>".gitignore"
 
+rem --- Ghép bản mới từ GitHub vào trước (không mất sửa đổi trên máy) ---
+call "%~dp0dong-bo-voi-github.bat" %BRANCH% >>"%LOG%" 2>&1
+if errorlevel 1 (
+  call :ghi "DUNG: co file bi sua o ca may va GitHub - can ghep tay, xem dong [XUNG DOT] o tren"
+  exit /b 1
+)
+
 git add -A
 git diff --cached --name-only | findstr /x /c:".env" >nul
 if not errorlevel 1 (
