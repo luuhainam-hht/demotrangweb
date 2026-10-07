@@ -2,3 +2,6 @@ node_modules/
 .env
 *.log
 backups/
+Claude outputs/
+# Ban thao bao cao do an - de ngoai kho GitHub cong khai (xoa dong duoi neu muon dua len)
+docs/BaoCao-DoAnTotNghiep.*
