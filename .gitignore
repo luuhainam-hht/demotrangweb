@@ -6,3 +6,6 @@ backups/
 Claude outputs/
 # Ban thao bao cao do an - de ngoai kho GitHub cong khai (xoa dong duoi neu muon dua len)
 docs/BaoCao-DoAnTotNghiep.*
+# File cu da go o ban 2.0.1 - con sot trong cac thu muc chep tay, khong dua lai len GitHub
+/*.ps1
+public/js/a11y.js
