@@ -25,6 +25,8 @@ Nâng cấp theo đúng mục **6.17 – Hạn chế** và **Hướng phát tri�
 - **Chế độ mất mạng** cho Kiosk (Service Worker) và thư viện QR đóng gói sẵn, không cần CDN.
 - `npm audit`: 0 lỗ hổng · `npm run load:test` kiểm thử tải · 184 ca kiểm thử (có 3 ca tích hợp PostgreSQL thật).
 
+**Đẩy code lên GitHub** (`luuhainam-hht/demotrangweb`, Render tự deploy): bấm đúp `cap-nhat-github.bat`. Muốn **tự động** đẩy định kỳ: bấm đúp `bat-tu-dong-cap-nhat.bat` (tạo lịch Windows chạy ngầm; chỉ đẩy khi có thay đổi + test đạt; nhật ký ở `tu-dong-github.log`), tắt bằng `tat-tu-dong-cap-nhat.bat`.
+
 | Lệnh mới | Tác dụng |
 |---|---|
 | `npm run sync:status` | So sánh dữ liệu Neon ↔ PostgreSQL Docker |
