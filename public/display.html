@@ -4,30 +4,70 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Bảng LED - Gọi số Trung tâm</title>
-<link rel="stylesheet" href="css/common.css?v=4" />
+<link rel="stylesheet" href="css/common.css?v=8" />
 <link rel="icon" href="assets/logoKiosk-icon-transparent.png" type="image/png" />
 <style>
-  body { background: #0f172a; color: #fff; }
-  .led-wrap { padding: 30px; }
-  .led-header { text-align: center; margin-bottom: 30px; }
-  .led-header h1 { font-size: 2.2rem; margin-bottom: 4px; }
-  .led-clock { font-size: 1.3rem; color: #94a3b8; }
-  .led-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px; }
+  /* BANG LED treo tuong: nguoi dan dung/ngoi cach man hinh 3-8 met, trong do co nguoi cao tuoi
+     mat kem. Moi co chu deu tinh theo be ngang man hinh (vw) de cung 1 file chay dung tren ca
+     man hinh 32 inch lan TV 65 inch, thay vi co chu px co dinh nhu ban cu (3.2rem, doc rat kho
+     tu xa tren man hinh lon). clamp() giu can duoi cho man hinh nho va can tren cho man hinh
+     cuc lon. Nen dam + chu trang: tuong phan cao nhat, chong loa sang den tran. */
+  body { background: #05080f; color: #fff; }
+  .led-wrap { padding: 2vw 2.5vw; }
+  .led-header { text-align: center; margin-bottom: 2vw; }
+  .led-header h1 { font-size: clamp(1.6rem, 2.6vw, 3.4rem); margin: 0 0 6px; letter-spacing: 0.01em; }
+  .led-clock { font-size: clamp(1.1rem, 1.6vw, 2.2rem); color: #cbd5e1; font-weight: 600; }
+  .led-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 380px), 1fr)); gap: 1.6vw; }
   .led-card {
-    background: #1e293b; border-radius: 20px; padding: 26px; text-align: center;
-    border: 2px solid #334155;
+    background: #131c2e; border-radius: 22px; padding: 2vw 1.6vw; text-align: center;
+    border: 3px solid #35507e;
   }
-  .led-card.calling { border-color: #22c55e; box-shadow: 0 0 30px rgba(34,197,94,0.4); animation: pulse 1.4s infinite; }
-  @keyframes pulse { 0%,100% { box-shadow: 0 0 20px rgba(34,197,94,0.3);} 50% { box-shadow: 0 0 40px rgba(34,197,94,0.6);} }
-  .led-card .counter-name { color: #94a3b8; font-size: 1rem; margin-bottom: 10px; }
-  .led-card .ticket-num { font-size: 3.2rem; font-weight: 800; letter-spacing: 2px; }
-  .led-card .status-line { margin-top: 10px; font-size: 0.95rem; color: #cbd5e1; }
-  .btn-enable-audio {
-    position: fixed; bottom: 24px; left: 24px; z-index: 50;
+  /* Quay dang goi so: vien xanh la + nen sang hon - nhin luot qua la thay ngay quay nao dang goi. */
+  .led-card.calling {
+    border-color: #4ade80; background: #0d2a18;
+    box-shadow: 0 0 40px rgba(74, 222, 128, 0.45);
+    animation: ledPulse 1.6s infinite;
+  }
+  @keyframes ledPulse {
+    0%, 100% { box-shadow: 0 0 24px rgba(74,222,128,0.35); }
+    50% { box-shadow: 0 0 56px rgba(74,222,128,0.7); }
+  }
+  .led-card .counter-name { color: #e2e8f0; font-size: clamp(1.1rem, 1.5vw, 2rem); font-weight: 700; margin-bottom: 8px; }
+  .led-card .ticket-num {
+    /* nowrap: "A-105" bi ngat dong ngay sau dau gach ngang thanh 2 hang, nhin tu xa rat de doc
+       nham thanh 2 so khac nhau. Co chu lay theo be ngang man hinh nhung co tran de 5 ky tu
+       luon nam gon 1 hang trong the. */
+    font-size: clamp(2.8rem, 5.5vw, 6.5rem); font-weight: 800; letter-spacing: 3px; line-height: 1.1;
+    color: #ffffff; white-space: nowrap;
+  }
+  /* Trang thai bang chu (ĐÓNG QUẦY / TẠM DỪNG / — sẵn sàng —) dai hon so thu tu nhieu lan */
+  .led-card .ticket-num-text {
+    font-size: clamp(1.5rem, 2.6vw, 3.2rem); letter-spacing: 1px; color: #94a3b8;
+  }
+  .led-card.calling .ticket-num-text { color: #86efac; }
+  .led-card.calling .ticket-num { color: #86efac; }
+  .led-card .status-line { margin-top: 10px; font-size: clamp(0.95rem, 1.25vw, 1.7rem); color: #cbd5e1; font-weight: 600; }
+  .btn-enable-audio { position: fixed; bottom: 24px; left: 24px; z-index: 50; }
+
+  /* Man hinh LED khong co nguoi bam: an nut Tro ly AI va ca menu dieu huong - khong ai bam duoc
+     vao man hinh treo tuong, de lai chi ton cho va lam mat khong gian hien so. */
+  .chatbot-widget { display: none; }
+  .site-header {
+    height: auto; padding: 10px 2vw; background: transparent; border-bottom: 1px solid #1e293b;
+    border-top: none; border-image: none; position: static;
+  }
+  .site-nav, .site-nav-toggle { display: none !important; }
+  .site-logo { height: clamp(28px, 2.2vw, 48px); }
+
+  /* Man hinh doc (portrait) hay dung cho bang LED dat o hanh lang hep */
+  @media (orientation: portrait) {
+    .led-grid { grid-template-columns: 1fr; }
+    .led-card .ticket-num { font-size: clamp(3.5rem, 13vw, 9rem); }
   }
 </style>
+<script src="js/a11y.js?v=2"></script>
 </head>
-<body>
+<body data-a11y-bar="false">
 <div class="led-wrap">
   <div class="led-header">
     <h1>🔊 TRUNG TÂM HÀNH CHÍNH CÔNG - BẢNG GỌI SỐ</h1>
@@ -40,8 +80,8 @@
 <script src="js/apiClient.js"></script>
 <script src="js/wsClient.js"></script>
 <script src="js/actionDelegate.js"></script>
-<script src="js/display.js"></script>
-<script src="js/header.js"></script>
-<script src="js/chatbot.js?v=6"></script>
+<script src="js/deviceHeartbeat.js?v=1"></script>
+<script src="js/display.js?v=4"></script>
+<script src="js/header.js?v=3"></script>
 </body>
 </html>

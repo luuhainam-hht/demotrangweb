@@ -34,6 +34,69 @@ function render(info) {
     setText('trackWait', '');
   }
   setText('trackUpdated', `Cập nhật lúc ${new Date().toLocaleTimeString('vi-VN')}`);
+  renderFeedback(info);
+}
+
+// ===== Nang cap 10/2026: danh gia muc do hai long sau khi hoan tat =====
+const RATINGS = [
+  { v: 1, icon: '😠', label: 'Rất tệ' }, { v: 2, icon: '🙁', label: 'Chưa tốt' }, { v: 3, icon: '😐', label: 'Bình thường' },
+  { v: 4, icon: '🙂', label: 'Hài lòng' }, { v: 5, icon: '😍', label: 'Rất hài lòng' }
+];
+let selectedRating = null;
+let feedbackSent = false;
+
+function renderFeedback(info) {
+  const card = document.getElementById('feedbackCard');
+  const done = document.getElementById('feedbackDone');
+  if (info.status !== 'COMPLETED' || !info.feedback) { card.hidden = true; return; }
+  if (info.feedback.rated || feedbackSent) {
+    card.hidden = true; done.hidden = false;
+    if (timer) { clearInterval(timer); timer = null; } // ve da xong + da danh gia: thoi theo doi
+    return;
+  }
+  if (!card.hidden) return; // dang hien form, khong ve lai (giu lua chon cua nguoi dung)
+  card.hidden = false;
+  const row = document.getElementById('ratingRow');
+  row.innerHTML = '';
+  RATINGS.forEach((r) => {
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'rating-btn'; b.setAttribute('role', 'radio');
+    b.setAttribute('aria-pressed', 'false'); b.setAttribute('aria-label', r.label);
+    b.innerHTML = `<span aria-hidden="true">${r.icon}</span><small>${r.label}</small>`;
+    b.addEventListener('click', () => {
+      selectedRating = r.v;
+      row.querySelectorAll('.rating-btn').forEach((x) => x.setAttribute('aria-pressed', 'false'));
+      b.setAttribute('aria-pressed', 'true');
+      document.getElementById('feedbackSubmit').disabled = false;
+    });
+    row.appendChild(b);
+  });
+}
+
+document.getElementById('feedbackSubmit').addEventListener('click', async () => {
+  if (!selectedRating) return;
+  const btn = document.getElementById('feedbackSubmit');
+  btn.disabled = true; btn.textContent = 'Đang gửi...';
+  try {
+    await ApiClient.post(`/api/kiosk/tickets/${encodeURIComponent(ticketId)}/feedback`, {
+      rating: selectedRating, comment: document.getElementById('feedbackComment').value
+    });
+    feedbackSent = true;
+    document.getElementById('feedbackCard').hidden = true;
+    document.getElementById('feedbackDone').hidden = false;
+  } catch (err) {
+    btn.disabled = false; btn.textContent = 'Gửi đánh giá';
+    alertInline(err.message);
+  }
+});
+
+function alertInline(msg) {
+  let el = document.getElementById('feedbackError');
+  if (!el) {
+    el = document.createElement('p'); el.id = 'feedbackError'; el.style.color = 'var(--color-danger)'; el.style.fontWeight = '600';
+    document.getElementById('feedbackCard').appendChild(el);
+  }
+  el.textContent = msg;
 }
 
 // Loi tam thoi (mat mang, server thuc day) khong duoc dung theo doi ngay: chi bo cuoc sau 5 lan

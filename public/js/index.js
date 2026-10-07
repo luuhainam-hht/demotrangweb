@@ -65,4 +65,39 @@ fetch('/api/kiosk/counters/status')
   })
   .catch(() => {});
 
+// ---- Khoi "Thac mac thuong gap" tren Trang chu ----
+// Lay 6 cau hoi tieu bieu, moi chu de 1-2 cau, tu chinh kho tri thuc (/api/kiosk/faq) de khong
+// phai chep lai noi dung cau hoi o frontend - sua trong src/data/faqKnowledge.js la trang chu doi theo.
+const FAQ_HIGHLIGHT_IDS = ['HT-02', 'HT-04', 'TT-01', 'HTI-01', 'DD-01', 'HO-03'];
+
+function escHtml(str) {
+  return String(str == null ? '' : str)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+async function loadFaqHighlights() {
+  const row = document.getElementById('faqQuickRow');
+  if (!row) return;
+  row.innerHTML = Array.from({ length: 6 })
+    .map(() => '<div class="skeleton-card" style="height:64px;"></div>').join('');
+  try {
+    const data = await fetch('/api/kiosk/faq').then((r) => r.json());
+    const all = (data.topics || []).reduce((acc, t) => acc.concat(t.faqs), []);
+    const byId = {};
+    all.forEach((f) => { byId[f.id] = f; });
+    const picked = FAQ_HIGHLIGHT_IDS.map((id) => byId[id]).filter(Boolean);
+    const list = picked.length ? picked : all.slice(0, 6);
+    row.innerHTML = list.map((f) => `
+      <a class="faq-quick" href="hoi-dap.html#faq-${escHtml(f.id)}">
+        <span class="q-ico" aria-hidden="true">❓</span>
+        <span>${escHtml(f.q)}</span>
+      </a>`).join('');
+  } catch (e) {
+    // Khong tai duoc thi an han khoi nay di, khong de lai khung xam trong tren Trang chu.
+    row.innerHTML = '';
+  }
+}
+
 loadPopularServices();
+loadFaqHighlights();

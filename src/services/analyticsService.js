@@ -140,7 +140,83 @@ async function getOfficerTodayStats(officerId) {
   };
 }
 
+// ---- Nang cap 10/2026: thu tuc thuong xuyen vuot nguong SLA (huong phat trien dai han) ----
+// Doc tu tickets.sla_status (ON_TIME/LATE) do queueEngine ghi luc Hoan tat. Sap xep theo ty le
+// tre giam dan de Truong Trung tam thay ngay thu tuc can cai tien quy trinh.
+async function getSlaBreaches(days = 30) {
+  const d = Math.min(365, Math.max(1, Number(days) || 30));
+  const { rows } = await pool.query(`
+    SELECT sv.code, sv.name AS service_name, sf.name AS field_name, sv.sla_minutes,
+      COUNT(t.id) AS completed,
+      SUM(CASE WHEN t.sla_status = 'LATE' THEN 1 ELSE 0 END) AS late_count,
+      ROUND((AVG(t.handling_duration_seconds) / 60.0)::numeric, 1) AS avg_handling_minutes,
+      ROUND((PERCENTILE_CONT(0.9) WITHIN GROUP (ORDER BY t.handling_duration_seconds) / 60.0)::numeric, 1) AS p90_handling_minutes
+    FROM tickets t
+    JOIN services sv ON sv.id = t.service_id
+    JOIN service_fields sf ON sf.id = sv.field_id
+    WHERE t.status = 'COMPLETED' AND t.completed_at >= now() - (?::int * interval '1 day')
+      AND t.handling_duration_seconds IS NOT NULL
+    GROUP BY sv.code, sv.name, sf.name, sv.sla_minutes
+  `, [d]);
+  return rows.map((r) => {
+    const completed = Number(r.completed) || 0;
+    const late = Number(r.late_count) || 0;
+    return {
+      code: r.code, serviceName: r.service_name, fieldName: r.field_name, slaMinutes: Number(r.sla_minutes),
+      completed, lateCount: late,
+      latePercent: completed > 0 ? Number(((late / completed) * 100).toFixed(1)) : 0,
+      avgHandlingMinutes: r.avg_handling_minutes !== null ? Number(r.avg_handling_minutes) : null,
+      p90HandlingMinutes: r.p90_handling_minutes !== null ? Number(r.p90_handling_minutes) : null
+    };
+  }).sort((a, b) => b.latePercent - a.latePercent || b.completed - a.completed);
+}
+
+// ---- Nang cap 10/2026: du bao luong cong dan + so quay can mo (Erlang C) ----
+// date: 'YYYY-MM-DD' (gio Viet Nam) - mac dinh hom nay. Lay N tuan lich su TRUOC ngay do,
+// cung thu trong tuan, tinh trung binh so ve theo tung gio va tung linh vuc.
+async function getForecast({ date, weeks } = {}) {
+  const { buildForecast } = require('./forecastService');
+  const w = Math.min(26, Math.max(1, Number(weeks) || 8));
+  const target = /^\d{4}-\d{2}-\d{2}$/.test(String(date || '')) ? String(date)
+    : new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' }).format(new Date());
+  const tz = `'Asia/Ho_Chi_Minh'`;
+
+  const { rows } = await pool.query(`
+    SELECT sf.id AS field_id, sf.name AS field_name,
+      EXTRACT(HOUR FROM (t.created_at AT TIME ZONE ${tz}))::int AS hour, COUNT(*) AS total
+    FROM tickets t
+    JOIN services sv ON sv.id = t.service_id
+    JOIN service_fields sf ON sf.id = sv.field_id
+    WHERE (t.created_at AT TIME ZONE ${tz})::date >= (?::date - (?::int * 7))
+      AND (t.created_at AT TIME ZONE ${tz})::date < ?::date
+      AND EXTRACT(ISODOW FROM (t.created_at AT TIME ZONE ${tz})) = EXTRACT(ISODOW FROM ?::date)
+    GROUP BY sf.id, sf.name, hour
+  `, [target, w, target, target]);
+
+  const { rows: ahtRows } = await pool.query(`
+    SELECT sv.field_id, AVG(t.handling_duration_seconds) / 60.0 AS aht
+    FROM tickets t JOIN services sv ON sv.id = t.service_id
+    WHERE t.handling_duration_seconds IS NOT NULL
+      AND t.completed_at >= (?::date - (?::int * 7))
+    GROUP BY sv.field_id
+  `, [target, w]);
+  const ahtByField = {};
+  ahtRows.forEach((r) => { ahtByField[Number(r.field_id)] = Number(r.aht); });
+
+  let fallbackAht = 15;
+  try {
+    const { rows: sla } = await pool.query('SELECT AVG(sla_minutes) AS avg FROM services WHERE is_active = 1');
+    if (sla[0] && sla[0].avg) fallbackAht = Number(sla[0].avg);
+  } catch (e) { /* giu mac dinh */ }
+  let targetWaitMinutes = 15;
+  try { targetWaitMinutes = Number(await configService.get('AWT_ALERT_MINUTES')) || 15; } catch (e) { /* giu mac dinh */ }
+
+  const weekday = ['Chủ nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy'][new Date(`${target}T00:00:00Z`).getUTCDay()];
+  return { date: target, weekday, ...buildForecast({ rows, weeks: w, ahtByField, fallbackAht, targetWaitMinutes }) };
+}
+
 module.exports = {
   getTopMetrics, getHeatmap, getOfficerKpi, getPeakHourAnalysis,
-  getServiceQualityByField, getAuditLogs, getOfficerTodayStats
+  getServiceQualityByField, getAuditLogs, getOfficerTodayStats,
+  getSlaBreaches, getForecast
 };

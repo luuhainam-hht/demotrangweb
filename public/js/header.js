@@ -1,8 +1,14 @@
 // Header dung chung, tu gan vao dau <body> - chi can nhung 1 dong <script src="js/header.js">
 // vao moi trang, khong phai lap lai markup logo/nav o tung file HTML.
+//
+// Thay doi 2026-09:
+//  - Nut "Chu to hon" cu (1 muc, zoom 1.08) da chuyen sang THANH TRO NANG rieng (js/a11y.js)
+//    voi 3 muc co chu + tuong phan cao + doc to. Khong giu 2 noi chinh co chu de tranh lech nhau.
+//  - Tren dien thoai, 6 lien ket dieu huong gio gom vao 1 nut "Menu" (truoc day bi bop lai
+//    con 0.8rem, rat kho bam - chinh la nhom nguoi dung ma he thong phuc vu nhieu nhat).
 (function () {
   // login.html KHONG dung header nay (tu quan ly rieng, xem public/login.html).
-  const PUBLIC_PAGES = ['', 'index.html', 'kiosk-checklist.html', 'huong-dan.html', 'huong-dan-dien-mau.html', 'theo-doi.html', 'ket-noi-wifi.html', 'nop-ho-so-truc-tuyen.html', 'display.html', '404.html'];
+  const PUBLIC_PAGES = ['', 'index.html', 'kiosk-checklist.html', 'huong-dan.html', 'huong-dan-dien-mau.html', 'hoi-dap.html', 'theo-doi.html', 'ket-noi-wifi.html', 'nop-ho-so-truc-tuyen.html', 'display.html', '404.html'];
   const currentPage = window.location.pathname.split('/').pop();
   const isPublicPage = PUBLIC_PAGES.includes(currentPage);
 
@@ -12,6 +18,7 @@
   const navItems = isPublicPage
     ? [
         { href: 'index.html', label: 'Trang chủ', match: ['', 'index.html'] },
+        { href: 'hoi-dap.html', label: 'Hỏi đáp', match: ['hoi-dap.html'] },
         { href: 'huong-dan-dien-mau.html', label: 'Cách điền giấy tờ', match: ['huong-dan-dien-mau.html'] },
         { href: 'nop-ho-so-truc-tuyen.html', label: 'Nộp hồ sơ online', match: ['nop-ho-so-truc-tuyen.html'] },
         { href: 'ket-noi-wifi.html', label: 'Wi-Fi', match: ['ket-noi-wifi.html'] },
@@ -23,7 +30,7 @@
 
   const navHtml = navItems.map((item) => {
     const active = item.match.includes(currentPage);
-    return `<a href="${item.href}" class="site-nav-link${active ? ' active' : ''}">${item.label}</a>`;
+    return `<a href="${item.href}" class="site-nav-link${active ? ' active' : ''}"${active ? ' aria-current="page"' : ''}>${item.label}</a>`;
   }).join('');
 
   // data-show-header-clock="true" tren <body> (thay cho bien global truoc day - CSP script-src
@@ -33,21 +40,15 @@
   const showClock = document.body.dataset.showHeaderClock === 'true';
   const clockHtml = showClock ? `<span id="site-clock" class="site-clock"></span>` : '';
 
-  // Nut tang co chu: chi hien o cac trang cong dan truc tiep thao tac (khong hien tren Bang
-  // LED display.html - man hinh khong tuong tac, khong co ai bam vao do). Tang nhe (~8%,
-  // khong phong to qua muc) va nho trang thai qua localStorage de giu nguyen khi chuyen trang.
-  const showFontToggle = isPublicPage && currentPage !== 'display.html';
-  const FONT_BOOST_KEY = 'a11y_font_boost';
-  const fontToggleHtml = showFontToggle
-    ? `<button type="button" class="site-font-toggle" id="site-font-toggle" aria-pressed="false">A<span style="font-size:1.15em;">A</span> Chữ to hơn</button>`
-    : '';
-
   const headerHtml = `
     <header class="site-header">
       <a href="index.html" class="site-brand">
         <img src="assets/logoKiosk-trimmed-transparent.png" alt="KIOSK - Digital Numbers &amp; Transformation" class="site-logo" />
       </a>
-      <nav class="site-nav">${fontToggleHtml}${clockHtml}${navHtml}</nav>
+      <button type="button" class="site-nav-toggle" id="site-nav-toggle" aria-expanded="false" aria-controls="site-nav">
+        <span aria-hidden="true">☰</span> Menu
+      </button>
+      <nav class="site-nav" id="site-nav" aria-label="Điều hướng chính">${clockHtml}${navHtml}</nav>
     </header>
   `;
 
@@ -59,20 +60,44 @@
     setInterval(tick, 1000);
   }
 
-  if (showFontToggle) {
-    const btn = document.getElementById('site-font-toggle');
-    function applyFontBoost(on) {
-      document.body.classList.toggle('a11y-font-boost', on);
-      btn.classList.toggle('active', on);
-      btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+  // Menu thu gon tren dien thoai. Dung thuoc tinh `hidden` (khong phai class) de trinh doc man
+  // hinh cung hieu la dang an; CSS chi phu trach phan hien thi o be ngang <= 860px.
+  const toggle = document.getElementById('site-nav-toggle');
+  const nav = document.getElementById('site-nav');
+  const MOBILE_QUERY = window.matchMedia('(max-width: 860px)');
+
+  function applyNavMode() {
+    if (MOBILE_QUERY.matches) {
+      nav.hidden = toggle.getAttribute('aria-expanded') !== 'true';
+    } else {
+      nav.hidden = false;                       // man hinh rong: luon hien day du
+      toggle.setAttribute('aria-expanded', 'false');
     }
-    applyFontBoost(localStorage.getItem(FONT_BOOST_KEY) === '1');
-    btn.addEventListener('click', () => {
-      const nowOn = !document.body.classList.contains('a11y-font-boost');
-      applyFontBoost(nowOn);
-      localStorage.setItem(FONT_BOOST_KEY, nowOn ? '1' : '0');
-    });
   }
+  toggle.addEventListener('click', () => {
+    const open = toggle.getAttribute('aria-expanded') === 'true';
+    toggle.setAttribute('aria-expanded', open ? 'false' : 'true');
+    applyNavMode();
+  });
+  // Bam ra ngoai hoac nhan Esc thi dong menu (nguoi dung hay bi "ket" trong menu mo).
+  document.addEventListener('click', (e) => {
+    if (!MOBILE_QUERY.matches) return;
+    if (nav.hidden) return;
+    if (nav.contains(e.target) || toggle.contains(e.target)) return;
+    toggle.setAttribute('aria-expanded', 'false');
+    applyNavMode();
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !nav.hidden && MOBILE_QUERY.matches) {
+      toggle.setAttribute('aria-expanded', 'false');
+      applyNavMode();
+      toggle.focus();
+    }
+  });
+  if (MOBILE_QUERY.addEventListener) MOBILE_QUERY.addEventListener('change', applyNavMode);
+  else MOBILE_QUERY.addListener(applyNavMode);   // Safari cu
+  applyNavMode();
+
   // Banner "Trung tam dang dong cua" (chi trang co <body data-show-hours-banner="true">: Trang chu,
   // Kiosk). Lay trang thai tu GET /api/kiosk/hours (xem src/services/kioskHours.js). Dung chung
   // 1 loi goi qua window.KioskHours de kiosk-checklist.js khong phai goi lai. Loi mang -> khong
@@ -98,4 +123,21 @@
       if (header) header.insertAdjacentElement('afterend', banner);
     });
   }
+
+  // ===== Nang cap 10/2026: che do mat mang tam thoi (xem public/sw.js) =====
+  // Chi trang cong khai dang ky Service Worker; Bang LED (display.html) can du lieu song nen bo qua.
+  if (isPublicPage && currentPage !== 'display.html' && 'serviceWorker' in navigator && window.isSecureContext) {
+    window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js').catch(() => {}); });
+  }
+  // Thanh bao mat mang: nguoi dan biet vi sao bam "Lay so" khong duoc, thay vi tuong may hong.
+  const offlineBar = document.createElement('div');
+  offlineBar.className = 'offline-banner';
+  offlineBar.setAttribute('role', 'alert');
+  offlineBar.hidden = true;
+  offlineBar.innerHTML = '<span aria-hidden="true">📡</span> Máy đang mất kết nối mạng — tạm thời chưa lấy số được. Thông tin giấy tờ, hỏi đáp vẫn xem được. Hệ thống sẽ tự kết nối lại.';
+  document.body.appendChild(offlineBar);
+  const syncOffline = () => { offlineBar.hidden = navigator.onLine; };
+  window.addEventListener('online', syncOffline);
+  window.addEventListener('offline', syncOffline);
+  syncOffline();
 })();

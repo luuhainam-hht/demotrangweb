@@ -1,0 +1,122 @@
+# =====================================================================================
+# HE THONG MOT CUA THONG MINH - chay bang Docker, DONG BO voi CSDL Neon (neon.com)
+#
+#   docker compose up -d --build        Khoi dong (lan dau mat vai phut de build)
+#   docker compose ps                   Xem trang thai
+#   docker compose logs -f sync         Xem tien trinh dong bo Docker <-> Neon
+#   docker compose run --rm sync node scripts/db-sync.js status    So sanh 2 CSDL
+#   docker compose --profile tools up -d adminer                   Giao dien xem CSDL (http://localhost:8080)
+#   docker compose down                 Dung (du lieu Postgres van giu trong volume pgdata)
+#
+# Nguoi dung Windows: chay file "docker-dong-bo.bat" o thu muc goc - co menu tieng Viet.
+#
+# Cau hinh trong file .env (cung thu muc), cac bien quan trong:
+#   DATABASE_URL / NEON_DATABASE_URL  chuoi ket noi Neon (da co san trong .env cua du an)
+#   APP_DB_TARGET   neon (mac dinh) | local   - web trong Docker dung CSDL nao
+#   SYNC_MODE       replica (mac dinh) | pull | push | off  - cach dong bo Postgres Docker <-> Neon
+#   LOCAL_DB_PASSWORD  mat khau Postgres trong Docker (mac dinh hcc_local_2026 - NEN DOI)
+# Chi tiet + so do: docs/DOCKER-NEON-SYNC.md
+# =====================================================================================
+name: hcc-mot-cua
+
+x-db-urls: &db-urls
+  TZ: Asia/Ho_Chi_Minh
+  NEON_DATABASE_URL: ${NEON_DATABASE_URL:-${DATABASE_URL:-}}
+  LOCAL_DATABASE_URL: postgresql://postgres:${LOCAL_DB_PASSWORD:-hcc_local_2026}@db:5432/smart_queue
+  APP_DB_TARGET: ${APP_DB_TARGET:-neon}
+
+services:
+  # PostgreSQL 17 tai cho. wal_level=logical + replication slot: de lam ban sao realtime cua Neon
+  # (subscriber) va de co the nguoc lai lam nguon phat neu sau nay can.
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: smart_queue
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${LOCAL_DB_PASSWORD:-hcc_local_2026}
+      TZ: Asia/Ho_Chi_Minh
+    command:
+      - postgres
+      - -c
+      - wal_level=logical
+      - -c
+      - max_replication_slots=10
+      - -c
+      - max_wal_senders=10
+      - -c
+      - max_logical_replication_workers=6
+      - -c
+      - timezone=Asia/Ho_Chi_Minh
+    # Chi mo cong cho chinh may nay (127.0.0.1) - khong lo CSDL ra mang LAN.
+    ports:
+      - "127.0.0.1:${LOCAL_DB_PORT:-5433}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d smart_queue"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  # Web + WebSocket. Mo tu may khac trong mang LAN: http://<IP-may-nay>:3000
+  app:
+    build: .
+    image: hcc-mot-cua:latest
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      <<: *db-urls
+      PORT: "3000"
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      KIOSK_HOURS_ENFORCED: ${KIOSK_HOURS_ENFORCED:-}
+      # Kenh realtime dung chung qua Postgres LISTEN/NOTIFY: goi so tren web Render thi Bang LED
+      # mo tu ban Docker cung cap nhat ngay (va nguoc lai). Dat off neu chi chay 1 ban.
+      REALTIME_BUS: ${REALTIME_BUS:-pg}
+      INSTANCE_ID: docker-${COMPUTERNAME:-local}
+    ports:
+      - "${APP_PORT:-3000}:3000"
+
+  # Tien trinh dong bo + sao luu tu dong (xem scripts/db-sync.js).
+  sync:
+    image: hcc-mot-cua:latest
+    build: .
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      <<: *db-urls
+      SYNC_MODE: ${SYNC_MODE:-replica}
+      SYNC_INTERVAL_MINUTES: ${SYNC_INTERVAL_MINUTES:-15}
+      # Ngoai khung gio nay khong cham vao Neon -> Neon duoc ngu, tiet kiem gio compute goi Free.
+      SYNC_ACTIVE_HOURS: ${SYNC_ACTIVE_HOURS-06:30-18:30}
+      SYNC_PUSH_CONFIRM: ${SYNC_PUSH_CONFIRM:-no}
+      BACKUP_EVERY_HOURS: ${BACKUP_EVERY_HOURS:-24}
+      BACKUP_KEEP: ${BACKUP_KEEP:-14}
+      BACKUP_DIR: /app/backups
+    volumes:
+      - ./backups:/app/backups
+    # root: de ghi duoc vao thu muc ./backups duoc gan tu may that (tranh loi quyen tren Linux).
+    user: root
+    entrypoint: ["/sbin/tini", "--"]
+    command: ["node", "scripts/db-sync.js", "watch"]
+    healthcheck:
+      disable: true
+
+  # Tuy chon: giao dien web xem/sua CSDL. Bat bang: docker compose --profile tools up -d adminer
+  adminer:
+    image: adminer:4
+    profiles: ["tools"]
+    restart: unless-stopped
+    depends_on:
+      - db
+    environment:
+      ADMINER_DEFAULT_SERVER: db
+    ports:
+      - "127.0.0.1:8080:8080"
+
+volumes:
+  pgdata:

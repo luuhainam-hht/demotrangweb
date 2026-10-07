@@ -81,18 +81,8 @@ body {
   margin-right: 6px;
 }
 
-/* Nut tang co chu (tra khong phai giam) danh cho cac trang cong khai - tang nhe (~8%) bang
-   zoom, khong lam vo bo cuc. Trang thai duoc nho qua localStorage nen giu nguyen khi chuyen
-   trang. Chi ap dung o cac trang cong dan thao tac truc tiep (Trang chu/Kiosk/Huong dan). */
-.site-font-toggle {
-  display: flex; align-items: center; gap: 6px;
-  background: transparent; border: 1.5px solid var(--color-border); color: var(--color-text-muted);
-  font-size: 0.82rem; font-weight: 700; padding: 6px 12px; border-radius: 999px; cursor: pointer;
-  margin-right: 6px; transition: background 0.15s ease, color 0.15s ease;
-}
-.site-font-toggle:hover { background: var(--color-bg); color: var(--color-text); }
-.site-font-toggle.active { background: #eff6ff; color: var(--color-primary-dark); border-color: #bfdbfe; }
-body.a11y-font-boost { zoom: 1.08; }
+/* (Nut "Chu to hon" 1 muc cu da duoc thay bang THANH TRO NANG 3 muc o js/a11y.js
+   + phan cuoi file nay - khong con .site-font-toggle.) */
 
 /* ============== Focus ro rang khi dieu huong bang ban phim (Accessibility) ============== */
 .btn:focus-visible, .card-link:focus-visible, .service-item:focus-visible,
@@ -475,3 +465,315 @@ th { color: var(--color-text-muted); font-weight: 600; text-transform: uppercase
 .hours-banner-icon { font-size: 1.5rem; flex-shrink: 0; }
 
 .chatbot-link { color: var(--color-primary-dark, #1d4ed8); font-weight: 700; text-decoration: underline; }
+
+/* =====================================================================================
+   NÂNG CẤP TRỢ NĂNG & GIAO DIỆN DỄ ĐỌC (thêm 2026-09)
+   Mục tiêu: một giao diện phục vụ ĐƯỢC CẢ người cao tuổi lẫn người trẻ, thay vì làm 2 bản.
+   Nguyên tắc:
+     1. Nền tảng đọc được: cỡ chữ gốc 17px (cũ 16px), giãn dòng 1.6, vùng bấm tối thiểu 48px
+        (khuyến nghị WCAG 2.1 AAA 2.5.5 Target Size), tương phản chữ/nền đạt WCAG AA.
+     2. Người dùng tự chỉnh: 3 mức cỡ chữ + chế độ tương phản cao + đọc to (js/a11y.js),
+        trạng thái nhớ qua localStorage nên giữ nguyên khi chuyển trang.
+     3. Không phá bố cục cũ: toàn bộ nằm ở CUỐI file nên ghi đè các quy tắc phía trên theo
+        thứ tự cascade, không phải sửa rải rác từng dòng.
+   LƯU Ý khi sửa: KHÔNG thêm <script> inline hay onclick= (CSP ở server.js chặn tuyệt đối).
+   ===================================================================================== */
+
+:root {
+  --font-base: 17px;
+  --a11y-zoom: 1;
+  --tap-min: 48px;
+  --line-body: 1.6;
+  /* Xanh đậm hơn --color-primary (#2563eb) - dùng cho CHỮ trên nền sáng để đạt tương phản
+     AA (>=4.5:1) với chữ cỡ thường; #2563eb chỉ đạt ~4.2:1 nên không dùng cho chữ nhỏ. */
+  --color-primary-text: #1747b8;
+}
+
+/* 3 mức cỡ chữ. Dùng `zoom` (không phải chỉ font-size) để nút bấm, ô nhập, khoảng cách
+   cùng to lên theo - người lớn tuổi khó bấm trúng nút nhỏ y như khó đọc chữ nhỏ.
+   Firefox hỗ trợ zoom từ bản 126 (2024); trình duyệt quá cũ chỉ đơn giản là không phóng to. */
+html[data-font-level='large']  { --a11y-zoom: 1.15; }
+html[data-font-level='xlarge'] { --a11y-zoom: 1.32; }
+body { font-size: var(--font-base); line-height: var(--line-body); zoom: var(--a11y-zoom); }
+
+/* Các phần tử position:fixed tính theo 100vw sẽ bị tràn khi body được zoom -> chia lại cho
+   đúng hệ số zoom. Thiếu đoạn này, ở mức "Rất to" khung chat bị đẩy lọt ra ngoài màn hình. */
+.chatbot-panel { max-width: calc((100vw - 40px) / var(--a11y-zoom)); }
+@media (max-width: 480px) {
+  .chatbot-panel { width: calc((100vw - 24px) / var(--a11y-zoom)); }
+}
+
+/* ---------- Kích thước chữ nền: to hơn bản cũ ở những chỗ người dân phải đọc ---------- */
+p, li, td, .desc, .field-how { line-height: var(--line-body); }
+.text-muted, .category-card p.desc { color: #55627a; }   /* #64748b chỉ đạt 4.0:1 - chưa đủ AA */
+.card h3 { font-size: 1.2rem; }
+.category-card p.desc { font-size: 0.98rem; }
+.category-card .meta { font-size: 0.9rem; color: var(--color-primary-text); }
+.section-heading h2 { font-size: 1.55rem; }
+.section-heading p { font-size: 1rem; }
+.section-heading .eyebrow { font-size: 0.8rem; color: var(--color-primary-text); }
+.section-heading .view-all { font-size: 1rem; color: var(--color-primary-text); }
+.hero-banner h1 { font-size: clamp(1.7rem, 4.4vw, 2.4rem); }
+.hero-banner p { font-size: 1.12rem; max-width: 720px; }
+.hero-stat .lbl { font-size: 0.92rem; color: #55627a; }
+label { font-size: 1rem; color: #3f4a60; }
+th { font-size: 0.8rem; }
+td { font-size: 0.98rem; }
+.badge { font-size: 0.88rem; padding: 5px 13px; }
+footer.site-footer { font-size: 0.98rem !important; }
+
+/* ---------- Vùng bấm: mọi nút/ô nhập đủ lớn để bấm bằng ngón tay, kể cả tay run ---------- */
+.btn {
+  min-height: var(--tap-min);
+  padding: 13px 24px;
+  font-size: 1.05rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.btn-lg { min-height: 64px; padding: 18px 30px; font-size: 1.28rem; }
+.btn-outline { border-width: 2px; }
+input, select, textarea { min-height: var(--tap-min); font-size: 1.02rem; }
+input[type='checkbox'], input[type='radio'] { min-height: 0; width: 26px; height: 26px; }
+.site-nav-link { font-size: 1rem; padding: 11px 15px; min-height: 44px; display: inline-flex; align-items: center; }
+.search-suggest-item { padding: 15px 18px; min-height: var(--tap-min); }
+.search-suggest-name { font-size: 1.02rem; }
+.faq-item summary { min-height: var(--tap-min); }
+
+/* Liên kết trong nội dung: luôn gạch chân (không chỉ đổi màu) - người bị mù màu vẫn nhận ra. */
+.card a:not(.btn):not(.card-link):not(.src-chip),
+.step-item a, .faq-item a, p a:not(.btn) {
+  color: var(--color-primary-text);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* ---------- Thanh trợ năng (render bởi js/a11y.js) ---------- */
+.a11y-bar {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  padding: 7px 20px;
+  background: #0f2d5c; color: #fff;
+  font-size: 0.95rem;
+}
+.a11y-bar-label { font-weight: 700; display: flex; align-items: center; gap: 6px; margin-right: 2px; }
+.a11y-group { display: flex; align-items: center; gap: 6px; }
+.a11y-group-label { opacity: 0.85; font-size: 0.9rem; }
+.a11y-btn {
+  background: rgba(255,255,255,0.12); color: #fff;
+  border: 1.5px solid rgba(255,255,255,0.35); border-radius: 999px;
+  padding: 7px 14px; font-size: 0.95rem; font-weight: 700; cursor: pointer;
+  min-height: 40px; display: inline-flex; align-items: center; gap: 6px;
+  font-family: inherit;
+}
+.a11y-btn:hover { background: rgba(255,255,255,0.24); }
+.a11y-btn[aria-pressed='true'] { background: #fff; color: #0f2d5c; border-color: #fff; }
+.a11y-btn:focus-visible { outline: 3px solid #fde047; outline-offset: 2px; }
+.a11y-sep { width: 1px; height: 26px; background: rgba(255,255,255,0.28); }
+.a11y-spacer { flex: 1; }
+@media (max-width: 860px) {
+  .a11y-bar { padding: 7px 14px; gap: 7px; font-size: 0.88rem; }
+  .a11y-bar-label span.a11y-label-text { display: none; }
+  .a11y-group-label { display: none; }
+  .a11y-spacer { display: none; }
+}
+
+/* Bỏ qua điều hướng, tới thẳng nội dung (người dùng bàn phím / đọc màn hình) */
+.skip-link {
+  position: absolute; left: -9999px; top: 0; z-index: 999;
+  background: #0f2d5c; color: #fff; padding: 14px 22px; border-radius: 0 0 12px 0;
+  font-weight: 700; text-decoration: none;
+}
+.skip-link:focus { left: 0; }
+
+/* ---------- Header: gọn trên điện thoại (trước đây 5 liên kết bị bóp lại rất khó bấm) ---------- */
+.site-nav-toggle {
+  display: none; align-items: center; gap: 8px;
+  background: transparent; border: 2px solid var(--color-border); border-radius: 12px;
+  color: var(--color-text); font-weight: 700; font-size: 1rem; font-family: inherit;
+  padding: 9px 14px; min-height: 44px; cursor: pointer;
+}
+@media (max-width: 860px) {
+  .site-header { padding: 0 14px; }
+  .site-nav-toggle { display: inline-flex; }
+  .site-nav {
+    position: absolute; top: var(--site-header-height); left: 0; right: 0;
+    flex-direction: column; align-items: stretch; gap: 2px;
+    background: #fff; border-bottom: 2px solid var(--color-border);
+    padding: 10px 14px 16px; box-shadow: var(--shadow-card);
+  }
+  .site-nav[hidden] { display: none; }
+  .site-nav-link { font-size: 1.08rem; padding: 14px 12px; border-radius: 12px; }
+  .site-logo { height: 32px; }
+}
+
+/* ---------- Lưới: trước đây grid-3/grid-4 KHÔNG có quy tắc co lại -> vỡ trên điện thoại ---------- */
+@media (max-width: 1100px) { .grid-4 { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 900px)  { .grid-4 { grid-template-columns: repeat(2, 1fr); } .grid-3 { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 620px)  { .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; } }
+@media (max-width: 620px) {
+  .container { padding: 16px; }
+  .hero-banner { padding: 34px 18px; }
+  .hero-search-row { flex-direction: column; border-radius: var(--radius-lg); padding: 12px; gap: 12px; }
+  .hero-search-row input { text-align: center; }
+  .hero-search-row .btn { width: 100%; }
+  .hero-stats { gap: 20px; }
+  .topbar { flex-wrap: wrap; gap: 10px; padding: 12px 16px; }
+  .modal-box { padding: 20px; }
+}
+
+/* Bảng dài trên điện thoại: cuộn ngang trong khung thay vì đẩy vỡ cả trang */
+.table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+/* ---------- CHẾ ĐỘ TƯƠNG PHẢN CAO ----------
+   Dành cho người mắt kém / đục thủy tinh thể / dùng máy ngoài trời nắng.
+   Đổi biến màu ở gốc nên áp dụng được cho mọi thành phần mà không phải viết lại từng lớp. */
+html[data-contrast='high'] {
+  --color-bg: #ffffff;
+  --color-surface: #ffffff;
+  --color-text: #000000;
+  --color-text-muted: #1a1a1a;
+  --color-border: #000000;
+  --color-primary: #0b3d91;
+  --color-primary-dark: #062a68;
+  --color-primary-text: #062a68;
+  --color-success: #0a6b2e;
+  --color-danger: #a4121a;
+  --color-warning: #8a4b00;
+  --gradient-brand: linear-gradient(135deg, #062a68, #0b3d91);
+  --shadow-card: none;
+}
+html[data-contrast='high'] body { background: #fff; }
+html[data-contrast='high'] .card,
+html[data-contrast='high'] .checklist-item,
+html[data-contrast='high'] .big-step,
+html[data-contrast='high'] .dvc-step,
+html[data-contrast='high'] .field-item,
+html[data-contrast='high'] .rule-item,
+html[data-contrast='high'] .step-item {
+  border: 2px solid #000 !important; box-shadow: none !important; background: #fff !important;
+}
+html[data-contrast='high'] .hero-banner { background: #fff !important; border: 2px solid #000; }
+html[data-contrast='high'] .text-muted,
+html[data-contrast='high'] .category-card p.desc,
+html[data-contrast='high'] .faq-item p { color: #1a1a1a !important; }
+/* Chữ tô gradient (ticket-number, hero-stat) gần như không đọc được ở chế độ tương phản cao */
+html[data-contrast='high'] .hero-stat .val,
+html[data-contrast='high'] .ticket-number,
+html[data-contrast='high'] .track-number {
+  background: none !important; -webkit-text-fill-color: #062a68; color: #062a68 !important;
+}
+html[data-contrast='high'] .btn-primary { background: #062a68 !important; color: #fff !important; box-shadow: none !important; }
+html[data-contrast='high'] .btn-outline { border: 2px solid #000; color: #000; }
+html[data-contrast='high'] .badge,
+html[data-contrast='high'] .src-chip,
+html[data-contrast='high'] .chatbot-chip { border: 1.5px solid #000 !important; }
+html[data-contrast='high'] .badge-green { background: #c8f2d4; color: #063d1b; }
+html[data-contrast='high'] .badge-yellow { background: #ffeeb8; color: #4a3000; }
+html[data-contrast='high'] .badge-red { background: #ffd6d6; color: #6b0a10; }
+html[data-contrast='high'] a { text-decoration: underline; }
+html[data-contrast='high'] .site-header { border-bottom: 3px solid #000; }
+html[data-contrast='high'] .skeleton-card { background: #e8e8e8; animation: none; }
+
+/* Đang được đọc to (js/a11y.js) - tô sáng đoạn đang đọc để người nghe bám theo được */
+.a11y-reading {
+  background: #fff3bf;
+  box-shadow: 0 0 0 3px #fff3bf;
+  border-radius: 4px;
+}
+html[data-contrast='high'] .a11y-reading { background: #ffe066; box-shadow: 0 0 0 3px #ffe066; }
+
+/* ---------- Tôn trọng thiết lập "giảm chuyển động" của hệ điều hành ----------
+   Hiệu ứng nhấp nháy/trượt gây chóng mặt với người tiền đình, và làm người lớn tuổi
+   mất tập trung khi đang đọc. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+  .card-link:hover { transform: none; }
+}
+
+/* Focus rõ hơn nữa: viền vàng bên trong + xanh bên ngoài, thấy được trên cả nền sáng lẫn tối */
+:focus-visible { outline: 3px solid var(--color-primary); outline-offset: 2px; }
+.a11y-bar :focus-visible { outline-color: #fde047; }
+
+@media print {
+  .a11y-bar, .skip-link, .site-nav-toggle { display: none !important; }
+}
+
+/* ---------- Khung Trợ lý AI: chữ cũ 0.88rem quá nhỏ với người lớn tuổi ---------- */
+.chatbot-panel { width: 420px; height: 560px; }
+.chatbot-msg { font-size: 1rem; line-height: 1.6; max-width: 82%; }
+.chatbot-msg-bot strong { color: var(--color-primary-text); }
+.chatbot-chip { font-size: 0.92rem; padding: 10px 15px; min-height: 42px; }
+.chatbot-input-row input { font-size: 1rem; min-height: 46px; }
+.chatbot-send { width: 48px; height: 48px; }
+.chatbot-panel-title { font-size: 1.05rem; }
+.chatbot-panel-sub { font-size: 0.82rem; }
+.chatbot-fab { width: 68px; height: 68px; font-size: 1.7rem; }
+.chatbot-close { width: 36px; height: 36px; font-size: 1.05rem; }
+.chatbot-link { text-decoration: underline; }
+@media (max-width: 480px) {
+  .chatbot-panel { height: 80vh; }
+}
+
+/* O tim kiem o hero: input mang `width:100%` tu quy tac chung nen khi phong to chu (muc "Rat to")
+   no day nut "Tra cuu" de len chinh minh. Cho input tu co gian theo cho trong con lai. */
+.hero-search-row input { flex: 1 1 auto; width: auto; min-width: 0; }
+.faq-search-row input { flex: 1 1 auto; width: auto; min-width: 0; }
+
+/* Thanh trợ năng: gọn trên điện thoại (thu sau 1 nút), trải ra trên màn hình rộng */
+.a11y-controls { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; flex: 1; }
+.a11y-controls[hidden] { display: none; }
+.a11y-bar-toggle {
+  display: none; align-items: center; gap: 8px;
+  background: rgba(255,255,255,0.12); color: #fff;
+  border: 1.5px solid rgba(255,255,255,0.35); border-radius: 999px;
+  padding: 9px 16px; font-size: 0.95rem; font-weight: 700; font-family: inherit;
+  min-height: 44px; cursor: pointer;
+}
+.a11y-bar-toggle:hover { background: rgba(255,255,255,0.24); }
+.a11y-bar-toggle:focus-visible { outline: 3px solid #fde047; outline-offset: 2px; }
+@media (max-width: 860px) {
+  .a11y-bar { flex-direction: column; align-items: stretch; }
+  .a11y-bar-toggle { display: inline-flex; justify-content: center; }
+  .a11y-controls { padding-top: 8px; }
+  .a11y-bar-label { display: none; }
+}
+
+/* Liên kết "xem tất cả" đứng riêng một mình (không nằm trong đoạn văn) vẫn là một đích bấm —
+   cho nó vùng bấm đủ lớn thay vì chỉ cao bằng dòng chữ. */
+.section-heading .view-all {
+  display: inline-flex; align-items: center; min-height: 44px; padding: 8px 4px;
+}
+
+/* ===== Nang cap 10/2026: thanh bao mat mang (header.js) ===== */
+.offline-banner {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 9999;
+  background: #7c2d12; color: #fff; padding: 14px 18px; font-size: 1.05rem; font-weight: 600;
+  text-align: center; box-shadow: 0 -4px 16px rgba(0,0,0,0.2);
+}
+.offline-banner[hidden] { display: none; }
+
+/* ===== Nang cap 10/2026: phieu QR quay lai (counter.html) + danh gia hai long (theo-doi.html) ===== */
+.reentry-slip { text-align: center; }
+.reentry-slip .slip-number { font-size: 2.6rem; font-weight: 800; color: var(--color-primary); margin: 4px 0; }
+.reentry-slip .slip-qr { display: inline-block; padding: 10px; background: #fff; border: 1px solid var(--color-border); border-radius: 12px; margin: 10px 0; }
+.reentry-slip ul { text-align: left; margin: 8px auto; max-width: 420px; }
+.rating-row { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; margin: 12px 0; }
+.rating-btn {
+  min-width: 0; min-height: 72px; padding: 6px 2px; border-radius: 14px; border: 2px solid var(--color-border);
+  background: #fff; font-size: 1.9rem; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center;
+}
+.rating-btn small { font-size: 0.68rem; line-height: 1.2; color: var(--color-text-muted); font-weight: 600; text-align: center; }
+.rating-btn[aria-pressed="true"] { border-color: var(--color-primary); background: #eff6ff; box-shadow: 0 0 0 3px #bfdbfe; }
+.rating-thanks { font-size: 1.15rem; font-weight: 700; color: var(--color-success); text-align: center; }
+
+@media print {
+  body.printing-slip > *:not(#reentryModal) { display: none !important; }
+  body.printing-slip #reentryModal { position: static; background: none; display: block !important; }
+  body.printing-slip #reentryModal .modal-box { box-shadow: none; border: none; width: 72mm; max-width: 72mm; padding: 0; }
+  body.printing-slip #reentryModal .no-print { display: none !important; }
+}

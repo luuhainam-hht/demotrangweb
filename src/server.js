@@ -100,6 +100,16 @@ const ticketLimiter = rateLimit({
 });
 app.post('/api/kiosk/tickets', ticketLimiter);
 
+// Nang cap 10/2026: danh gia hai long + heartbeat thiet bi la 2 endpoint cong khai moi -> gioi han tan suat.
+app.post('/api/kiosk/tickets/:id/feedback', rateLimit({
+  windowMs: 10 * 60 * 1000, limit: 20, standardHeaders: true, legacyHeaders: false,
+  message: { error: 'Ban gui danh gia qua nhieu lan, vui long thu lai sau.' }
+}));
+app.post('/api/display/heartbeat', rateLimit({
+  windowMs: 60 * 1000, limit: 30, standardHeaders: true, legacyHeaders: false,
+  message: { error: 'Qua nhieu heartbeat.' }
+}));
+
 // Luu y thu tu: cac prefix CU THE hon (/api/auth, /api/kiosk, /api/admin, /api/display,
 // /api/health) phai duoc dang ky TRUOC '/api' (counterRoutes) - Express khop app.use()
 // theo tien to va theo dung thu tu dang ky, nen neu counterRoutes (mount o '/api' tran)
@@ -111,6 +121,16 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/display', displayRoutes);
 app.use('/api/chatbot', chatbotRoutes);
 app.get('/api/health', (req, res) => res.json({ ok: true, time: new Date().toISOString() }));
+// Kiem tra sau (Docker HEALTHCHECK / giam sat ngoai): CO cham CSDL. Chi tra so lieu tom tat,
+// chi tiet day du nam o /api/admin/system/status (can dang nhap).
+app.get('/api/health/deep', async (req, res) => {
+  const s = await require('./services/systemStatus').collect();
+  res.status(s.database.ok ? 200 : 503).json({
+    ok: s.database.ok, db: { kind: s.database.kind, latencyMs: s.database.latencyMs },
+    realtimeBus: { enabled: s.realtimeBus.enabled, connected: s.realtimeBus.connected },
+    uptimeSeconds: s.app.uptimeSeconds, version: s.app.version, time: s.time
+  });
+});
 app.use('/api', counterRoutes);       // /api/counters, /api/tickets/:id/* - dang ky SAU CUNG
 
 // Frontend tinh (Kiosk / Counter / Display / Admin)
@@ -139,6 +159,15 @@ runMigrations.run()
   .then(() => {
     purgeScheduler.start();
     authService.startExpiredSessionCleanup();
+
+    // Nang cap 10/2026: danh dau thiet bi im lang qua lau la OFFLINE (moi 30 giay).
+    const deviceService = require('./services/deviceService');
+    setInterval(() => deviceService.sweepOffline().catch((err) => console.error('[devices] sweep:', err.message)), 30 * 1000);
+
+    // Ban chay khac (Render/Docker) vua doi cau hinh -> nap lai cache cau hinh cua ban nay.
+    wsHub.onRemote((type) => {
+      if (type === wsHub.EVENTS.CONFIG_UPDATED) configService.loadAll().catch((err) => console.error('[config] reload:', err.message));
+    });
     server.listen(PORT, () => {
       console.log(`Smart Queue System dang chay tai http://localhost:${PORT}`);
       console.log(`  - Kiosk:   http://localhost:${PORT}/  (chon thu tuc -> kiosk-checklist.html)`);
@@ -151,3 +180,14 @@ runMigrations.run()
     console.error('Khong the khoi dong server (loi migrate/nap cau hinh he thong tu DB):', err);
     process.exit(1);
   });
+
+// Docker `docker compose stop` / Render deploy gui SIGTERM: dong HTTP + ket noi LISTEN gon gang
+// thay vi bi giet giua chung (tranh giao dich dang do).
+function shutdown(signal) {
+  console.log(`[server] Nhan ${signal}, dang dung...`);
+  require('./realtime/pgBus').stop().catch(() => {});
+  server.close(() => process.exit(0));
+  setTimeout(() => process.exit(0), 8000).unref();
+}
+process.on('SIGTERM', () => shutdown('SIGTERM'));
+process.on('SIGINT', () => shutdown('SIGINT'));

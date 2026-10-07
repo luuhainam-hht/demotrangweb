@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Hỏi đáp - Giải đáp thắc mắc thủ tục hành chính</title>
+<meta name="description" content="Giải đáp chi tiết các thắc mắc thường gặp về thủ tục hành chính: lấy số thứ tự, giấy tờ tùy thân, hộ tịch, đất đai, hộ kinh doanh, nộp hồ sơ qua mạng." />
+<link rel="stylesheet" href="css/common.css?v=8" />
+<link rel="stylesheet" href="css/guide-pages.css?v=2" />
+<link rel="icon" href="assets/logoKiosk-icon-transparent.png" type="image/png" />
+<style>
+  .faq-wrap { max-width: 980px; margin: 0 auto; padding: 16px 20px 70px; }
+  .faq-hero { text-align: center; padding: 30px 10px 6px; }
+  .faq-hero h1 { font-size: clamp(1.8rem, 5vw, 2.5rem); margin: 0 0 10px; }
+  .faq-hero p { color: var(--color-text-muted); font-size: 1.15rem; max-width: 720px; margin: 0 auto; line-height: 1.55; }
+
+  .faq-search-row { display: flex; gap: 12px; max-width: 700px; margin: 22px auto 6px; }
+  .faq-search-row input { font-size: 1.15rem; min-height: 60px; border-width: 2px; }
+  .faq-search-row .btn { white-space: nowrap; }
+  .faq-search-hint { text-align: center; color: var(--color-text-muted); font-size: 0.98rem; margin: 0 0 18px; }
+
+  .topic-row { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin: 10px 0 26px; }
+  .topic-chip {
+    display: inline-flex; align-items: center; gap: 8px; min-height: var(--tap-min);
+    border: 2px solid var(--color-border); background: #fff; color: var(--color-text);
+    border-radius: 999px; padding: 10px 18px; font-size: 1rem; font-weight: 700;
+    cursor: pointer; font-family: inherit;
+  }
+  .topic-chip[aria-pressed='true'] { background: var(--color-primary); border-color: var(--color-primary); color: #fff; }
+
+  .topic-block { margin-bottom: 30px; }
+  .topic-head { display: flex; align-items: center; gap: 14px; margin: 0 0 12px; }
+  .topic-head .ico { font-size: 2.2rem; }
+  .topic-head h2 { margin: 0; font-size: 1.5rem; }
+  .topic-head p { margin: 2px 0 0; color: var(--color-text-muted); font-size: 1rem; }
+
+  .qa { border: 2px solid var(--color-border); border-radius: 16px; background: #fff; margin-bottom: 12px; overflow: hidden; }
+  .qa > summary {
+    cursor: pointer; list-style: none; padding: 18px 20px; font-size: 1.15rem; font-weight: 700;
+    display: flex; align-items: flex-start; gap: 14px; min-height: var(--tap-min);
+  }
+  .qa > summary::-webkit-details-marker { display: none; }
+  .qa > summary::before {
+    content: '?'; flex-shrink: 0; width: 34px; height: 34px; border-radius: 50%;
+    background: #eff6ff; color: var(--color-primary-text); font-size: 1.05rem; font-weight: 800;
+    display: inline-flex; align-items: center; justify-content: center;
+  }
+  .qa[open] > summary { background: #f8fafc; border-bottom: 2px solid var(--color-border); }
+  .qa-body { padding: 18px 20px 20px; }
+  .qa-short { font-size: 1.2rem; line-height: 1.6; font-weight: 600; margin: 0 0 12px; }
+  .qa-details { margin: 0; padding-left: 24px; font-size: 1.08rem; line-height: 1.7; }
+  .qa-details li { margin-bottom: 6px; }
+  .qa-meta { margin-top: 16px; padding-top: 14px; border-top: 1px dashed var(--color-border); font-size: 0.92rem; }
+  .qa-note { background: #fffbeb; border: 1.5px solid #f59e0b; border-radius: 12px; padding: 12px 14px; margin-top: 12px; font-size: 1rem; line-height: 1.55; }
+  .qa-sources { margin: 10px 0 0; padding-left: 20px; line-height: 1.6; }
+  .qa-sources a { overflow-wrap: anywhere; }
+  .qa-link { margin-top: 14px; display: inline-block; }
+
+  .badge-status.SYSTEM { background: #dbeafe; color: #1d4ed8; }
+  .badge-status.VERIFIED { background: #dcfce7; color: #15803d; }
+
+  .faq-empty { text-align: center; padding: 34px 20px; }
+  .ask-box { text-align: center; padding: 30px 22px; border-left: 6px solid var(--color-primary); }
+  .ask-box h2 { font-size: 1.5rem; margin: 0 0 8px; }
+  .ask-box p { font-size: 1.08rem; line-height: 1.6; }
+  .result-count { text-align: center; font-size: 1.05rem; font-weight: 700; margin-bottom: 16px; }
+  @media (max-width: 640px) {
+    .faq-search-row { flex-direction: column; }
+    .faq-search-row .btn { width: 100%; }
+  }
+</style>
+<script src="js/a11y.js?v=2"></script>
+</head>
+<body data-chatbot-auto-open="false">
+
+<div class="faq-wrap" data-a11y-read-scope>
+  <section class="faq-hero">
+    <h1>Hỏi đáp – Giải đáp thắc mắc</h1>
+    <p>Gõ điều bạn đang băn khoăn, hoặc chọn một nhóm bên dưới. Mỗi câu trả lời đều ghi rõ
+       <b>nguồn tham khảo</b> và <b>mức độ xác thực</b> để bạn biết chỗ nào cần hỏi lại cán bộ.</p>
+  </section>
+
+  <form class="faq-search-row" id="faqSearchForm" autocomplete="off" role="search" data-a11y-skip>
+    <label for="faqSearchInput" class="hidden">Tìm câu hỏi</label>
+    <input id="faqSearchInput" type="search" placeholder="VD: mất phiếu số, sang tên sổ đỏ bao lâu, lệ phí khai sinh..." />
+    <button type="submit" class="btn btn-primary btn-lg">🔍 Tìm</button>
+  </form>
+  <p class="faq-search-hint" data-a11y-skip>Không cần gõ đúng chính tả hay đủ dấu — cứ gõ như bạn nói.</p>
+
+  <div class="topic-row" id="topicRow" role="group" aria-label="Lọc theo nhóm chủ đề" data-a11y-skip></div>
+
+  <div id="faqResultCount" class="result-count hidden" role="status"></div>
+  <div id="faqList" aria-live="polite"></div>
+
+  <div class="card ask-box mt-24" data-a11y-skip>
+    <h2>Vẫn chưa tìm thấy câu trả lời?</h2>
+    <p class="text-muted">Hỏi Trợ lý AI bằng chính lời của bạn, hoặc hỏi trực tiếp cán bộ tại quầy hỗ trợ.</p>
+    <button type="button" class="btn btn-primary btn-lg mt-16" data-action="faqAskAssistant">💬 Hỏi Trợ lý AI</button>
+  </div>
+
+  <div class="card mt-24 unverified-card" data-a11y-skip>
+    <h3>Xin đọc kỹ</h3>
+    <p class="big-text">Nội dung trên trang này là <b>thông tin tham khảo</b> giúp bạn chuẩn bị trước,
+      <b>không thay thế</b> văn bản pháp luật hay hướng dẫn của cán bộ. Mức tiền và thời hạn có thể
+      khác nhau theo từng tỉnh, thành và theo từng thời điểm. Khi có mâu thuẫn, hãy làm theo hướng
+      dẫn của cán bộ tại quầy.</p>
+    <p class="text-muted" id="faqAccessed"></p>
+  </div>
+</div>
+
+<script src="js/apiClient.js"></script>
+<script src="js/actionDelegate.js"></script>
+<script src="js/header.js?v=3"></script>
+<script src="js/chatbot.js?v=8"></script>
+<script src="js/hoi-dap.js?v=1"></script>
+</body>
+</html>

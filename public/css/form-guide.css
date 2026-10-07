@@ -1,6 +1,6 @@
 /* Trang huong-dan-dien-mau.html: huong dan dien to khai tung o (chu to, tuong phan cao, de doc
    tren man hinh Kiosk cho nguoi lon tuoi). */
-body { font-size: 18px; }
+body { --font-base: 18px; }
 .guide-wrap { max-width: 900px; margin: 0 auto; padding: 16px 20px 60px; }
 .page-hero { text-align: center; padding: 30px 10px 12px; }
 .page-hero h1 { font-size: 2.2rem; margin-bottom: 8px; }

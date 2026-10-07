@@ -13,7 +13,7 @@ async function loadConfig() {
           <div class="text-muted" style="font-size:0.82rem;">${c.description || ''} ${c.min_bound !== null ? `(Biên độ: ${c.min_bound} - ${c.max_bound})` : ''}</div>
         </div>
         <div class="flex gap-8">
-          <input id="cfg-${c.config_key}" value="${c.config_value}" />
+          <input id="cfg-${c.config_key}" value="${c.config_value}" ${c.value_type === 'STRING' ? 'style="max-width:260px;min-width:200px;"' : ''} />
           <button class="btn btn-primary action-chip" ${actionAttr('saveConfig', c.config_key)}>Lưu</button>
         </div>
       </div>`).join('');

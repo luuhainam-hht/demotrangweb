@@ -1,9 +1,10 @@
 /* Dung cho kiosk-checklist.html (Doi chieu giay to / Nhan so thu tu) - trang "Tim thu tuc"
    rieng da bo (trung lap voi tim kiem san co tren Trang chu index.html). */
-body { font-size: 18px; }
+body { --font-base: 18px; }
 .kiosk-wrap { max-width: 900px; margin: 0 auto; padding: 24px; }
 .checklist-item { display: flex; align-items: center; gap: 12px; padding: 14px; border-radius: 10px; background: #f8fafc; margin-bottom: 8px; }
-.checklist-item input { width: auto; }
+/* Vung bam cho ngon tay, ke ca tay run - 26px la muc toi thieu de nguoi lon tuoi tich trung. */
+.checklist-item input { width: 28px; height: 28px; flex-shrink: 0; }
 .ticket-hero { text-align: center; padding: 40px 20px; position: relative; overflow: hidden; }
 .ticket-hero::before {
   content: ''; position: absolute; top: 0; left: 0; right: 0; height: 5px;
@@ -58,3 +59,38 @@ body { font-size: 18px; }
 .closed-icon { font-size: 3.5rem; }
 .closed-message { font-size: 1.2rem; line-height: 1.6; max-width: 640px; margin: 10px auto; }
 .closed-opens { font-size: 1.3rem; font-weight: 800; color: var(--color-primary-dark); margin: 12px 0 18px; }
+
+/* ---- Thong tin mo rong cua thu tuc (nop o dau, bao lau, nop online, can cu phap ly) ----
+   Nguon du lieu: src/data/faqKnowledge.js -> API /api/kiosk/services/:id/checklist (truong `extra`).
+   De sau danh sach giay to vi nguoi dan can tich giay to truoc, doc ky sau. */
+.svc-extra {
+  margin-top: 18px; padding: 20px; border: 2px solid var(--color-border);
+  border-left: 6px solid var(--color-primary); border-radius: 14px; background: #f8fbff;
+}
+.svc-extra h3 { margin: 0 0 14px; font-size: 1.25rem; }
+.svc-extra h4 { margin: 18px 0 6px; font-size: 1.1rem; }
+.svc-rows { margin: 0; }
+.svc-row { display: flex; flex-wrap: wrap; gap: 4px 12px; padding: 10px 0; border-bottom: 1px dashed var(--color-border); }
+.svc-row:last-child { border-bottom: none; }
+.svc-row dt { font-weight: 800; min-width: 250px; font-size: 1rem; }
+.svc-row dd { margin: 0; flex: 1; min-width: 240px; font-size: 1.05rem; line-height: 1.55; }
+.svc-tips { margin: 0; padding-left: 22px; font-size: 1.05rem; line-height: 1.65; }
+.svc-tips li { margin-bottom: 5px; }
+.svc-faqs { margin: 0; padding-left: 22px; font-size: 1.05rem; line-height: 1.7; }
+.svc-warning {
+  background: #fef2f2; border: 2px solid var(--color-danger); border-radius: 12px;
+  padding: 12px 14px; margin: 12px 0 0; font-size: 1.02rem; line-height: 1.55; font-weight: 600;
+}
+.svc-status { margin: 14px 0 0; }
+.svc-sources { margin-top: 14px; font-size: 0.9rem; }
+.svc-sources summary { cursor: pointer; font-weight: 700; min-height: 40px; display: flex; align-items: center; }
+.svc-sources ul { padding-left: 20px; line-height: 1.6; }
+.svc-sources a { overflow-wrap: anywhere; }
+.badge-status { display: inline-block; border-radius: 999px; padding: 4px 12px; font-size: 0.86rem; font-weight: 800; }
+.badge-status.VERIFIED { background: #dcfce7; color: #15803d; }
+.badge-status.PARTIAL { background: #fef3c7; color: #92400e; }
+.badge-status.UNVERIFIED { background: #fee2e2; color: #991b1b; }
+.badge-status.SYSTEM { background: #dbeafe; color: #1d4ed8; }
+@media (max-width: 640px) {
+  .svc-row dt { min-width: 100%; }
+}

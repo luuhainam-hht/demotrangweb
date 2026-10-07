@@ -253,7 +253,7 @@
     if (qrLibPromise) return qrLibPromise;
     qrLibPromise = new Promise((resolve, reject) => {
       const script = document.createElement('script');
-      script.src = 'https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js';
+      script.src = 'vendor/qrcode.min.js';
       script.onload = () => resolve();
       script.onerror = () => reject(new Error('Khong tai duoc thu vien QR'));
       document.head.appendChild(script);
@@ -498,7 +498,10 @@
   input.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendMessage(); });
 
   // Tu mo panel + hien goi y ngay khi vao trang (1 lan / phien trinh duyet) neu trang yeu cau.
-  if (document.body.dataset.chatbotAutoOpen === 'true' && !sessionStorage.getItem('chatbotAutoOpened')) {
+  // Chi tu mo tren man hinh rong (kiosk, may tinh). Tren dien thoai, khung chat phu gan het
+  // man hinh nen tu bung ra la che mat noi dung chinh ngay khi vua vao trang.
+  const WIDE_ENOUGH_FOR_AUTO_OPEN = window.matchMedia('(min-width: 900px)').matches;
+  if (WIDE_ENOUGH_FOR_AUTO_OPEN && document.body.dataset.chatbotAutoOpen === 'true' && !sessionStorage.getItem('chatbotAutoOpened')) {
     sessionStorage.setItem('chatbotAutoOpened', '1');
     setTimeout(() => togglePanel(true), 1200);
   }

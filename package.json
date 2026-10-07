@@ -1,13 +1,21 @@
 {
   "name": "smart-public-queue-system",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "He thong Hanh chinh cong Mot cua Thong minh - Smart Public Administrative Queue & Kiosk Dispatcher System",
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",
     "dev": "node --watch src/server.js",
     "db:init": "node db/init.js",
-    "test": "node --test"
+    "test": "node --test",
+    "sync": "node scripts/db-sync.js",
+    "sync:status": "node scripts/db-sync.js status",
+    "sync:pull": "node scripts/db-sync.js pull",
+    "sync:backup": "node scripts/db-sync.js backup",
+    "demo:history": "node scripts/seed-demo-history.js",
+    "load:test": "node scripts/kiem-thu-tai.js",
+    "docker:up": "docker compose up -d --build",
+    "docker:down": "docker compose down"
   },
   "license": "UNLICENSED",
   "dependencies": {

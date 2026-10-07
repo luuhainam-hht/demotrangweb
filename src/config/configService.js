@@ -49,6 +49,14 @@ const STRING_VALIDATORS = {
       throw new Error('Ngay lam viec phai la danh sach so tu 1 (Thu Hai) den 7 (Chu nhat), cach nhau bang dau phay. VD: 1,2,3,4,5');
     }
   },
+  KIOSK_TIME_SLOTS(value) {
+    // De trong = dung 1 khung KIOSK_OPEN_TIME - KIOSK_CLOSE_TIME.
+    if (!String(value || '').trim()) return;
+    // require tre de tranh vong phu thuoc configService <-> kioskHours.
+    if (!require('../services/kioskHours').parseTimeSlots(value)) {
+      throw new Error('Khung gio phai co dang "HH:MM-HH:MM", nhieu khung cach nhau dau phay, khong chong lan. VD: 07:30-11:30,13:30-17:00');
+    }
+  },
   WIFI_SECURITY(value) {
     if (!['WPA', 'WEP', 'nopass'].includes(String(value).trim())) throw new Error('Kieu bao mat Wi-Fi chi nhan: WPA, WEP hoac nopass.');
   }

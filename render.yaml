@@ -42,6 +42,11 @@ services:
       - key: DB_SSL
         value: "true"
 
+      # Nang cap 10/2026: kenh realtime giua cac ban chay (Render + Docker tai Trung tam) qua
+      # Postgres LISTEN/NOTIFY tren chinh Neon. "off" neu chi chay duy nhat ban Render.
+      - key: REALTIME_BUS
+        value: pg
+
       # API key Google Gemini cho tro ly ao tren Kiosk - nhap tay, khong commit.
       - key: GEMINI_API_KEY
         sync: false

@@ -4,9 +4,10 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Kiosk Tiếp nhận - Một cửa Thông minh</title>
-<link rel="stylesheet" href="css/common.css?v=4" />
-<link rel="stylesheet" href="css/kiosk.css?v=4" />
+<link rel="stylesheet" href="css/common.css?v=8" />
+<link rel="stylesheet" href="css/kiosk.css?v=6" />
 <link rel="icon" href="assets/logoKiosk-icon-transparent.png" type="image/png" />
+<script src="js/a11y.js?v=2"></script>
 </head>
 <body data-show-header-clock="true" data-show-hours-banner="true">
 
@@ -27,6 +28,7 @@
       <p class="text-muted">Vui lòng đối chiếu và xác nhận các giấy tờ bạn đang có sẵn. Không cần nhập họ tên hay số điện thoại.</p>
       <div id="checklistItems"></div>
       <div id="checklistResult"></div>
+      <div id="serviceExtraBox"></div>
       <div class="step-nav">
         <button class="btn btn-outline" data-action="goBackToSearch">← Quay lại</button>
         <button class="btn btn-primary btn-lg" data-action="submitCheckGate">Xác nhận & Lấy số thứ tự</button>
@@ -77,8 +79,9 @@
 <script src="js/apiClient.js"></script>
 <script src="js/toast.js"></script>
 <script src="js/actionDelegate.js"></script>
-<script src="js/kiosk-checklist.js"></script>
-<script src="js/header.js"></script>
-<script src="js/chatbot.js?v=6"></script>
+<script src="js/kiosk-checklist.js?v=3"></script>
+<script src="js/header.js?v=3"></script>
+<script src="js/deviceHeartbeat.js?v=1"></script>
+<script src="js/chatbot.js?v=8"></script>
 </body>
 </html>

@@ -207,6 +207,36 @@ router.get('/analytics/service-quality', requirePermission('REPORTS'), async (re
   res.json(await analyticsService.getServiceQualityByField());
 });
 
+// ---- Nang cap 10/2026: bao cao moi (muc "Huong phat trien" cua bao cao) ----
+// Express 4 khong tu bat loi Promise trong route async -> boc lai de tra 500 ro rang thay vi treo.
+const safe = (fn) => (req, res) => Promise.resolve(fn(req, res)).catch((err) => {
+  console.error('[admin]', req.path, err);
+  res.status(500).json({ error: 'Loi he thong noi bo.' });
+});
+router.get('/analytics/satisfaction', requirePermission('REPORTS'), safe(async (req, res) => {
+  const feedbackService = require('../services/feedbackService');
+  res.json(await feedbackService.getSatisfactionReport(req.query.days));
+}));
+
+router.get('/analytics/sla-breaches', requirePermission('REPORTS'), safe(async (req, res) => {
+  res.json(await analyticsService.getSlaBreaches(req.query.days));
+}));
+
+router.get('/analytics/forecast', requirePermission('REPORTS'), safe(async (req, res) => {
+  res.json(await analyticsService.getForecast({ date: req.query.date, weeks: req.query.weeks }));
+}));
+
+// Giam sat thiet bi dau cuoi + tinh trang he thong (CSDL, kenh realtime giua cac ban chay).
+router.get('/devices', requirePermission('MONITOR'), safe(async (req, res) => {
+  const deviceService = require('../services/deviceService');
+  res.json(await deviceService.list());
+}));
+
+router.get('/system/status', requirePermission('MONITOR'), safe(async (req, res) => {
+  const systemStatus = require('../services/systemStatus');
+  res.json(await systemStatus.collect());
+}));
+
 router.get('/audit-logs', requirePermission('REPORTS'), async (req, res) => {
   res.json(await analyticsService.getAuditLogs(Number(req.query.limit) || 100));
 });

@@ -11,6 +11,30 @@ CSS3/JavaScript ES6+ + Web Speech API ở frontend (không dùng framework FE, k
 
 ---
 
+## 0. Có gì mới ở bản 2.0 (10/2026)
+
+Nâng cấp theo đúng mục **6.17 – Hạn chế** và **Hướng phát triển** của báo cáo đồ án. Chi tiết: [`docs/NANG-CAP-2026-10.md`](docs/NANG-CAP-2026-10.md).
+
+- **Docker + đồng bộ với Neon**: `docker compose up -d --build`, hoặc bấm đúp `docker-dong-bo.bat` để dùng menu tiếng Việt. Gồm sao chép realtime Neon → PostgreSQL trong Docker, kéo/đẩy dữ liệu, sao lưu tự động, và chạy offline khi mất Internet — xem [`docs/DOCKER-NEON-SYNC.md`](docs/DOCKER-NEON-SYNC.md).
+- **Realtime giữa nhiều bản chạy** (Render + Docker) qua Postgres LISTEN/NOTIFY: `src/realtime/pgBus.js`.
+- **Phiếu QR quay lại + In phiếu** trên giao diện quầy sau "Yêu cầu Bổ sung".
+- **Nhiều khung giờ/ngày** (nghỉ trưa): tham số `KIOSK_TIME_SLOTS`.
+- **Đánh giá mức độ hài lòng** của công dân trên trang theo dõi vé, kèm báo cáo CSAT.
+- **Dự báo lượng công dân + số quầy cần mở** (M/M/c – Erlang C); báo cáo **thủ tục vượt SLA**; xuất CSV.
+- **Giám sát thiết bị** Kiosk/Bảng LED (heartbeat, cảnh báo mất tín hiệu, cảnh báo loa chưa bật).
+- **Chế độ mất mạng** cho Kiosk (Service Worker) và thư viện QR đóng gói sẵn, không cần CDN.
+- `npm audit`: 0 lỗ hổng · `npm run load:test` kiểm thử tải · 184 ca kiểm thử (có 3 ca tích hợp PostgreSQL thật).
+
+| Lệnh mới | Tác dụng |
+|---|---|
+| `npm run sync:status` | So sánh dữ liệu Neon ↔ PostgreSQL Docker |
+| `npm run sync -- pull` / `push --yes` / `replica:setup` | Đồng bộ (xem `scripts/db-sync.js`) |
+| `npm run sync:backup` | Sao lưu cả hai CSDL vào `backups/` |
+| `npm run demo:history` | Sinh 8 tuần dữ liệu mẫu cho báo cáo (từ chối ghi lên Neon) |
+| `npm run load:test -- --url http://localhost:3000 --c 50 --d 20 --ws 200` | Kiểm thử tải |
+
+---
+
 ## 1. Cấu trúc thư mục
 
 ```
@@ -28,6 +52,8 @@ smart-queue-system/
 │   │   ├── uuid.js             # Sinh UUID phía ứng dụng (crypto.randomUUID(), độc lập với DB)
 │   │   └── json.js             # Parse cột JSON (pg đã tự parse JSONB, hàm này chỉ phòng hờ)
 │   ├── data/dvcGuide.js, wifiGuide.js  # Nội dung hướng dẫn nộp hồ sơ online / Wi-Fi: mỗi mục có nguồn (URL) + mức xác thực
+│   ├── data/faqKnowledge.js    # Kho tri thức Hỏi-Đáp (47 câu hỏi/7 chủ đề) + thông tin mở rộng
+│   │                             theo từng thủ tục (nơi nộp, thời hạn, nộp online, căn cứ pháp lý)
 │   ├── services/kioskHours.js  # Giờ mở cửa Kiosk (giờ Việt Nam) + công tắc chặn cấp số ngoài giờ
 │   ├── data/formGuides.js      # Nội dung mặc định "Hướng dẫn điền giấy tờ" (14 tờ khai) + gợi ý giấy tờ đi kèm
 │   ├── repositories/           # Lớp truy vấn DB thuần (ticket/counter/service/audit/form)
@@ -52,6 +78,8 @@ smart-queue-system/
 └── public/                     # Frontend tĩnh (phục vụ qua Express static)
     ├── index.html + js/index.js       # Trang chủ (tra cứu + danh mục thủ tục nổi bật)
     ├── huong-dan.html                 # Hướng dẫn sử dụng (5 bước + FAQ)
+    ├── hoi-dap.html + js/hoi-dap.js   # Trang Hỏi đáp: tìm kiếm + 47 câu hỏi theo 7 chủ đề,
+    │                                    mỗi câu kèm nguồn tham khảo và mức xác thực (xem mục 3)
     ├── huong-dan-dien-mau.html + js/form-guide.js + css/form-guide.css
     │                                    # Hướng dẫn điền giấy tờ/tờ khai từng ô (xem mục 3)
     ├── theo-doi.html + js/theo-doi.js # Công dân tự theo dõi số thứ tự qua QR (không cần tên/SĐT)
@@ -71,6 +99,8 @@ smart-queue-system/
     ├── assets/logoKiosk-trimmed-transparent.png  # Logo wordmark đã cắt viền trắng + nền trong
     │                                    suốt, dùng cho header/login (tạo bằng Pillow, xem mục 3)
     ├── assets/logoKiosk-icon-transparent.png     # Chỉ phần icon "K" (vuông), dùng làm favicon
+    ├── js/a11y.js                     # Thanh trợ năng dùng chung (3 mức cỡ chữ + tương phản cao
+    │                                    + đọc to trang) - nạp trong <head> của MỌI trang (mục 3)
     ├── js/header.js                   # Header dùng chung (logo + nav) - tự gắn vào mọi trang
     ├── js/chatbot.js                  # Widget Trợ lý AI - tự gắn vào mọi trang (xem mục 3)
     ├── js/actionDelegate.js           # Event delegation (data-action=...) thay cho onclick=...
@@ -226,7 +256,42 @@ khẩu riêng (tối thiểu 8 ký tự, có cả chữ và số) trước khi v
   và mức xác thực** (✅ đã đối chiếu / 🟡 một phần / ❌ chưa xác thực); phần chưa xác thực được liệt kê riêng và
   chatbot được yêu cầu nói rõ "chưa xác thực" thay vì đoán. Bảng đối chiếu cho cán bộ:
   `docs/HUONG-DAN-DVC-VA-WIFI-NGUON-DOI-CHIEU.md` (sinh từ `src/data/`).
-- **Hướng dẫn (`huong-dan.html`)**: 5 bước sử dụng hệ thống + câu hỏi thường gặp.
+- **Hướng dẫn (`huong-dan.html`)**: 5 bước sử dụng hệ thống + câu hỏi thường gặp về cách dùng hệ thống.
+- **Hỏi đáp (`hoi-dap.html`)**: 47 câu hỏi thường gặp chia 7 nhóm (lấy số & dùng hệ thống; giấy tờ
+  tùy thân & ủy quyền; hộ tịch; đất đai; hộ kinh doanh; nộp hồ sơ qua mạng; hỗ trợ tại Trung tâm).
+  Có ô tìm kiếm chịu được gõ **không dấu, sai chính tả** (bỏ dấu + khớp theo từ nguyên vẹn, xem
+  `searchFaqs()` trong `src/data/faqKnowledge.js`). Nội dung nằm ở **một nguồn duy nhất**
+  `src/data/faqKnowledge.js`, dùng chung cho cả 3 nơi: trang này, chatbot rule-based, và dữ liệu
+  căn cứ của AI — sửa 1 chỗ là cả 3 đổi theo.
+  ⚠️ **Mỗi câu trả lời bắt buộc có `status`**: `SYSTEM` (quy định vận hành của chính hệ thống),
+  `VERIFIED` (đã đối chiếu nguồn), `PARTIAL` (nguồn chỉ xác nhận một phần / tùy tỉnh, bắt buộc có
+  `note` giải thích), `UNVERIFIED` (chưa đối chiếu được — câu trả lời tự động kèm dòng cảnh báo
+  "TÔI CHƯA XÁC THỰC được... hãy hỏi cán bộ"). `test/faqKnowledge.test.js` chặn việc đánh dấu
+  VERIFIED/PARTIAL mà không dẫn nguồn. API: `GET /api/kiosk/faq`, `GET /api/kiosk/faq/search?q=`.
+  Bảng đối chiếu cho cán bộ: **`docs/HOI-DAP-NGUON-DOI-CHIEU.md`** (sinh tự động bằng
+  `node scripts/gen-faq-doc.js`, liệt kê rõ mục nào chưa xác thực, mục nào chỉ đúng một phần,
+  và danh sách nguồn đã dùng). ⚠️ Chạy lại lệnh này mỗi khi sửa `faqKnowledge.js`.
+- **Thông tin mở rộng theo thủ tục**: CSDL chỉ có tên/giấy tờ/lệ phí/SLA phút, trong khi người dân
+  hỏi nhiều nhất là *nộp ở đâu, bao lâu có kết quả, nộp online được không, căn cứ pháp lý nào*.
+  Phần này nằm ở `SERVICE_EXTRA` trong `src/data/faqKnowledge.js` (khớp theo cột `services.code`,
+  **không cần migration CSDL**), hiện ở cuối màn hình đối chiếu giấy tờ và được ghép thẳng vào câu
+  trả lời của chatbot. ⚠️ Phân biệt: `sla_minutes` trong CSDL là **phút phục vụ tại quầy**, còn
+  `slaNote` là **thời hạn trả kết quả hồ sơ theo quy định** — hai con số rất dễ bị nhầm.
+- **Trợ năng — phục vụ được cả người cao tuổi lẫn người trẻ trên MỘT giao diện** (`public/js/a11y.js`
+  + phần cuối `css/common.css`): thanh công cụ ở trên cùng mọi trang có **3 mức cỡ chữ**
+  (Vừa / To / Rất to), **chế độ tương phản cao** (nền trắng, chữ đen, viền rõ — cho mắt kém hoặc
+  dùng ngoài nắng) và **đọc to trang này** (Web Speech API, giọng `vi-VN` nếu máy có, tô sáng đoạn
+  đang đọc). Lựa chọn được nhớ qua `localStorage` nên giữ nguyên khi chuyển trang và khi quay lại.
+  Nền tảng đi kèm: cỡ chữ gốc 17px (cũ 16px), giãn dòng 1.6, **mọi nút/ô nhập cao tối thiểu 48px**,
+  màu chữ phụ đổi sang `#55627a` để đạt tương phản WCAG AA, `prefers-reduced-motion` được tôn trọng,
+  liên kết trong nội dung luôn gạch chân, có liên kết "Bỏ qua, tới nội dung chính" cho người dùng
+  bàn phím. Trên điện thoại: thanh trợ năng thu sau 1 nút, menu điều hướng gom vào nút "Menu", các
+  lưới `grid-3`/`grid-4` co lại theo màn hình (trước đây **không có** quy tắc co, bị vỡ trên điện
+  thoại), và Trợ lý AI **không tự bung ra** (khung chat phủ gần hết màn hình nhỏ).
+  Cỡ chữ dùng `zoom` trên `<body>` để nút bấm to lên cùng chữ — Firefox hỗ trợ `zoom` từ bản 126.
+- **Bảng LED (`display.html`)**: cỡ chữ tính theo `vw` (không phải px cố định) để đọc được từ xa
+  trên cả màn hình 32 inch lẫn TV 65 inch, số thứ tự không ngắt dòng (tránh đọc nhầm thành 2 số),
+  ẩn menu điều hướng và nút Trợ lý AI vì không ai bấm được vào màn hình treo tường.
 - **Header dùng chung + logo**: `public/js/header.js` tự gắn thanh header (logo
   `assets/logoKiosk-trimmed-transparent.png` qua thẻ `<img>` + menu điều hướng) vào đầu mọi
   trang — chỉ cần nhúng 1 dòng `<script src="js/header.js"></script>`, không phải chép lại
@@ -430,6 +495,7 @@ CI (`.github/workflows/ci.yml`) tự chạy `npm test` mỗi lần push/tạo Pu
 | `test/formGuides.test.js` | Toàn vẹn nội dung hướng dẫn điền (khớp seed thủ tục), ước tính thời gian chờ, dữ liệu theo dõi vé không lộ thông tin riêng tư, giờ Việt Nam của EOD Purge |
 | `test/kioskHours.test.js` | Chặn cấp số ngoài giờ: trong/ngoài giờ, cuối tuần, mở lại hôm nay/ngày mai/Thứ Hai, công tắc, cấu hình hỏng, ưu tiên biến môi trường, kiểm tra giá trị cấu hình |
 | `test/wifiQr.test.js` | Chuỗi QR Wi-Fi (escape, WPA/WEP/nopass, mạng doanh nghiệp) ở cả server chính và `wifi-local-service` |
+| `test/faqKnowledge.test.js` | Kho tri thức Hỏi-Đáp: mã câu hỏi không trùng, chủ đề hợp lệ, **không được đánh dấu VERIFIED/PARTIAL nếu không dẫn nguồn**, câu UNVERIFIED phải tự kèm cảnh báo, tìm kiếm khớp đúng khi gõ không dấu và KHÔNG trả lời bừa cho câu ngoài phạm vi, mọi thủ tục trong `db/schema.sql` đều có thông tin mở rộng |
 | `test/guides.test.js` | Mọi mục hướng dẫn Wi-Fi/DVC có nguồn hợp lệ, mục VERIFIED phải có nguồn, chatbot nhận diện đúng ý định, không lộ mật khẩu Wi-Fi cho AI |
 | `test/utils.test.js` | `uuid.js`, `json.js`, `validate.js` |
 | `test/runMigrations.test.js` | `addSoftDeleteToCounters` (chỉ ALTER COLUMN khi thật sự cần - bug từng làm crash production, xem mục 6) |

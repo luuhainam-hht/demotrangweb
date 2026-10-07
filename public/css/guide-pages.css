@@ -1,6 +1,6 @@
 /* Dung chung cho ket-noi-wifi.html va nop-ho-so-truc-tuyen.html: chu to, tuong phan cao, mot viec
    moi buoc - danh cho nguoi lon tuoi, it dung cong nghe. Ke thua khung o form-guide.css. */
-body { font-size: 20px; }
+body { --font-base: 20px; }
 .big-text { font-size: 1.2rem; line-height: 1.6; }
 .big-list { font-size: 1.15rem; line-height: 1.7; padding-left: 24px; }
 .hl { background: #fef9c3; padding: 1px 8px; border-radius: 6px; font-size: 1.1em; letter-spacing: 0.02em; overflow-wrap: anywhere; }

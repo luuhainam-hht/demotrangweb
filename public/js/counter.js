@@ -227,11 +227,45 @@ async function openSupplementModal() {
 async function submitSupplement() {
   const missingDocCodes = Array.from(document.querySelectorAll('#supplementChecklist input:checked')).map((el) => el.value);
   if (missingDocCodes.length === 0) return showToast('Vui lòng chọn ít nhất 1 giấy tờ còn thiếu.', 'error');
+  const missingNames = Array.from(document.querySelectorAll('#supplementChecklist input:checked'))
+    .map((el) => el.closest('label').querySelector('span').textContent);
+  const ticketNumber = activeTicket.ticket_number;
   try {
-    await ApiClient.post(`/api/tickets/${activeTicket.id}/supplement`, { missingDocCodes });
+    const result = await ApiClient.post(`/api/tickets/${activeTicket.id}/supplement`, { missingDocCodes });
     closeModal('supplementModal');
     refresh();
+    const token = result && result.ticket && result.ticket.reentry_qr_token;
+    if (token) showReentrySlip(ticketNumber, missingNames, token);
   } catch (err) { showToast(err.message, 'error'); }
+}
+
+// Nang cap 10/2026 (muc 6.17 bao cao): truoc day may chu da sinh ma Re-entry nhung giao dien quay
+// KHONG hien/in ra, cong dan khong co cach nao quay lai uu tien. Nay hien QR ngay sau thao tac
+// Yeu cau Bo sung + nut In phieu (kho giay nhiet 72mm). QR mo trang chu ?reentry=<token>, widget
+// Tro ly AI tren moi trang cong khai tu xu ly va xep lai ve vao hang doi (chatbot.js).
+async function showReentrySlip(ticketNumber, missingNames, token) {
+  const url = `${window.location.origin}/index.html?reentry=${encodeURIComponent(token)}`;
+  document.getElementById('reentryTicketNumber').textContent = ticketNumber;
+  const list = document.getElementById('reentryMissingList');
+  list.innerHTML = '';
+  missingNames.forEach((n) => { const li = document.createElement('li'); li.textContent = n; list.appendChild(li); });
+  document.getElementById('reentryIssued').textContent = `Cấp lúc ${new Date().toLocaleString('vi-VN')} • ${myCounter ? myCounter.name : ''}`;
+  const box = document.getElementById('reentryQr');
+  box.innerHTML = '';
+  openModal('reentryModal');
+  try {
+    await QrLoader.load();
+    // eslint-disable-next-line no-new
+    new QRCode(box, { text: url, width: 200, height: 200, correctLevel: QRCode.CorrectLevel.M });
+  } catch (e) {
+    box.textContent = 'Không tải được thư viện QR. Mã quay lại: ' + token.slice(0, 12) + '…';
+  }
+}
+function closeReentryModal() { closeModal('reentryModal'); }
+function printReentrySlip() {
+  document.body.classList.add('printing-slip');
+  window.print();
+  setTimeout(() => document.body.classList.remove('printing-slip'), 500);
 }
 
 init();

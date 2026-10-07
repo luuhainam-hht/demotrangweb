@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Giao diện Cán bộ Quầy</title>
-<link rel="stylesheet" href="css/common.css?v=4" />
+<link rel="stylesheet" href="css/common.css?v=8" />
 <link rel="icon" href="assets/logoKiosk-icon-transparent.png" type="image/png" />
 <style>
   .layout { display: grid; grid-template-columns: 320px 1fr; gap: 20px; }
@@ -23,7 +23,21 @@
   /* counter.html khong dung header.js (khu vuc noi bo Can bo Quay, giong admin.html) nen
      topbar phai dinh o top:0, khong con "site-header" 64px nao ben tren de nhuong cho no. */
   .topbar { top: 0; }
+
+  /* Bo cuc 2 cot co dinh 320px truoc day khong co diem gay nao: tren may tinh bang hoac man hinh
+     hep cua quay, cot "Active Slot" bi bop lai lam so dang goi kho doc. */
+  @media (max-width: 1000px) {
+    .layout { grid-template-columns: 1fr; }
+  }
+  .active-slot .num { font-size: clamp(2.6rem, 6vw, 4rem); }
+  .action-row .btn { min-height: 56px; font-size: 1.08rem; }
+  .conveyor-item { font-size: 1.02rem; padding: 14px 16px; }
+  @media (max-width: 700px) {
+    .topbar { flex-wrap: wrap; gap: 10px; }
+    .action-row .btn { min-width: 100%; }
+  }
 </style>
+<script src="js/a11y.js?v=2"></script>
 </head>
 <body>
 <div class="topbar">
@@ -71,11 +85,29 @@
   </div>
 </div>
 
+<!-- ============ MODAL: PHIEU QR QUAY LAI (nang cap 10/2026, muc 6.17 bao cao) ============ -->
+<div id="reentryModal" class="modal-overlay hidden">
+  <div class="modal-box reentry-slip">
+    <h2 style="margin-top:0;">🔁 Phiếu quay lại sau khi bổ sung</h2>
+    <div class="slip-number" id="reentryTicketNumber">—</div>
+    <p style="margin:0;">Giấy tờ cần bổ sung:</p>
+    <ul id="reentryMissingList"></ul>
+    <div class="slip-qr" id="reentryQr"></div>
+    <p style="font-size:0.95rem;">Bổ sung xong, <b>quét mã này tại Kiosk</b> (hoặc bằng điện thoại) để được xếp lại <b>ưu tiên</b> vào quầy — không phải lấy số mới. Mã chỉ dùng được 1 lần.</p>
+    <p class="text-muted" id="reentryIssued" style="font-size:0.8rem;"></p>
+    <div class="flex gap-12 mt-16 no-print">
+      <button class="btn btn-outline" style="flex:1" data-action="closeReentryModal">Đóng</button>
+      <button class="btn btn-primary" style="flex:1" data-action="printReentrySlip">🖨️ In phiếu</button>
+    </div>
+  </div>
+</div>
+
 <script src="js/apiClient.js"></script>
+<script src="js/qrLoader.js"></script>
 <script src="js/toast.js"></script>
 <script src="js/wsClient.js"></script>
 <script src="js/actionDelegate.js"></script>
-<script src="js/counter.js"></script>
-<script src="js/chatbot.js?v=6"></script>
+<script src="js/counter.js?v=2"></script>
+<script src="js/chatbot.js?v=8"></script>
 </body>
 </html>

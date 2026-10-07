@@ -167,6 +167,32 @@ async function addKioskHoursAndWifiSecurityConfigs() {
   `);
 }
 
+// ===================== Nang cap 10/2026 (theo muc 6.17 + Huong phat trien cua bao cao) =====================
+// 1) Danh gia hai long cua cong dan, 2) nhieu khung gio/ngay, 3) giam sat thiet bi (heartbeat),
+// 4) chi muc phuc vu bao cao/du bao. Tat ca idempotent - chay lai moi lan khoi dong deu an toan.
+async function addUpgrade202610() {
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS ticket_feedback (
+      id          BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+      ticket_id   CHAR(36)     NOT NULL UNIQUE REFERENCES tickets(id) ON DELETE CASCADE,
+      rating      SMALLINT     NOT NULL CHECK (rating BETWEEN 1 AND 5),
+      comment     VARCHAR(500),
+      counter_id  INT          REFERENCES counters(id) ON DELETE SET NULL,
+      officer_id  CHAR(36)     REFERENCES staff(id) ON DELETE SET NULL,
+      created_at  TIMESTAMPTZ  NOT NULL DEFAULT now()
+    )
+  `);
+  await pool.query(`CREATE INDEX IF NOT EXISTS idx_feedback_created ON ticket_feedback (created_at)`);
+  await pool.query(`CREATE INDEX IF NOT EXISTS idx_feedback_officer ON ticket_feedback (officer_id)`);
+  await pool.query(`CREATE INDEX IF NOT EXISTS idx_device_health_heartbeat ON device_health (last_heartbeat_at)`);
+  await pool.query(`
+    INSERT INTO system_configs (config_key, config_value, value_type, min_bound, max_bound, description) VALUES
+      ('KIOSK_TIME_SLOTS', '', 'STRING', NULL, NULL, 'Nhieu khung gio/ngay (nghi trua), VD 07:30-11:30,13:30-17:00. De trong = dung KIOSK_OPEN_TIME - KIOSK_CLOSE_TIME'),
+      ('DEVICE_OFFLINE_SECONDS', '120', 'NUMBER', 30, 3600, 'Thiet bi (Kiosk/Bang LED) im lang qua so giay nay bi danh dau OFFLINE va canh bao len Dashboard')
+    ON CONFLICT (config_key) DO NOTHING
+  `);
+}
+
 async function run() {
   await addSoftDeleteToCounters();
   await addTrichLucHoTichService();
@@ -177,6 +203,7 @@ async function run() {
   await addFormFillGuides();
   await makeCitizenNameOptional();
   await addKioskHoursAndWifiSecurityConfigs();
+  await addUpgrade202610();
 }
 
 module.exports = { run, addSoftDeleteToCounters };

@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net" agent="box-generator" type="device">
+  <diagram id="SoDo-07-ERD-co-so-du-lieu" name="SƠ ĐỒ QUAN HỆ THỰC THỂ (ERD) — 12 BẢNG CHUẨN 3NF">
+    <mxGraphModel dx="1400" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1840" pageHeight="1240" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" value="SƠ ĐỒ QUAN HỆ THỰC THỂ (ERD) — 12 BẢNG CHUẨN 3NF" style="text;html=1;align=center;fontSize=19;fontStyle=1;fontColor=#0F2338;" vertex="1" parent="1">
+          <mxGeometry x="470" y="8" width="900" height="32" as="geometry" />
+        </mxCell>
+        <mxCell id="field" value="&lt;div style=&quot;background:#8A6D1F;color:#FFF;padding:3px;font-weight:bold&quot;&gt;service_fields&lt;/div&gt;&lt;div style=&quot;text-align:left;padding:5px&quot;&gt;PK id  INT IDENTITY&lt;br&gt;code  VARCHAR(20) UNIQUE&lt;br&gt;name  VARCHAR(120)&lt;br&gt;ticket_prefix  CHAR(1) UNIQUE&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;verticalAlign=top;fontSize=11;fillColor=#FBF2DA;strokeColor=#8A6D1F;strokeWidth=2;fontColor=#0F2338;" vertex="1" parent="1">
+          <mxGeometry x="60" y="90" width="300" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="service" value="&lt;div style=&quot;background:#8A6D1F;color:#FFF;padding:3px;font-weight:bold&quot;&gt;services&lt;/div&gt;&lt;div style=&quot;text-align:left;padding:5px&quot;&gt;PK id&lt;br&gt;FK field_id → service_fields&lt;br&gt;code UNIQUE · name · short_alias&lt;br&gt;sla_minutes · fee_amount&lt;br&gt;required_docs  JSONB&lt;br&gt;is_active  SMALLINT&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;verticalAlign=top;fontSize=11;fillColor=#FBF2DA;strokeColor=#8A6D1F;strokeWidth=2;fontColor=#0F2338;" vertex="1" parent="1">
+          <mxGeometry x="60" y="250" width="300" height="160" as="geometry" />
+        </mxCell>
+        <mxCell id="form" value="&lt;div style=&quot;background:#8A6D1F;color:#FFF;padding:3px;font-weight:bold&quot;&gt;form_templates&lt;/div&gt;&lt;div style=&quot;text-align:left;padding:5px&quot;&gt;PK id&lt;br&gt;FK service_id → services&lt;br&gt;shelf_name&lt;br&gt;fill_guide  JSONB&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;verticalAlign=top;fontSize=11;fillColor=#FBF2DA;strokeColor=#8A6D1F;strokeWidth=2;fontColor=#0F2338;" vertex="1" parent="1">
+          <mxGeometry x="60" y="460" width="300" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="reason" value="&lt;div style=&quot;background:#8A6D1F;color:#FFF;padding:3px;font-weight:bold&quot;&gt;priority_reasons&lt;/div&gt;&lt;div style=&quot;text-align:left;padding:5px&quot;&gt;PK id&lt;br&gt;code UNIQUE · label&lt;br&gt;(danh mục lý do ưu tiên CỨNG)&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;verticalAlign=top;fontSize=11;fillColor=#FBF2DA;strokeColor=#8A6D1F;strokeWidth=2;fontColor=#0F2338;" vertex="1" parent="1">
+          <mxGeometry x="60" y="640" width="300" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="staff" value="&lt;div style=&quot;background:#2E6E8E;color:#FFF;padding:3px;font-weight:bold&quot;&gt;staff&lt;/div&gt;&lt;div style=&quot;text-align:left;padding:5px&quot;&gt;PK id  CHAR(36) UUID&lt;br&gt;username UNIQUE · password_hash (bcrypt)&lt;br&gt;role  SUPER_ADMIN|MANAGER|&lt;br&gt;       SUPERVISOR|OFFICER&lt;br&gt;is_active · failed_login_attempts&lt;br&gt;locked_until · must_change_password&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;verticalAlign=top;fontSize=11;fillColor=#E8F2F7;strokeColor=#2E6E8E;strokeWidth=2;fontColor=#0F2338;" vertex="1" parent="1">
+          <mxGeometry x="60" y="800" width="300" height="170" as="geometry" />
+        </mxCell>
+        <mxCell id="sess" value="&lt;div style=&quot;background:#2E6E8E;color:#FFF;padding:3px;font-weight:bold&quot;&gt;staff_sessions&lt;/div&gt;&lt;div style=&quot;text-align:left;padding:5px&quot;&gt;PK token  VARCHAR(64)&lt;br&gt;FK staff_id → staff&lt;br&gt;role · expires_at&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;verticalAlign=top;fontSize=11;fillColor=#E8F2F7;strokeColor=#2E6E8E;strokeWidth=2;fontColor=#0F2338;" vertex="1" parent="1">
+          <mxGeometry x="60" y="1010" width="300" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="counter" value="&lt;div style=&quot;background:#0E6E63;color:#FFF;padding:3px;font-weight:bold&quot;&gt;counters&lt;/div&gt;&lt;div style=&quot;text-align:left;padding:5px&quot;&gt;PK id&lt;br&gt;code VARCHAR(60) UNIQUE&lt;br&gt;FK field_id → service_fields&lt;br&gt;FK officer_id → staff (SET NULL)&lt;br&gt;status  OPEN|PAUSED|CLOSED&lt;br&gt;FK active_ticket_id → tickets&lt;br&gt;is_deleted  (soft-delete)&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;verticalAlign=top;fontSize=11;fillColor=#D8EFEA;strokeColor=#0E6E63;strokeWidth=2;fontColor=#0F2338;" vertex="1" parent="1">
+          <mxGeometry x="660" y="200" width="330" height="160" as="geometry" />
+        </mxCell>
+        <mxCell id="ticket" value="&lt;div style=&quot;background:#0E6E63;color:#FFF;padding:3px;font-weight:bold&quot;&gt;tickets  — thực thể trung tâm&lt;/div&gt;&lt;div style=&quot;text-align:left;padding:5px&quot;&gt;PK id  CHAR(36) UUID&lt;br&gt;ticket_number  VARCHAR(20)&lt;br&gt;FK service_id → services&lt;br&gt;FK counter_id → counters&lt;br&gt;FK priority_reason_id → priority_reasons&lt;br&gt;status  QUEUED|CALLING|PROCESSING|&lt;br&gt;        SUPP_PENDING|COMPLETED|&lt;br&gt;        CANCELLED|EXPIRED_EOD&lt;br&gt;retry_count · is_priority · queue_position&lt;br&gt;missing_doc_codes  JSONB&lt;br&gt;reentry_qr_token  UNIQUE&lt;br&gt;created_at · called_at · processing_at&lt;br&gt;completed_at · cancelled_at&lt;br&gt;handling_duration_seconds&lt;br&gt;sla_status  ON_TIME|LATE&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;verticalAlign=top;fontSize=11;fillColor=#D8EFEA;strokeColor=#0E6E63;strokeWidth=2;fontColor=#0F2338;" vertex="1" parent="1">
+          <mxGeometry x="640" y="480" width="380" height="300" as="geometry" />
+        </mxCell>
+        <mxCell id="hist" value="&lt;div style=&quot;background:#0E6E63;color:#FFF;padding:3px;font-weight:bold&quot;&gt;ticket_status_history&lt;/div&gt;&lt;div style=&quot;text-align:left;padding:5px&quot;&gt;PK id  BIGINT IDENTITY&lt;br&gt;FK ticket_id → tickets (CASCADE)&lt;br&gt;FK officer_id → staff (SET NULL)&lt;br&gt;FK counter_id → counters (SET NULL)&lt;br&gt;from_status → to_status · reason&lt;br&gt;created_at&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;verticalAlign=top;fontSize=11;fillColor=#D8EFEA;strokeColor=#0E6E63;strokeWidth=2;fontColor=#0F2338;" vertex="1" parent="1">
+          <mxGeometry x="640" y="860" width="380" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="audit" value="&lt;div style=&quot;background:#7A4A86;color:#FFF;padding:3px;font-weight:bold&quot;&gt;audit_logs&lt;/div&gt;&lt;div style=&quot;text-align:left;padding:5px&quot;&gt;PK id  BIGINT IDENTITY&lt;br&gt;FK actor_id → staff&lt;br&gt;action · target_type · target_id&lt;br&gt;target_type ∈ TICKET|COUNTER|STAFF|&lt;br&gt;   SERVICE|FORM_TEMPLATE|CONFIG|SYSTEM&lt;br&gt;detail  JSONB · created_at&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;verticalAlign=top;fontSize=11;fillColor=#F2E8F6;strokeColor=#7A4A86;strokeWidth=2;fontColor=#0F2338;" vertex="1" parent="1">
+          <mxGeometry x="1320" y="200" width="380" height="160" as="geometry" />
+        </mxCell>
+        <mxCell id="cfg" value="&lt;div style=&quot;background:#7A4A86;color:#FFF;padding:3px;font-weight:bold&quot;&gt;system_configs&lt;/div&gt;&lt;div style=&quot;text-align:left;padding:5px&quot;&gt;PK config_key  VARCHAR(60)&lt;br&gt;config_value · value_type&lt;br&gt;value_type ∈ NUMBER|STRING|&lt;br&gt;   BOOLEAN|JSON&lt;br&gt;min_value · max_value (Safe Limits)&lt;br&gt;description · updated_at&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;verticalAlign=top;fontSize=11;fillColor=#F2E8F6;strokeColor=#7A4A86;strokeWidth=2;fontColor=#0F2338;" vertex="1" parent="1">
+          <mxGeometry x="1320" y="430" width="380" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="dev" value="&lt;div style=&quot;background:#7A4A86;color:#FFF;padding:3px;font-weight:bold&quot;&gt;device_health&lt;/div&gt;&lt;div style=&quot;text-align:left;padding:5px&quot;&gt;PK id&lt;br&gt;device_type ∈ KIOSK|PA_SPEAKER|&lt;br&gt;   LED_BOARD&lt;br&gt;status ∈ ONLINE|OFFLINE|DEGRADED&lt;br&gt;last_heartbeat_at&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;verticalAlign=top;fontSize=11;fillColor=#F2E8F6;strokeColor=#7A4A86;strokeWidth=2;fontColor=#0F2338;" vertex="1" parent="1">
+          <mxGeometry x="1320" y="640" width="380" height="128" as="geometry" />
+        </mxCell>
+        <mxCell id="view" value="&lt;div style=&quot;background:#44566B;color:#FFF;padding:3px;font-weight:bold&quot;&gt;VIEW active_counters&lt;/div&gt;&lt;div style=&quot;text-align:left;padding:5px&quot;&gt;SELECT * FROM counters&lt;br&gt;WHERE is_deleted = 0&lt;br&gt;— mọi truy vấn LIỆT KÊ quầy bắt buộc đọc qua VIEW này&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;verticalAlign=top;fontSize=11;fillColor=#ECEFF2;strokeColor=#44566B;strokeWidth=2;fontColor=#0F2338;" vertex="1" parent="1">
+          <mxGeometry x="1320" y="840" width="380" height="105" as="geometry" />
+        </mxCell>
+        <mxCell id="e0" value="1 : N" style="edgeStyle=none;html=1;rounded=0;endArrow=ERmany;endFill=0;endSize=10;dashed=0;strokeWidth=1.7;strokeColor=#44566B;fontSize=11;fontColor=#44566B;" edge="1" parent="1" source="field" target="service">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e1" value="1 : 1" style="edgeStyle=none;html=1;rounded=0;endArrow=ERmany;endFill=0;endSize=10;dashed=0;strokeWidth=1.7;strokeColor=#44566B;fontSize=11;fontColor=#44566B;" edge="1" parent="1" source="service" target="form">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e2" value="1 : N" style="edgeStyle=none;html=1;rounded=0;endArrow=ERmany;endFill=0;endSize=10;dashed=0;strokeWidth=1.7;strokeColor=#44566B;fontSize=11;fontColor=#44566B;" edge="1" parent="1" source="field" target="counter">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e3" value="1 : N" style="edgeStyle=none;html=1;rounded=0;endArrow=ERmany;endFill=0;endSize=10;dashed=0;strokeWidth=1.7;strokeColor=#44566B;fontSize=11;fontColor=#44566B;" edge="1" parent="1" source="staff" target="counter">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e4" value="1 : N" style="edgeStyle=none;html=1;rounded=0;endArrow=ERmany;endFill=0;endSize=10;dashed=0;strokeWidth=1.7;strokeColor=#44566B;fontSize=11;fontColor=#44566B;" edge="1" parent="1" source="staff" target="sess">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e5" value="1 : N" style="edgeStyle=none;html=1;rounded=0;endArrow=ERmany;endFill=0;endSize=10;dashed=0;strokeWidth=1.7;strokeColor=#44566B;fontSize=11;fontColor=#44566B;" edge="1" parent="1" source="service" target="ticket">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e6" value="1 : N" style="edgeStyle=none;html=1;rounded=0;endArrow=ERmany;endFill=0;endSize=10;dashed=0;strokeWidth=1.7;strokeColor=#44566B;fontSize=11;fontColor=#44566B;" edge="1" parent="1" source="counter" target="ticket">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e7" value="1 : N" style="edgeStyle=none;html=1;rounded=0;endArrow=ERmany;endFill=0;endSize=10;dashed=0;strokeWidth=1.7;strokeColor=#44566B;fontSize=11;fontColor=#44566B;" edge="1" parent="1" source="reason" target="ticket">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e8" value="1 : N" style="edgeStyle=none;html=1;rounded=0;endArrow=ERmany;endFill=0;endSize=10;dashed=0;strokeWidth=1.7;strokeColor=#44566B;fontSize=11;fontColor=#44566B;" edge="1" parent="1" source="ticket" target="hist">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e9" value="1 : N" style="edgeStyle=none;html=1;rounded=0;endArrow=ERmany;endFill=0;endSize=10;dashed=0;strokeWidth=1.7;strokeColor=#44566B;fontSize=11;fontColor=#44566B;" edge="1" parent="1" source="staff" target="hist">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e10" value="1 : N" style="edgeStyle=none;html=1;rounded=0;endArrow=ERmany;endFill=0;endSize=10;dashed=0;strokeWidth=1.7;strokeColor=#44566B;fontSize=11;fontColor=#44566B;" edge="1" parent="1" source="counter" target="hist">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="600" y="330" />
+              <mxPoint x="600" y="930" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e11" value="1 : N" style="edgeStyle=none;html=1;rounded=0;endArrow=ERmany;endFill=0;endSize=10;dashed=0;strokeWidth=1.7;strokeColor=#44566B;fontSize=11;fontColor=#44566B;" edge="1" parent="1" source="staff" target="audit">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="430" y="780" />
+              <mxPoint x="1290" y="300" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e12" value="" style="edgeStyle=none;html=1;rounded=0;endArrow=open;endFill=0;endSize=10;dashed=1;strokeWidth=1.7;strokeColor=#44566B;fontSize=11;fontColor=#44566B;" edge="1" parent="1" source="counter" target="view">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e13" value="active_ticket_id" style="edgeStyle=none;html=1;rounded=0;endArrow=open;endFill=0;endSize=10;dashed=1;strokeWidth=1.7;strokeColor=#44566B;fontSize=11;fontColor=#44566B;" edge="1" parent="1" source="ticket" target="counter">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

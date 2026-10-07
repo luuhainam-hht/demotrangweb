@@ -4,10 +4,10 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Hướng dẫn sử dụng - Một Cửa Thông Minh</title>
-<link rel="stylesheet" href="css/common.css?v=4" />
+<link rel="stylesheet" href="css/common.css?v=8" />
 <link rel="icon" href="assets/logoKiosk-icon-transparent.png" type="image/png" />
 <style>
-  body { font-size: 18px; }
+  body { --font-base: 18px; }
   .page-hero { text-align: center; padding: 44px 20px 8px; }
   .page-hero h1 { font-size: 2.4rem; margin-bottom: 10px; }
   .page-hero p { color: var(--color-text-muted); max-width: 640px; margin: 0 auto; font-size: 1.15rem; line-height: 1.5; }
@@ -47,6 +47,7 @@
     .step-item { flex-direction: column; align-items: flex-start; gap: 12px; }
   }
 </style>
+<script src="js/a11y.js?v=2"></script>
 </head>
 <body>
 
@@ -103,7 +104,10 @@
     <div>
       <div class="eyebrow">Câu hỏi thường gặp</div>
       <h2>Giải đáp nhanh</h2>
+      <p>Đây là 7 câu hỏi hay gặp nhất về cách dùng hệ thống. Các thắc mắc về từng thủ tục
+         (giấy tờ, lệ phí, nơi nộp, thời hạn) nằm ở trang Hỏi đáp.</p>
     </div>
+    <a href="hoi-dap.html" class="view-all">Xem tất cả câu hỏi →</a>
   </div>
   <div class="card">
     <details class="faq-item" open>
@@ -138,12 +142,16 @@
 
   <div class="card cta-box mt-24">
     <h2>Sẵn sàng bắt đầu?</h2>
-    <p class="text-muted">Quay lại Trang chủ để tra cứu thủ tục và lấy số thứ tự.</p>
-    <a href="index.html" class="btn btn-primary btn-lg mt-16" style="display:inline-block;">Về Trang chủ</a>
+    <p class="text-muted">Quay lại Trang chủ để tra cứu thủ tục và lấy số thứ tự, hoặc xem
+       trang Hỏi đáp nếu bạn còn điều gì chưa rõ.</p>
+    <div class="flex gap-12 mt-16" style="justify-content:center;flex-wrap:wrap;">
+      <a href="index.html" class="btn btn-primary btn-lg">Về Trang chủ</a>
+      <a href="hoi-dap.html" class="btn btn-outline btn-lg">❓ Xem trang Hỏi đáp</a>
+    </div>
   </div>
 </div>
 
-<script src="js/header.js"></script>
-<script src="js/chatbot.js?v=6"></script>
+<script src="js/header.js?v=3"></script>
+<script src="js/chatbot.js?v=8"></script>
 </body>
 </html>

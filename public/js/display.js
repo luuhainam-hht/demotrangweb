@@ -9,6 +9,7 @@ setInterval(() => { document.getElementById('ledClock').textContent = new Date()
 function enableAudio() {
   audioEnabled = true;
   document.getElementById('enableAudioBtn').style.display = 'none';
+  if (window.DeviceHeartbeat) window.DeviceHeartbeat.setStatus('ONLINE');
   // "Moi" mot lan de vuot qua chinh sach autoplay cua trinh duyet
   const unlock = new SpeechSynthesisUtterance(' ');
   window.speechSynthesis.speak(unlock);
@@ -66,16 +67,24 @@ function renderBoard(counters) {
     const label = c.ticket_number
       ? `${c.ticket_number}`
       : (c.status === 'OPEN' ? '— sẵn sàng —' : c.status === 'PAUSED' ? 'TẠM DỪNG' : 'ĐÓNG QUẦY');
+    // So thu tu ("A-105") rat ngan nen de duoc co chu cuc dai cho de doc tu xa; con cac trang
+    // thai bang CHU ("ĐÓNG QUẦY", "— sẵn sàng —") dai gap doi, de nguyen co do thi tran ra ngoai
+    // the va bi cat mat o man hinh rong. Danh dau bang class rieng de CSS ha co chu xuong.
+    const isText = !c.ticket_number;
     return `
       <div class="led-card ${calling ? 'calling' : ''}">
         <div class="counter-name">${c.name}</div>
-        <div class="ticket-num">${label}</div>
+        <div class="ticket-num${isText ? ' ticket-num-text' : ''}">${label}</div>
         <div class="status-line">${c.ticket_status ? (c.ticket_status === 'CALLING' ? 'Đang gọi' : c.ticket_status === 'PROCESSING' ? 'Đang phục vụ' : '') : ''}</div>
       </div>`;
   }).join('');
 }
 
 if (window.speechSynthesis) window.speechSynthesis.onvoiceschanged = () => {};
+
+// Bang LED dang chay nhung loa PA chua bat (chua ai bam nut) -> bao DEGRADED len Dashboard de
+// can bo dieu phoi biet ma ra bat, thay vi phat hien khi cong dan phan nan khong nghe goi so.
+if (window.DeviceHeartbeat && !audioEnabled) window.DeviceHeartbeat.setStatus('DEGRADED');
 
 loadTtsConfig();
 refreshBoard();

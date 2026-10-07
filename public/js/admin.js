@@ -18,10 +18,10 @@ function logout() {
 function switchTab(name) {
   document.querySelectorAll('.tab-btn').forEach((b) => b.classList.toggle('active', b.dataset.tab === name));
   document.querySelectorAll('.tab-content').forEach((c) => c.classList.toggle('hidden', c.id !== `tab-${name}`));
-  if (name === 'monitor') loadMonitor();
+  if (name === 'monitor') { loadMonitor(); loadMonitorExtras(); }
   if (name === 'dispatch') loadDispatch();
   if (name === 'config') loadConfig();
-  if (name === 'reports') loadReports();
+  if (name === 'reports') { loadReports(); loadInsights(); }
   if (name === 'staff') loadStaffTab();
 }
 
@@ -36,6 +36,10 @@ function notifyImportantEvent(type, payload) {
     showToast(`Vé ${payload.ticket.ticket_number} bị hủy do vắng mặt 3 lần liên tiếp.`, 'error');
   } else if (type === 'COUNTER_STATUS_CHANGED' && payload.counter && payload.counter.status === 'CLOSED') {
     showToast(`${payload.counter.code} vừa chuyển sang trạng thái Đóng.`, 'error');
+  } else if (type === 'DEVICE_HEALTH_CHANGED' && payload.status === 'OFFLINE') {
+    showToast(`Thiết bị ${payload.deviceCode} mất tín hiệu!`, 'error');
+  } else if (type === 'FEEDBACK_RECEIVED' && payload.rating <= 2) {
+    showToast(`Có đánh giá không hài lòng (${payload.rating}★) vừa gửi về.`, 'error');
   } else if (type === 'COUNTER_STATUS_CHANGED' && payload.deleted) {
     showToast(payload.movedCount > 0 ? `Một quầy vừa bị xóa, đã chuyển ${payload.movedCount} vé sang quầy khác.` : 'Một quầy vừa bị xóa.', 'error');
   }
@@ -44,8 +48,14 @@ function notifyImportantEvent(type, payload) {
 const ws = createWsClient();
 ws.on('*', (payload, msg) => {
   const activeTab = document.querySelector('.tab-btn.active').dataset.tab;
-  if (activeTab === 'monitor') loadMonitor();
+  if (activeTab === 'monitor') {
+    loadMonitor();
+    if (msg.type === 'DEVICE_HEALTH_CHANGED') loadMonitorExtras();
+  }
   notifyImportantEvent(msg.type, payload || {});
 });
 
 loadMonitor();
+loadMonitorExtras();
+// Lam moi khoi Thiet bi/He thong dinh ky (thoi gian "im lang" thay doi ke ca khi khong co su kien).
+setInterval(() => { if (document.querySelector('.tab-btn.active').dataset.tab === 'monitor') loadMonitorExtras(); }, 30000);

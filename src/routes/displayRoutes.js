@@ -27,4 +27,15 @@ router.get('/tts-config', async (req, res) => {
   });
 });
 
+// Nang cap 10/2026: heartbeat thiet bi dau cuoi (Bang LED / Kiosk) - xem deviceService.js.
+// Cong khai (man hinh treo tuong khong dang nhap) nhung rang buoc ma thiet bi + gioi han tan suat.
+router.post('/heartbeat', async (req, res) => {
+  try {
+    const deviceService = require('../services/deviceService');
+    res.json(await deviceService.heartbeat(req.body || {}));
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
 module.exports = router;

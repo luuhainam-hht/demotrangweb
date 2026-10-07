@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Admin Control Tower</title>
-<link rel="stylesheet" href="css/common.css?v=4" />
+<link rel="stylesheet" href="css/common.css?v=8" />
 <link rel="icon" href="assets/logoKiosk-icon-transparent.png" type="image/png" />
 <style>
   .tabs { display: flex; gap: 6px; margin-bottom: 20px; border-bottom: 1px solid var(--color-border); }
@@ -37,7 +37,22 @@
   .new-counter-box .field { margin-bottom: 0; }
   .config-row { display:flex; align-items:center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--color-border); gap: 12px; }
   .config-row input { max-width: 140px; }
-  .action-chip { padding: 6px 12px; font-size: 0.85rem; border-radius: 8px; }
+  .action-chip { padding: 8px 14px; font-size: 0.9rem; border-radius: 8px; min-height: 40px; }
+
+  /* Nang cap giao dien 2026-09: Dashboard van chu yeu dung tren may tinh, nhung can bo dieu phoi
+     hay mo tren may tinh bang khi di quanh sanh -> cho hang tab cuon ngang thay vi vo bo cuc,
+     va bang so lieu cuon ngang trong khung rieng thay vi day vo ca trang. */
+  .tabs { overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: thin; }
+  .tab-btn { min-height: 48px; font-size: 1rem; }
+  .metric-tile .val { font-size: 2.2rem; }
+  .metric-tile .lbl { font-size: 0.95rem; }
+  @media (max-width: 900px) {
+    .topbar { flex-wrap: wrap; gap: 10px; }
+    .config-row { flex-wrap: wrap; }
+    .config-row input { max-width: 100%; }
+  }
+  .card table { min-width: 560px; }
+  .card > table { min-width: 0; }
   .peak-bar-col {
     flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
     gap: 4px; cursor: default;
@@ -50,7 +65,19 @@
   }
   .peak-bar-col:hover .peak-bar { transform: scaleY(1.03); filter: brightness(1.08); }
   .peak-bar-label { font-size: 0.7rem; color: var(--color-text-muted); }
+  .forecast-bar { background: linear-gradient(180deg, #2dd4bf, var(--color-teal)); }
+  .forecast-bar.peak { background: linear-gradient(180deg, #fb923c, #c2410c); }
+  .peak-bar-sub { font-size: 0.68rem; color: var(--color-teal); font-weight: 700; }
+  .kpi-mini { text-align:center; background:#f8fafc; border:1px solid var(--color-border); border-radius:10px; padding:10px; }
+  .kpi-mini .val { font-size:1.6rem; font-weight:800; color: var(--color-primary); }
+  .kpi-mini .lbl { font-size:0.8rem; color: var(--color-text-muted); }
+  .dist-row { display:flex; align-items:center; gap:8px; margin:4px 0; font-size:0.9rem; }
+  .dist-row .bar { height:12px; border-radius:6px; background: var(--color-primary); }
+  .comment-item { border-left:3px solid var(--color-border); padding:6px 10px; margin-bottom:8px; font-size:0.9rem; }
+  .status-line-item { display:flex; justify-content:space-between; gap:8px; padding:7px 0; border-bottom:1px dashed var(--color-border); font-size:0.92rem; }
+  .status-line-item:last-child { border-bottom:none; }
 </style>
+<script src="js/a11y.js?v=2"></script>
 </head>
 <body>
 <div class="topbar">
@@ -85,6 +112,17 @@
     <div class="card mt-16">
       <h3>Trạng thái Quầy (Counter Status Matrix)</h3>
       <div id="counterMatrix"></div>
+    </div>
+    <div class="grid grid-2 mt-16">
+      <div class="card">
+        <h3>Thiết bị đầu cuối (Kiosk / Bảng LED)</h3>
+        <p class="text-muted" style="font-size:0.85rem;margin-top:-6px;">Gắn mã cho máy Kiosk bằng cách mở 1 lần <code>index.html?device=KIOSK-01</code>; Bảng LED: <code>display.html?device=LED-SANH-01</code>.</p>
+        <div id="deviceList"></div>
+      </div>
+      <div class="card">
+        <h3>Tình trạng Hệ thống &amp; Đồng bộ dữ liệu</h3>
+        <div id="systemStatus"></div>
+      </div>
     </div>
   </div>
 
@@ -160,6 +198,34 @@
       </div>
     </div>
     <div class="card mt-16">
+      <div class="counter-card-head" style="flex-wrap:wrap;gap:10px;">
+        <h3>Dự báo lượng công dân &amp; số quầy cần mở (M/M/c – Erlang C)</h3>
+        <div class="flex gap-8" style="align-items:center;flex-wrap:wrap;">
+          <input type="date" id="forecastDate" style="width:auto;" />
+          <select id="forecastWeeks" style="width:auto;"><option value="4">4 tuần</option><option value="8" selected>8 tuần</option><option value="12">12 tuần</option></select>
+          <button class="btn btn-primary action-chip" data-action="loadForecast">Dự báo</button>
+        </div>
+      </div>
+      <p class="text-muted" id="forecastSummary" style="font-size:0.9rem;"></p>
+      <div id="forecastChart" class="flex gap-8" style="align-items:flex-end; height:170px;"></div>
+      <div style="overflow-x:auto;"><table id="forecastTable"><thead></thead><tbody></tbody></table></div>
+    </div>
+    <div class="grid grid-2 mt-16">
+      <div class="card">
+        <div class="counter-card-head"><h3>Thủ tục vượt ngưỡng SLA (30 ngày)</h3><button class="btn btn-outline action-chip" data-action="exportSlaCsv">⬇️ CSV</button></div>
+        <div style="overflow-x:auto;"><table id="slaTable"><thead><tr><th>Thủ tục</th><th>SLA</th><th>Hoàn tất</th><th>Trễ (%)</th><th>TB / P90 (phút)</th></tr></thead><tbody></tbody></table></div>
+      </div>
+      <div class="card">
+        <div class="counter-card-head"><h3>Mức độ hài lòng của công dân (30 ngày)</h3><button class="btn btn-outline action-chip" data-action="exportSatisfactionCsv">⬇️ CSV</button></div>
+        <div id="satisfactionSummary" class="grid grid-3" style="margin-bottom:12px;"></div>
+        <div id="satisfactionDist"></div>
+        <h4 style="margin:14px 0 6px;">Theo cán bộ</h4>
+        <div style="overflow-x:auto;"><table id="satisfactionOfficer"><thead><tr><th>Cán bộ</th><th>Lượt đánh giá</th><th>Điểm TB</th></tr></thead><tbody></tbody></table></div>
+        <h4 style="margin:14px 0 6px;">Góp ý gần đây</h4>
+        <div id="satisfactionComments"></div>
+      </div>
+    </div>
+    <div class="card mt-16">
       <h3>Peak Hour Analysis</h3>
       <div id="peakHourChart" class="flex gap-8" style="align-items:flex-end; height:140px;"></div>
     </div>
@@ -211,7 +277,8 @@
 <script src="js/admin-config.js"></script>
 <script src="js/admin-reports.js"></script>
 <script src="js/admin-staff.js"></script>
-<script src="js/admin.js"></script>
-<script src="js/chatbot.js?v=6"></script>
+<script src="js/admin-insights.js?v=1"></script>
+<script src="js/admin.js?v=2"></script>
+<script src="js/chatbot.js?v=8"></script>
 </body>
 </html>

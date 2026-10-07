@@ -351,3 +351,31 @@ test('GET /api/kiosk/hours: tra trang thai cong khai (dong cua + thong bao)', as
   assert.equal(res.body.enforced, true);
   assert.match(res.body.message, /Thứ Hai/);
 });
+
+// ---- Hoi dap (FAQ): du lieu tinh, khong cham DB - trang hoi-dap.html phu thuoc hoan toan vao
+// 2 endpoint nay nen can chan som viec doi cau truc lam vo trang. ----
+test('GET /api/kiosk/faq: tra ve day du chu de kem nhan muc xac thuc (khong cham DB)', async () => {
+  const app = buildApp();
+  const res = await request(app).get('/api/kiosk/faq');
+  assert.equal(res.status, 200);
+  assert.ok(Array.isArray(res.body.topics) && res.body.topics.length > 0);
+  assert.ok(res.body.accessed, 'thieu ngay doc nguon');
+  const allFaqs = res.body.topics.reduce((acc, t) => acc.concat(t.faqs), []);
+  assert.ok(allFaqs.length > 20, 'ngan hang cau hoi qua it');
+  for (const f of allFaqs) {
+    assert.ok(f.id && f.q && f.short, 'thieu truong bat buoc cua cau hoi');
+    assert.ok(f.statusLabel, `${f.id}: thieu nhan muc xac thuc`);
+  }
+});
+
+test('GET /api/kiosk/faq/search: tim duoc khi go khong dau, va khong tra bua cho cau ngoai pham vi', async () => {
+  const app = buildApp();
+  const hit = await request(app).get('/api/kiosk/faq/search?q=' + encodeURIComponent('mat phieu so thu tu'));
+  assert.equal(hit.status, 200);
+  assert.ok(hit.body.results.length > 0);
+  assert.equal(hit.body.results[0].id, 'HT-04');
+
+  const miss = await request(app).get('/api/kiosk/faq/search?q=' + encodeURIComponent('ket qua bong da toi qua'));
+  assert.equal(miss.status, 200);
+  assert.ok(Array.isArray(miss.body.results));
+});

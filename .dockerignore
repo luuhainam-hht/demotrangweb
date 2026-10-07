@@ -1,0 +1,15 @@
+node_modules
+npm-debug.log
+.env
+.env.*
+!.env.example
+.git
+.github
+backups
+docs
+test
+Claude outputs
+wifi-local-service
+*.ps1
+*.bat
+*.md

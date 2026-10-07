@@ -18,6 +18,9 @@ function getVietnamClock(date = new Date()) {
   return { hour: Number(parts.hour), dateKey: `${parts.year}-${parts.month}-${parts.day}` };
 }
 
+// Khoa tu van (so nguyen bat ky, co dinh) dung chung giua cac ban chay cho Batch Purge cuoi ngay.
+const EOD_LOCK_KEY = 820261017;
+
 let lastEodPurgeDate = null; // ISO date string, dam bao Batch Purge chi chay 1 lan / ngay
 
 // Max Ticket Lifetime: quet don lien tuc cac ve QUEUED/CALLING ton tai qua lau (vd vang mat lien tuc bi bo quen).
@@ -56,7 +59,17 @@ async function runEodPurgeIfDue() {
   if (nowHour < purgeHour) return;
   if (lastEodPurgeDate === todayKey) return; // da chay hom nay roi
 
-  const { totalUnserved, ticketIds } = await withTransaction(async (client) => {
+  const outcome = await withTransaction(async (client) => {
+    // Nang cap 10/2026: co the co NHIEU ban chay cung tro vao 1 CSDL (Render + Docker tai Trung
+    // tam). Bien lastEodPurgeDate chi nam trong bo nho tung tien trinh, nen truoc day moi ban
+    // deu tu purge va ghi trung dong Audit Log. Khoa tu van (advisory lock) trong giao dich +
+    // kiem tra Audit Log hom nay -> dam bao chi DUNG 1 ban thuc hien purge moi ngay.
+    await client.query('SELECT pg_advisory_xact_lock(?)', [EOD_LOCK_KEY]);
+    const { rows: done } = await client.query(
+      `SELECT 1 FROM audit_logs WHERE action = 'EOD_BATCH_PURGE' AND reason LIKE ? LIMIT 1`,
+      [`Dong phien lam viec ${todayKey}%`]
+    );
+    if (done.length > 0) return { skipped: true };
     const remaining = await ticketRepo.findAllQueuedAndCallingForEOD(client);
     const ids = [];
     for (const t of remaining) {
@@ -78,6 +91,8 @@ async function runEodPurgeIfDue() {
   });
 
   lastEodPurgeDate = todayKey;
+  if (outcome.skipped) return; // ban chay khac da purge hom nay
+  const { totalUnserved, ticketIds } = outcome;
   wsHub.broadcast(wsHub.EVENTS.EOD_PURGE, { type: 'EOD_BATCH_PURGE', totalUnserved, ticketIds, date: todayKey });
   console.log(`[purgeScheduler] EOD Batch Purge hoan tat: ${totalUnserved} ve chua xu ly bi huy.`);
 }

@@ -73,11 +73,51 @@ async function loadChecklist(serviceId) {
         ${d.hasFillGuide ? `<a class="btn btn-outline doc-guide-btn" href="${guideUrl(data.service.id)}">📝 Xem cách điền tờ khai này</a>` : ''}
       </div>
     `).join('');
+    renderServiceExtra(data.extra);
     renderChecklistStatus();
     showScreen('checklist');
   } catch (err) {
     showToast(err.message, 'error');
   }
+}
+
+// Thong tin nguoi dan hay hoi nhat nhung CSDL khong luu: nop o dau, bao lau tra ket qua, co nop
+// online duoc khong, can cu phap ly, luu y. Lay tu `extra` cua /api/kiosk/services/:id/checklist
+// (nguon: src/data/faqKnowledge.js). Muc nao CHUA XAC THUC thi noi thang la chua xac thuc, khong
+// im lang de nguoi dan tuong la chac chan.
+function renderServiceExtra(extra) {
+  const box = document.getElementById('serviceExtraBox');
+  if (!box) return;
+  if (!extra) { box.innerHTML = ''; return; }
+
+  const rows = [
+    ['📍', 'Nơi nộp hồ sơ', extra.where],
+    ['⏳', 'Thời hạn giải quyết theo quy định', extra.slaNote],
+    ['💻', 'Nộp trực tuyến', extra.online],
+    ['⚖️', 'Căn cứ', extra.legal]
+  ].filter((r) => r[2]);
+
+  const tips = (extra.tips || []).map((t) => `<li>${esc(t)}</li>`).join('');
+  const warnings = (extra.warnings || []).map((w) => `<p class="svc-warning">⚠️ ${esc(w)}</p>`).join('');
+  const faqs = (extra.relatedFaqs || [])
+    .map((f) => `<li><a href="hoi-dap.html#faq-${esc(f.id)}">${esc(f.q)}</a></li>`).join('');
+  const sources = (extra.sources || [])
+    .map((sc) => `<li><a href="${esc(sc.url)}" target="_blank" rel="noopener noreferrer">${esc(sc.title)}</a></li>`).join('');
+
+  box.innerHTML = `
+    <div class="svc-extra">
+      <h3>Thông tin cần biết trước khi đi</h3>
+      <dl class="svc-rows">
+        ${rows.map((r) => `<div class="svc-row"><dt><span aria-hidden="true">${r[0]}</span> ${esc(r[1])}</dt><dd>${esc(r[2])}</dd></div>`).join('')}
+      </dl>
+      ${tips ? `<h4>Lưu ý quan trọng</h4><ul class="svc-tips">${tips}</ul>` : ''}
+      ${warnings}
+      ${extra.status === 'UNVERIFIED'
+        ? '<p class="svc-warning">⚠️ Phần thông tin ở trên CHƯA ĐƯỢC ĐỐI CHIẾU bằng nguồn chính thức — hãy hỏi cán bộ tại quầy để chắc chắn.</p>'
+        : `<p class="svc-status"><span class="badge-status ${esc(extra.status)}">${esc(extra.statusLabel || extra.status)}</span></p>`}
+      ${faqs ? `<h4>Câu hỏi liên quan</h4><ul class="svc-faqs">${faqs}</ul>` : ''}
+      ${sources ? `<details class="svc-sources"><summary>Nguồn tham khảo</summary><ul>${sources}</ul></details>` : ''}
+    </div>`;
 }
 
 // Phan hoi truc quan theo thoi gian thuc khi cong dan tich chon giay to: con thieu -> banner
@@ -166,7 +206,7 @@ function loadQrLibrary() {
   if (!qrLibPromise) {
     qrLibPromise = new Promise((resolve, reject) => {
       const script = document.createElement('script');
-      script.src = 'https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js';
+      script.src = 'vendor/qrcode.min.js';
       script.onload = resolve;
       script.onerror = () => reject(new Error('Khong tai duoc thu vien QR'));
       document.head.appendChild(script);

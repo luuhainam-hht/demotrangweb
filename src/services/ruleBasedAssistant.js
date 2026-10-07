@@ -8,6 +8,7 @@ const { pool } = require('../config/db');
 const serviceRepo = require('../repositories/serviceRepository');
 const kioskFeatureGuide = require('./kioskFeatureGuide');
 const kioskHours = require('./kioskHours');
+const faqKnowledge = require('../data/faqKnowledge');
 
 // Vietnamese hay go khong dau/co dau lan lon - bo dau + ha chu thuong de so khop dang tin cay
 // hon la yeu cau khop chinh xac tung ky tu.
@@ -28,18 +29,43 @@ const COUNTER_KEYWORDS = ['quay nao', 'hang doi', 'cho bao lau', 'may quay', 'qu
 
 function formatServiceAnswer(service) {
   const docs = (service.required_docs || []).map((d) => `- ${d.name}`).join('\n');
-  return [
+  const lines = [
     `Tên thủ tục: ${service.name}`,
     `Giấy tờ cần chuẩn bị:`,
     docs,
     `Lệ phí: ${Number(service.fee_amount).toLocaleString('vi-VN')}đ`,
-    `Thời gian xử lý dự kiến: ${service.sla_minutes} phút`,
-    ``,
-    `Gợi ý tiếp theo:`,
-    `- Chọn đúng thủ tục này trên màn hình Kiosk để xem/lấy mẫu tờ khai`,
-    `- Xác nhận đủ giấy tờ để lấy số thứ tự trên Kiosk`,
-    `- Thủ tục thuộc lĩnh vực ${service.field_name}, được xử lý tại các quầy ${service.field_name}`
-  ].join('\n');
+    `Thời gian phục vụ tại quầy (ước tính): ${service.sla_minutes} phút`
+  ];
+
+  // Bo sung nhung thu nguoi dan hoi nhieu nhat ma CSDL khong co (nop o dau, bao lau tra ket qua,
+  // nop online duoc khong, can cu phap ly) - lay tu src/data/faqKnowledge.js theo ma thu tuc.
+  const extra = faqKnowledge.getServiceExtra(service.code);
+  if (extra) {
+    lines.push('');
+    lines.push(`Nơi nộp hồ sơ: ${extra.where}`);
+    lines.push(`Thời hạn giải quyết theo quy định: ${extra.slaNote}`);
+    lines.push(`Nộp trực tuyến: ${extra.online}`);
+    lines.push(`Căn cứ: ${extra.legal}`);
+    if (extra.tips && extra.tips.length) {
+      lines.push('');
+      lines.push('Lưu ý quan trọng:');
+      extra.tips.forEach((t) => lines.push(`- ${t}`));
+    }
+    if (extra.warnings && extra.warnings.length) {
+      extra.warnings.forEach((w) => lines.push(`⚠️ ${w}`));
+    }
+    if (extra.status === 'UNVERIFIED') {
+      lines.push('⚠️ Phần nơi nộp/thời hạn ở trên TÔI CHƯA XÁC THỰC được bằng nguồn chính thức — hãy hỏi cán bộ tại quầy.');
+    }
+  }
+
+  lines.push('');
+  lines.push('Gợi ý tiếp theo:');
+  lines.push('- Chọn đúng thủ tục này trên màn hình Kiosk để xem/lấy mẫu tờ khai');
+  lines.push('- Xác nhận đủ giấy tờ để lấy số thứ tự trên Kiosk');
+  lines.push(`- Thủ tục thuộc lĩnh vực ${service.field_name}, được xử lý tại các quầy ${service.field_name}`);
+  lines.push('[Xem thêm câu hỏi thường gặp](hoi-dap.html)');
+  return lines.join('\n');
 }
 
 // Tim thu tuc co bi danh/ten XUAT HIEN trong cau hoi (khong phai nguoc lai) - vi cau hoi
@@ -118,7 +144,7 @@ async function tryAnswer(rawMessage) {
   if (!message) return null;
 
   if (GREETING_PATTERN.test(message)) {
-    return 'Xin chào! Tôi là trợ lý ảo của Trung tâm Hành chính công. Bạn cần hỏi về thủ tục nào? Bạn có thể hỏi tôi về giấy tờ cần chuẩn bị, lệ phí, thời gian xử lý, hoặc tình trạng quầy/hàng đợi hiện tại.';
+    return 'Xin chào! Tôi là trợ lý ảo của Trung tâm Hành chính công. Bạn cần hỏi về thủ tục nào? Bạn có thể hỏi tôi về giấy tờ cần chuẩn bị, lệ phí, nơi nộp, thời hạn giải quyết, cách điền tờ khai, cách nộp hồ sơ qua mạng, hoặc tình trạng quầy/hàng đợi hiện tại.\n[Xem danh sách câu hỏi thường gặp](hoi-dap.html)';
   }
 
   const hoursAnswer = await matchOpeningHours(message);
@@ -132,6 +158,16 @@ async function tryAnswer(rawMessage) {
 
   const service = await matchService(message);
   if (service) return formatServiceAnswer(service);
+
+  // LOP CUOI truoc khi bo cuoc: ngan hang cau hoi thuong gap (src/data/faqKnowledge.js).
+  // Dat SAU cung co chu dich: cau hoi neu dich danh 1 thu tuc phai duoc tra loi bang DU LIEU
+  // THAT trong CSDL (danh muc giay to, le phi do Trung tam cau hinh), khong phai bang noi dung
+  // soan san - neu 2 nguon lech nhau thi CSDL moi la cai dung. Cac quy dinh quan trong (thoi
+  // han 60 ngay, noi nop, can cu phap ly) da duoc ghep thang vao cau tra loi thu tuc o
+  // formatServiceAnswer() nen khong bi mat khi di duong nay.
+  // Chi tra loi khi du tin cay, nguoc lai tra ve null de chatbotRoutes chuyen sang Gemini.
+  const faq = faqKnowledge.bestFaq(rawMessage);
+  if (faq) return faqKnowledge.faqToChatText(faq);
 
   return null;
 }

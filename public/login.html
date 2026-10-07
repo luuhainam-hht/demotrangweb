@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Dang nhap - He thong Mot cua</title>
-<link rel="stylesheet" href="css/common.css?v=4" />
+<link rel="stylesheet" href="css/common.css?v=8" />
 <link rel="icon" href="assets/logoKiosk-icon-transparent.png" type="image/png" />
 <style>
   .login-center {
@@ -13,15 +13,17 @@
                 radial-gradient(circle at 92% 95%, #ccfbf1, transparent 45%),
                 var(--color-bg);
   }
-  .login-box { width: 380px; position: relative; overflow: hidden; }
+  .login-box { width: 400px; max-width: 100%; position: relative; overflow: hidden; }
   .login-box::before {
     content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px;
     background: var(--gradient-brand);
   }
   .login-logo { display: block; height: 52px; width: auto; margin: 4px auto 18px; }
-  .login-box h1 { text-align: center; font-size: 1.4rem; margin-bottom: 4px; }
+  .login-box h1 { text-align: center; font-size: 1.5rem; margin-bottom: 4px; }
+  .login-box .btn { width: 100%; }
   .login-box p.sub { text-align: center; color: var(--color-text-muted); margin-top: 0; margin-bottom: 24px; }
 </style>
+<script src="js/a11y.js?v=2"></script>
 </head>
 <body>
   <main class="login-center">

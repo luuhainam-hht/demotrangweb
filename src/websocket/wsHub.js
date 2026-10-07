@@ -1,4 +1,5 @@
 const WebSocket = require('ws');
+const pgBus = require('../realtime/pgBus');
 
 // WebSocket Hub dung chung 1 port voi HTTP server (theo yeu cau cau hinh WEBSOCKET_PORT tich hop).
 // Broadcast cac su kien realtime toi tat ca module: Kiosk, Counter, Display/TTS, Admin.
@@ -18,8 +19,14 @@ const EVENTS = {
   PRIORITY_INJECTED: 'PRIORITY_INJECTED',
   CONFIG_UPDATED: 'CONFIG_UPDATED',
   EOD_PURGE: 'EOD_PURGE',
-  DEVICE_HEALTH_CHANGED: 'DEVICE_HEALTH_CHANGED'
+  DEVICE_HEALTH_CHANGED: 'DEVICE_HEALTH_CHANGED',
+  FEEDBACK_RECEIVED: 'FEEDBACK_RECEIVED'
 };
+
+// Ham xu ly bo sung khi nhan su kien tu BAN CHAY KHAC (VD nap lai cache cau hinh) - server.js
+// dang ky qua onRemote(). Tach rieng de wsHub khong phu thuoc nguoc vao configService.
+const remoteHooks = [];
+function onRemote(fn) { remoteHooks.push(fn); }
 
 function init(server) {
   wss = new WebSocket.Server({ server });
@@ -39,15 +46,30 @@ function init(server) {
     });
   }, 30000);
 
+  // Nhan su kien tu cac ban chay khac (Render <-> Docker...) qua Postgres LISTEN/NOTIFY va day
+  // tiep cho trinh duyet dang noi vao ban nay. Xem src/realtime/pgBus.js.
+  pgBus.start((type, payload) => {
+    sendLocal(type, payload, true);
+    remoteHooks.forEach((fn) => { try { fn(type, payload); } catch (e) { console.error('[wsHub] remote hook:', e.message); } });
+  });
+
   return wss;
 }
 
-function broadcast(type, payload) {
+function sendLocal(type, payload, fromRemote = false) {
   if (!wss) return;
-  const message = JSON.stringify({ type, payload, ts: new Date().toISOString() });
+  const message = JSON.stringify({ type, payload, ts: new Date().toISOString(), remote: fromRemote || undefined });
   wss.clients.forEach((client) => {
     if (client.readyState === WebSocket.OPEN) client.send(message);
   });
 }
 
-module.exports = { init, broadcast, EVENTS };
+function broadcast(type, payload) {
+  if (!wss) return; // chua init (unit test) -> no-op nhu truoc
+  sendLocal(type, payload);
+  pgBus.publish(type, payload);
+}
+
+function clientCount() { return wss ? wss.clients.size : 0; }
+
+module.exports = { init, broadcast, onRemote, clientCount, EVENTS };

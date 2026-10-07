@@ -2,6 +2,7 @@ const { GoogleGenAI } = require('@google/genai');
 const { pool } = require('../config/db');
 const serviceRepo = require('../repositories/serviceRepository');
 const kioskFeatureGuide = require('./kioskFeatureGuide');
+const faqKnowledge = require('../data/faqKnowledge');
 
 // gemini-2.5-flash da bi Google ngung ho tro tai khoan moi (loi 404 "no longer available").
 // Chuyen sang gemini-3.6-flash theo dung khuyen nghi tra ve tu chinh API cua Google.
@@ -48,7 +49,13 @@ async function buildGroundingContext() {
     `- ${c.code} (${c.field_name}): ${c.status}${c.status === 'OPEN' ? `, đang có ${c.waiting_count} người chờ` : ''}.`
   ).join('\n');
 
-  return `DANH MỤC THỦ TỤC HÀNH CHÍNH HIỆN CÓ:\n${serviceLines}\n\nTRẠNG THÁI QUẦY GIAO DỊCH HIỆN TẠI:\n${counterLines}\n\nHƯỚNG DẪN SỬ DỤNG CÁC TÍNH NĂNG TRÊN KIOSK:\n${kioskFeatureGuide.buildGuideText()}`;
+  return [
+    `DANH MỤC THỦ TỤC HÀNH CHÍNH HIỆN CÓ:\n${serviceLines}`,
+    `THÔNG TIN MỞ RỘNG THEO TỪNG THỦ TỤC (nơi nộp, thời hạn giải quyết theo quy định, nộp trực tuyến, căn cứ pháp lý - khớp theo mã thủ tục ở trên):\n${faqKnowledge.buildServiceExtraText()}`,
+    `TRẠNG THÁI QUẦY GIAO DỊCH HIỆN TẠI:\n${counterLines}`,
+    `HƯỚNG DẪN SỬ DỤNG CÁC TÍNH NĂNG TRÊN KIOSK:\n${kioskFeatureGuide.buildGuideText()}`,
+    `NGÂN HÀNG CÂU HỎI THƯỜNG GẶP (đã soạn sẵn, có ghi mức xác thực - ƯU TIÊN dùng nguyên văn ý của phần Đáp thay vì tự diễn giải):\n${faqKnowledge.buildAiGuideText()}`
+  ].join('\n\n');
 }
 
 function buildSystemPrompt(groundingContext) {
@@ -65,6 +72,10 @@ QUY TẮC BẮT BUỘC:
 8. TUYỆT ĐỐI không dùng ký hiệu markdown (như *, **, #, dấu gạch chéo trang trí) để in đậm hay liệt kê. Viết tên mục thuần văn bản kèm dấu hai chấm (vd: "Tên thủ tục:"), mỗi mục xuống dòng riêng. Khi liệt kê nhiều ý, dùng dấu gạch ngang "-" ở đầu dòng, mỗi ý một dòng, không dùng dấu hoa thị "*".
 9. TUYỆT ĐỐI không hiển thị quá trình suy nghĩ, tự kiểm tra, hay bình luận nội bộ (VD: "(Check: ...)", "Let me think...", "Đang phân tích câu hỏi..."). Chỉ xuất ra câu trả lời cuối cùng, sạch sẽ, đi thẳng vào nội dung ngay từ ký tự đầu tiên.
 10. Với câu hỏi về NỘP HỒ SƠ TRỰC TUYẾN (Cổng dịch vụ công, VNeID) và KẾT NỐI WI-FI: chỉ dùng đúng các bước trong mục "HƯỚNG DẪN SỬ DỤNG CÁC TÍNH NĂNG TRÊN KIOSK". Với mọi điều nằm trong danh sách "CHƯA XÁC THỰC" của mục đó (định dạng/dung lượng tệp, lỗi thanh toán, lỗi đăng nhập VNeID, tài khoản mức 1...), PHẢI nói rõ "tôi chưa xác thực được" và khuyên hỏi cán bộ hoặc gọi tổng đài của cổng. TUYỆT ĐỐI không tự bịa nút bấm, đường dẫn, số điện thoại, thời hạn hay quy trình. Người hỏi thường là người lớn tuổi: viết câu ngắn, mỗi bước một dòng, từ ngữ đơn giản. Không được nói mật khẩu Wi-Fi trong câu trả lời (mật khẩu hiện trong khung Wi-Fi của Kiosk).
+
+11. Với câu hỏi về NƠI NỘP HỒ SƠ, THỜI HẠN GIẢI QUYẾT, CÓ NỘP TRỰC TUYẾN ĐƯỢC KHÔNG, CĂN CỨ PHÁP LÝ: chỉ dùng đúng nội dung trong mục "THÔNG TIN MỞ RỘNG THEO TỪNG THỦ TỤC" và "NGÂN HÀNG CÂU HỎI THƯỜNG GẶP". Mục nào ghi "CHUA XAC THUC" thì PHẢI nói rõ với người dân là chưa xác thực và khuyên hỏi cán bộ; mục nào ghi "CHI XAC NHAN MOT PHAN / tuy tinh thanh" thì PHẢI nói rõ là quy định có thể khác nhau theo từng tỉnh, thành. TUYỆT ĐỐI không tự nêu số ngày, số tiền, tên văn bản pháp luật nào không có trong dữ liệu căn cứ.
+12. Phân biệt rõ hai con số dễ nhầm: "thời gian xử lý ... phút" trong danh mục thủ tục là THỜI GIAN PHỤC VỤ TẠI QUẦY; còn "Thời hạn giải quyết" trong thông tin mở rộng là THỜI HẠN TRẢ KẾT QUẢ HỒ SƠ theo quy định. Không được dùng lẫn hai con số này.
+13. Người hỏi có thể là người lớn tuổi: câu ngắn, mỗi ý một dòng, tránh từ chuyên ngành. Khi có trang hướng dẫn phù hợp trong hệ thống, hãy chỉ đường bằng đúng định dạng [chữ hiển thị](tên-trang.html), ví dụ [Xem thêm câu hỏi thường gặp](hoi-dap.html).
 
 DỮ LIỆU CĂN CỨ (cập nhật thời gian thực từ hệ thống):
 ${groundingContext}`;

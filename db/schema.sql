@@ -272,8 +272,8 @@ CREATE TABLE IF NOT EXISTS audit_logs (
 );
 
 -- device_health: theo dõi tình trạng thiết bị đầu cuối (Kiosk, loa PA, bảng LED).
--- LƯU Ý: bảng này hiện CHƯA có mã nguồn nào đọc/ghi - giữ lại theo thiết kế giám sát thiết bị
--- trong tài liệu use case, sẵn sàng cho phần heartbeat sẽ bổ sung sau.
+-- Nâng cấp 10/2026: đã có mã nguồn đọc/ghi - src/services/deviceService.js nhận heartbeat từ
+-- Bảng LED/Kiosk (POST /api/display/heartbeat) và đánh dấu OFFLINE khi im lặng quá lâu.
 CREATE TABLE IF NOT EXISTS device_health (
   id                INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   device_type       VARCHAR(20) NOT NULL CHECK (device_type IN ('KIOSK','PA_SPEAKER','LED_BOARD')),
@@ -283,6 +283,20 @@ CREATE TABLE IF NOT EXISTS device_health (
                       CHECK (status IN ('ONLINE','OFFLINE','DEGRADED')),
   last_heartbeat_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   CONSTRAINT uq_device UNIQUE (device_type, device_code)
+);
+
+
+-- ticket_feedback (nâng cấp 10/2026): đánh giá mức độ hài lòng của công dân sau mỗi lượt giao
+-- dịch, mỗi vé tối đa 1 đánh giá (UNIQUE ticket_id). counter_id/officer_id lưu lại quầy và cán bộ
+-- đã xử lý để báo cáo theo cán bộ; ON DELETE SET NULL giữ lại đánh giá khi quầy/cán bộ bị xoá.
+CREATE TABLE IF NOT EXISTS ticket_feedback (
+  id          BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  ticket_id   CHAR(36)     NOT NULL UNIQUE REFERENCES tickets(id) ON DELETE CASCADE,
+  rating      SMALLINT     NOT NULL CHECK (rating BETWEEN 1 AND 5),
+  comment     VARCHAR(500),
+  counter_id  INT          REFERENCES counters(id) ON DELETE SET NULL,
+  officer_id  CHAR(36)     REFERENCES staff(id) ON DELETE SET NULL,
+  created_at  TIMESTAMPTZ  NOT NULL DEFAULT now()
 );
 
 
@@ -383,6 +397,9 @@ CREATE INDEX IF NOT EXISTS idx_system_configs_updated_by
   ON system_configs (updated_by) WHERE updated_by IS NOT NULL;
 CREATE INDEX IF NOT EXISTS idx_device_health_counter
   ON device_health (counter_id) WHERE counter_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_device_health_heartbeat ON device_health (last_heartbeat_at);
+CREATE INDEX IF NOT EXISTS idx_feedback_created ON ticket_feedback (created_at);
+CREATE INDEX IF NOT EXISTS idx_feedback_officer ON ticket_feedback (officer_id);
 
 
 -- =====================================================================================
@@ -420,7 +437,9 @@ INSERT INTO system_configs (config_key, config_value, value_type, min_bound, max
   ('KIOSK_HOURS_ENFORCED',        '1',                  'NUMBER', 0,   1,   'Chặn cấp số tại Kiosk ngoài giờ làm việc: 1 = chặn, 0 = không chặn'),
   ('KIOSK_OPEN_TIME',             '07:30',              'STRING', NULL, NULL, 'Giờ mở cửa (HH:MM, giờ Việt Nam). GIÁ TRỊ MẪU - hãy sửa cho đúng'),
   ('KIOSK_CLOSE_TIME',            '17:00',              'STRING', NULL, NULL, 'Giờ đóng cửa (HH:MM, giờ Việt Nam). GIÁ TRỊ MẪU - hãy sửa cho đúng'),
-  ('KIOSK_WORKING_DAYS',          '1,2,3,4,5',          'STRING', NULL, NULL, 'Các ngày làm việc: 1=Thứ Hai ... 7=Chủ nhật, cách nhau bằng dấu phẩy. GIÁ TRỊ MẪU')
+  ('KIOSK_WORKING_DAYS',          '1,2,3,4,5',          'STRING', NULL, NULL, 'Các ngày làm việc: 1=Thứ Hai ... 7=Chủ nhật, cách nhau bằng dấu phẩy. GIÁ TRỊ MẪU'),
+  ('KIOSK_TIME_SLOTS',            '',                   'STRING', NULL, NULL, 'Nhiều khung giờ/ngày (nghỉ trưa), VD 07:30-11:30,13:30-17:00. Để trống = dùng KIOSK_OPEN_TIME - KIOSK_CLOSE_TIME'),
+  ('DEVICE_OFFLINE_SECONDS',      '120',                'NUMBER', 30,  3600, 'Thiết bị (Kiosk/Bảng LED) im lặng quá số giây này bị đánh dấu OFFLINE và cảnh báo lên Dashboard')
 ON CONFLICT (config_key) DO NOTHING;
 
 -- Lĩnh vực chuyên môn

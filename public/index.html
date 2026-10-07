@@ -4,13 +4,23 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Trang chủ - Hỗ trợ Tra cứu Thủ tục Hành chính</title>
-<link rel="stylesheet" href="css/common.css?v=4" />
+<link rel="stylesheet" href="css/common.css?v=8" />
 <link rel="icon" href="assets/logoKiosk-icon-transparent.png" type="image/png" />
 <style>
   .category-grid { margin-top: 8px; }
   footer.site-footer { text-align: center; padding: 30px; color: var(--color-text-muted); font-size: 0.85rem; }
   .empty-search { text-align: center; padding: 30px; color: var(--color-text-muted); }
+  .faq-quick-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 12px; margin-bottom: 30px; }
+  .faq-quick {
+    display: flex; align-items: center; gap: 12px; min-height: 64px;
+    background: #fff; border: 2px solid var(--color-border); border-radius: 14px;
+    padding: 14px 18px; text-decoration: none; color: var(--color-text);
+    font-size: 1.05rem; font-weight: 600; line-height: 1.45;
+  }
+  .faq-quick:hover { border-color: var(--color-primary); background: #f8fbff; }
+  .faq-quick .q-ico { font-size: 1.5rem; flex-shrink: 0; }
 </style>
+<script src="js/a11y.js?v=2"></script>
 </head>
 <body data-chatbot-auto-open="true" data-show-hours-banner="true">
 
@@ -38,11 +48,22 @@
       <h2>Bạn cần giúp gì?</h2>
     </div>
   </div>
-  <div class="grid grid-3 support-grid" style="margin-bottom:28px;">
+  <div class="grid grid-4 support-grid" style="margin-bottom:28px;">
     <a href="huong-dan-dien-mau.html" class="card-link category-card"><div class="card"><h3>📝 Cách điền giấy tờ</h3><p class="desc">Hướng dẫn điền từng ô của tờ khai, có ví dụ.</p><div class="meta">Xem hướng dẫn →</div></div></a>
     <a href="nop-ho-so-truc-tuyen.html" class="card-link category-card"><div class="card"><h3>💻 Nộp hồ sơ qua mạng</h3><p class="desc">Các bước nộp hồ sơ trên Cổng dịch vụ công.</p><div class="meta">Xem hướng dẫn →</div></div></a>
     <a href="ket-noi-wifi.html" class="card-link category-card"><div class="card"><h3>📶 Kết nối Wi-Fi</h3><p class="desc">Quét mã QR, có hướng dẫn cho Android và iPhone.</p><div class="meta">Xem hướng dẫn →</div></div></a>
+    <a href="hoi-dap.html" class="card-link category-card"><div class="card"><h3>❓ Hỏi đáp</h3><p class="desc">Giải đáp chi tiết các thắc mắc thường gặp, có ghi rõ nguồn.</p><div class="meta">Xem hỏi đáp →</div></div></a>
   </div>
+
+  <div class="section-heading">
+    <div>
+      <div class="eyebrow">Thắc mắc thường gặp</div>
+      <h2>Nhiều người hỏi nhất</h2>
+      <p>Bấm vào một câu hỏi để xem câu trả lời chi tiết, kèm nguồn tham khảo.</p>
+    </div>
+    <a href="hoi-dap.html" class="view-all">Xem tất cả câu hỏi →</a>
+  </div>
+  <div class="faq-quick-row" id="faqQuickRow"></div>
 
   <div class="section-heading">
     <div>
@@ -56,12 +77,14 @@
 </div>
 
 <footer class="site-footer">
-  © Hệ thống Hỗ trợ Tra cứu Thủ tục Hành chính Công — Bấm biểu tượng 💬 góc phải để hỏi Trợ lý AI.
+  © Hệ thống Hỗ trợ Tra cứu Thủ tục Hành chính Công<br/>
+  Không tìm thấy điều bạn cần? Xem <a href="hoi-dap.html">trang Hỏi đáp</a> hoặc bấm biểu tượng 💬 ở góc phải để hỏi Trợ lý AI.
 </footer>
 
-<script src="js/header.js"></script>
-<script src="js/chatbot.js?v=6"></script>
+<script src="js/header.js?v=3"></script>
+<script src="js/deviceHeartbeat.js?v=1"></script>
+<script src="js/chatbot.js?v=8"></script>
 <script src="js/searchSuggest.js"></script>
-<script src="js/index.js"></script>
+<script src="js/index.js?v=2"></script>
 </body>
 </html>

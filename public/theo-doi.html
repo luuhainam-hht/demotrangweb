@@ -4,8 +4,8 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Theo dõi số thứ tự - Một Cửa Thông Minh</title>
-<link rel="stylesheet" href="css/common.css?v=4" />
-<link rel="stylesheet" href="css/kiosk.css?v=4" />
+<link rel="stylesheet" href="css/common.css?v=8" />
+<link rel="stylesheet" href="css/kiosk.css?v=6" />
 <link rel="icon" href="assets/logoKiosk-icon-transparent.png" type="image/png" />
 <style>
   .track-wrap { max-width: 520px; margin: 0 auto; padding: 24px 16px 60px; }
@@ -15,6 +15,7 @@
   .track-card.bad { border: 3px solid var(--color-danger); background: #fef2f2; }
   .track-updated { font-size: 0.8rem; color: var(--color-text-muted); margin-top: 16px; }
 </style>
+<script src="js/a11y.js?v=2"></script>
 </head>
 <body>
 <div class="track-wrap">
@@ -27,13 +28,23 @@
     <p id="trackService" class="track-detail"></p>
     <p class="track-updated" id="trackUpdated"></p>
   </div>
+  <!-- Nang cap 10/2026: danh gia muc do hai long (hien khi ve da Hoan tat) -->
+  <div class="card mt-16" id="feedbackCard" hidden>
+    <h2 style="margin:0 0 4px; font-size:1.25rem; text-align:center;">Bạn hài lòng với lượt phục vụ này chứ?</h2>
+    <p class="text-muted" style="text-align:center; margin:0;">Chạm 1 biểu tượng — không cần ghi tên.</p>
+    <div class="rating-row" id="ratingRow" role="radiogroup" aria-label="Mức độ hài lòng"></div>
+    <label for="feedbackComment" style="margin-top:8px;">Góp ý thêm (không bắt buộc)</label>
+    <textarea id="feedbackComment" rows="3" maxlength="500" placeholder="Ví dụ: cán bộ hướng dẫn tận tình, thời gian chờ…"></textarea>
+    <button class="btn btn-primary btn-block mt-16" id="feedbackSubmit" disabled>Gửi đánh giá</button>
+  </div>
+  <div class="card mt-16" id="feedbackDone" hidden><p class="rating-thanks" style="margin:0;">✅ Cảm ơn bạn đã đánh giá! Ý kiến của bạn giúp Trung tâm phục vụ tốt hơn.</p></div>
   <div class="card mt-16">
     <p class="text-muted" style="margin:0;">Trang này tự cập nhật mỗi vài giây. Bạn <b>không cần nhập tên hay số điện thoại</b> — chỉ cần giữ trang/mã QR này. Khi đến lượt, hãy lắng nghe loa và xem Bảng LED tại Trung tâm.</p>
   </div>
 </div>
 
 <script src="js/apiClient.js"></script>
-<script src="js/header.js"></script>
-<script src="js/theo-doi.js?v=1"></script>
+<script src="js/header.js?v=3"></script>
+<script src="js/theo-doi.js?v=2"></script>
 </body>
 </html>

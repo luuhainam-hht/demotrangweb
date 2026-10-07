@@ -11,7 +11,9 @@ const kioskHours = require('../services/kioskHours');
 const { buildWifiPayload } = require('../utils/wifiQr');
 const wifiGuide = require('../data/wifiGuide');
 const dvcGuide = require('../data/dvcGuide');
-const { requireInt } = require('../utils/validate');
+const faqKnowledge = require('../data/faqKnowledge');
+const { requireInt, ValidationError } = require('../utils/validate');
+const feedbackService = require('../services/feedbackService');
 
 const router = express.Router();
 
@@ -48,10 +50,42 @@ router.get('/services/:id/checklist', async (req, res) => {
       hint: DOC_HINTS[d.code] || null,
       hasFillGuide: !!guideDocCode && d.code === guideDocCode
     }));
-    res.json({ service, requiredDocs, formTemplate: withoutGuide(form), hasFillGuide: !!(form && form.fill_guide) });
+    res.json({
+      service,
+      requiredDocs,
+      formTemplate: withoutGuide(form),
+      hasFillGuide: !!(form && form.fill_guide),
+      // Noi nop / thoi han giai quyet / nop online / can cu phap ly - xem src/data/faqKnowledge.js
+      extra: faqKnowledge.getServiceExtra(service.code)
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
+});
+
+// ================== HOI DAP (FAQ) ==================
+// Toan bo ngan hang cau hoi thuong gap, nhom theo chu de, kem NGUON va MUC XAC THUC.
+// Dung cho trang hoi-dap.html. Du lieu tinh (src/data/faqKnowledge.js) nen khong cham toi DB.
+router.get('/faq', (req, res) => {
+  res.json({
+    accessed: faqKnowledge.ACCESSED,
+    statusLabels: faqKnowledge.STATUS_LABELS,
+    topics: faqKnowledge.listForPublic()
+  });
+});
+
+// Tim nhanh trong ngan hang cau hoi (o tim kiem tren trang Hoi dap + goi y cho Trang chu).
+router.get('/faq/search', (req, res) => {
+  const keyword = String(req.query.q || '').slice(0, 200);
+  const results = faqKnowledge.searchFaqs(keyword, 8).map((r) => ({
+    id: r.faq.id,
+    topic: r.faq.topic,
+    q: r.faq.q,
+    short: r.faq.short,
+    status: r.faq.status,
+    statusLabel: faqKnowledge.STATUS_LABELS[r.faq.status] || r.faq.status
+  }));
+  res.json({ keyword, results });
 });
 
 // Danh sach cac to khai co huong dan dien (de nguoi dan chon khi vao trang huong dan dien mau
@@ -225,9 +259,31 @@ router.get('/tickets/:id/status', async (req, res) => {
     if (!UUID_PATTERN.test(req.params.id)) return res.status(404).json({ error: 'Khong tim thay ve.' });
     const info = await ticketRepo.getTrackingInfo(pool, req.params.id);
     if (!info) return res.status(404).json({ error: 'Khong tim thay ve.' });
-    res.json(toPublicTracking(info));
+    const body = toPublicTracking(info);
+    // Nang cap 10/2026: ve da hoan tat -> cho biet da danh gia chua de trang theo-doi hien form.
+    if (info.status === 'COMPLETED') {
+      const fb = await feedbackService.getFeedbackForTicket(req.params.id).catch(() => null);
+      body.feedback = fb ? { rated: true, rating: fb.rating } : { rated: false };
+    }
+    res.json(body);
   } catch (err) {
     res.status(500).json({ error: 'Loi he thong noi bo.' });
+  }
+});
+
+// Nang cap 10/2026: cong dan danh gia muc do hai long sau khi hoan tat (1-5 sao + gop y).
+router.post('/tickets/:id/feedback', async (req, res) => {
+  try {
+    if (!UUID_PATTERN.test(req.params.id)) return res.status(404).json({ error: 'Khong tim thay ve.' });
+    const result = await feedbackService.submitFeedback(req.params.id, req.body || {});
+    require('../websocket/wsHub').broadcast('FEEDBACK_RECEIVED', { rating: result.rating, counterId: result.counterId });
+    res.status(201).json({ ok: true, rating: result.rating });
+  } catch (err) {
+    if (!(err instanceof ValidationError)) {
+      console.error('[kiosk] feedback:', err);
+      return res.status(500).json({ error: 'Loi he thong noi bo.' });
+    }
+    res.status(err.status || 400).json({ error: err.message });
   }
 });
 
