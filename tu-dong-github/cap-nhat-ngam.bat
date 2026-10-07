@@ -25,12 +25,11 @@ if errorlevel 1 (
   exit /b 1
 )
 
-rem --- Nối thư mục với kho GitHub nếu chưa (không sửa file nào) ---
+rem --- Chạy ngầm KHÔNG tự nối thư mục mới: không biết bản trên máy hay bản GitHub mới hơn,
+rem     đẩy nhầm sẽ xoá mất sửa đổi trên GitHub. Phải chạy cap-nhat-github.bat 1 lần để chọn. ---
 if not exist ".git" (
-  git init -q
-  git symbolic-ref HEAD refs/heads/%BRANCH%
-  git remote add origin %REPO_URL%
-  call :ghi "Da noi thu muc voi %REPO_URL%"
+  call :ghi "Bo qua: thu muc chua noi GitHub - chay cap-nhat-github.bat 1 lan truoc"
+  exit /b 1
 )
 git remote get-url origin >nul 2>&1
 if errorlevel 1 git remote add origin %REPO_URL%
@@ -52,8 +51,8 @@ if errorlevel 1 (
 )
 git rev-parse --verify -q HEAD >nul 2>&1
 if errorlevel 1 (
-  git reset -q origin/%BRANCH%
-  git checkout -q origin/%BRANCH% -- .github
+  call :ghi "Bo qua: kho chua co lich su - chay cap-nhat-github.bat 1 lan truoc"
+  exit /b 1
 )
 
 rem --- Chốt an toàn .env ---

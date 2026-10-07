@@ -29,13 +29,15 @@ if errorlevel 1 (
 )
 
 rem ------------------------------------------------------------------------------
-rem 1. Chưa phải kho git - nối với GitHub, KHÔNG đụng vào file trong thư mục
+rem 1. Chưa phải kho git (tải ZIP / chép tay): nối với GitHub, KHÔNG đụng vào file
 rem ------------------------------------------------------------------------------
+set "MOI_NOI=0"
 if not exist ".git" (
   echo  Thư mục này chưa phải kho git. Đang nối với kho GitHub...
   git init -q
   git symbolic-ref HEAD refs/heads/%BRANCH%
   git remote add origin %REPO_URL%
+  set "MOI_NOI=1"
 )
 git remote get-url origin >nul 2>&1
 if errorlevel 1 git remote add origin %REPO_URL%
@@ -59,12 +61,21 @@ if errorlevel 1 (
   goto loi
 )
 
-rem Kho vừa tạo (chưa có commit nào): lấy lịch sử GitHub làm gốc, file trên máy giữ nguyên.
-rem Riêng thư mục .github (cấu hình kiểm thử tự động) lấy theo bản trên GitHub.
+rem Kho vừa nối lần đầu: CHƯA BIẾT bản nào mới hơn - bản trên máy (chép tay) hay bản GitHub.
+rem Đẩy nhầm bản cũ trên máy lên sẽ XOÁ MẤT các sửa đổi mới trên GitHub, nên phải hỏi.
 git rev-parse --verify -q HEAD >nul 2>&1
 if errorlevel 1 (
   git reset -q origin/%BRANCH%
-  git checkout -q origin/%BRANCH% -- .github
+  echo.
+  echo  So với bản trên GitHub, thư mục trên máy đang khác ở các file sau:
+  git status --short
+  echo.
+  echo   1. Lấy bản MỚI từ GitHub về máy - ghi đè file trên máy bằng bản GitHub  [khuyên dùng]
+  echo      File .env, node_modules, backups của anh được giữ nguyên.
+  echo   2. Đẩy bản trên máy LÊN GitHub - chỉ chọn khi chắc chắn bản trên máy mới hơn
+  set "CHON="
+  set /p "CHON=Chọn 1 hoặc 2 (Enter = 1): "
+  if not "!CHON!"=="2" goto lay_ve
 )
 
 rem GitHub có commit mới hơn máy (VD sửa từ máy khác) - kéo về trước khi đẩy.
@@ -198,6 +209,24 @@ if errorlevel 1 (
 echo.
 echo  XONG. Code đã lên GitHub.
 echo  Theo dõi deploy: Render Dashboard, tab Logs - thành công sẽ thấy dòng "Your service is live".
+goto xong
+
+:lay_ve
+git reset -q --hard origin/%BRANCH%
+if errorlevel 1 goto loi
+rem File đã bị xoá trên GitHub (VD script .ps1 cũ, a11y.js) nhưng còn trên máy: liệt kê rồi hỏi xoá.
+git clean -n -d > "%TEMP%\hcc-clean.txt"
+for %%A in ("%TEMP%\hcc-clean.txt") do if %%~zA GTR 0 (
+  echo.
+  echo  Các file cũ không còn trong bản GitHub:
+  type "%TEMP%\hcc-clean.txt"
+  set "XOA="
+  set /p "XOA=Xoá các file cũ này? (y/n): "
+  if /i "!XOA!"=="y" git clean -f -d -q
+)
+echo.
+echo  XONG. Thư mục trên máy đã giống hệt bản mới nhất trên GitHub.
+echo  Nếu chạy web bằng npm start: chạy  npm install  một lần.
 goto xong
 
 :huy
