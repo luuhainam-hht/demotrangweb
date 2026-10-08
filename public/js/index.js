@@ -5,16 +5,24 @@ function renderCategoryCards(services, opts) {
     grid.innerHTML = `<div class="empty-search" style="grid-column: 1 / -1;">Không tìm thấy thủ tục phù hợp. Vui lòng thử từ khóa khác hoặc hỏi Trợ lý AI.</div>`;
     return;
   }
-  grid.innerHTML = services.map((s) => `
-    <a href="kiosk-checklist.html?serviceId=${s.id}" class="service-row">
-      <span class="service-row-name">${escHtml(s.name)}</span>
-      <span class="service-row-meta">${escHtml(s.field_name)}</span>
-      <span class="service-row-meta">Tiếp nhận khoảng ${Number(s.sla_minutes) || '-'} phút</span>
-      <span class="service-row-fee">${Number(s.fee_amount) > 0 ? Number(s.fee_amount).toLocaleString('vi-VN') + ' đ' : 'Miễn phí'}</span>
-    </a>
-  `).join('');
+  grid.innerHTML = services.map((s) => {
+    const fee = Number(s.fee_amount) > 0 ? Number(s.fee_amount).toLocaleString('vi-VN') + ' đ' : 'Miễn phí';
+    return `
+    <a href="kiosk-checklist.html?serviceId=${encodeURIComponent(s.id)}" class="card-link category-card svc-card">
+      <div class="card">
+        <span class="svc-field">${escHtml(s.field_name)}</span>
+        <h3>${escHtml(s.name)}</h3>
+        <div class="svc-facts">
+          <span>⏱ Tiếp nhận ~${Number(s.sla_minutes) || '-'} phút</span>
+          <span class="svc-fee">${fee}</span>
+        </div>
+        <div class="meta">Xem giấy tờ cần chuẩn bị →</div>
+      </div>
+    </a>`;
+  }).join('');
 
   if (opts.title) {
+    document.getElementById('categoryEyebrow').textContent = 'Kết quả tra cứu';
     document.getElementById('categoryTitle').textContent = opts.title;
     document.getElementById('categorySub').textContent = `Tìm thấy ${services.length} thủ tục phù hợp.`;
   }
@@ -22,7 +30,7 @@ function renderCategoryCards(services, opts) {
 
 function renderCategorySkeleton() {
   document.getElementById('categoryGrid').innerHTML = Array.from({ length: 8 })
-    .map(() => '<div class="skeleton-card" style="height:58px;margin-bottom:6px;"></div>').join('');
+    .map(() => '<div class="skeleton-card" style="height:170px;"></div>').join('');
 }
 
 async function loadPopularServices() {
@@ -38,7 +46,7 @@ async function performSearch(keyword) {
   renderCategorySkeleton();
   try {
     const services = await fetch(`/api/kiosk/services?q=${encodeURIComponent(keyword)}`).then((r) => r.json());
-    renderCategoryCards(services, { title: `Kết quả tìm "${keyword}"` });
+    renderCategoryCards(services, { title: `Kết quả cho "${keyword}"` });
     document.getElementById('categoryGrid').scrollIntoView({ behavior: 'smooth', block: 'start' });
   } catch (e) { /* bo qua */ }
 }
@@ -47,6 +55,14 @@ document.getElementById('searchForm').addEventListener('submit', (e) => {
   e.preventDefault();
   const keyword = document.getElementById('searchInput').value.trim();
   if (keyword) performSearch(keyword); else loadPopularServices();
+});
+
+// Nut "Tim nhanh" duoi o tim kiem: dien san tu khoa roi tra cuu luon (nguoi lon tuoi khoi phai go).
+document.querySelectorAll('#heroQuick [data-q]').forEach((btn) => {
+  btn.addEventListener('click', () => {
+    document.getElementById('searchInput').value = btn.dataset.q;
+    performSearch(btn.dataset.q);
+  });
 });
 
 SearchSuggest.attach(document.getElementById('searchInput'), document.getElementById('searchForm'), {
@@ -87,7 +103,10 @@ async function loadFaqHighlights() {
     const picked = FAQ_HIGHLIGHT_IDS.map((id) => byId[id]).filter(Boolean);
     const list = picked.length ? picked : all.slice(0, 6);
     row.innerHTML = list.map((f) => `
-      <a class="faq-quick" href="hoi-dap.html#faq-${escHtml(f.id)}">${escHtml(f.q)}</a>`).join('');
+      <a class="faq-quick" href="hoi-dap.html#faq-${escHtml(f.id)}">
+        <span class="q-ico" aria-hidden="true">?</span>
+        <span>${escHtml(f.q)}</span>
+      </a>`).join('');
   } catch (e) {
     // Khong tai duoc thi an han khoi nay di, khong de lai khung xam trong tren Trang chu.
     row.innerHTML = '';

@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Kiosk Tiếp nhận - Một cửa Thông minh</title>
-<link rel="stylesheet" href="css/common.css?v=10" />
+<link rel="stylesheet" href="css/common.css?v=12" />
 <link rel="stylesheet" href="css/kiosk.css?v=6" />
 <link rel="icon" href="assets/logoKiosk-icon-transparent.png" type="image/png" />
 </head>
@@ -38,11 +38,11 @@
   <!-- ================= NGOAI GIO LAM VIEC ================= -->
   <section id="screen-closed" class="hidden">
     <div class="card closed-card">
-      <div class="closed-icon"></div>
+      <div class="closed-icon">🕒</div>
       <h2>Chưa thể lấy số lúc này</h2>
       <p id="closedMessage" class="closed-message"></p>
       <p id="closedOpensAt" class="closed-opens"></p>
-      <a id="closedGuideBtn" class="btn btn-outline btn-lg hidden" href="huong-dan-dien-mau.html">Xem cách điền tờ khai trong lúc chờ</a>
+      <a id="closedGuideBtn" class="btn btn-outline btn-lg hidden" href="huong-dan-dien-mau.html">📝 Xem cách điền tờ khai trong lúc chờ</a>
       <button class="btn btn-primary btn-lg mt-16" data-action="goBackToSearch">Về Trang chủ</button>
     </div>
   </section>
@@ -68,7 +68,7 @@
 <!-- ================= MODAL: FORM TEMPLATE (Annotated Sample) ================= -->
 <div id="formTemplateModal" class="modal-overlay hidden">
   <div class="modal-box">
-    <h2>Hướng dẫn Bổ sung Hồ sơ</h2>
+    <h2>📋 Hướng dẫn Bổ sung Hồ sơ</h2>
     <div id="missingDocsBox"></div>
     <div id="formLocationBox"></div>
     <button class="btn btn-primary btn-block mt-16" data-action="closeModal" data-args='["formTemplateModal"]'>Tôi đã chuẩn bị xong, Kiểm tra lại</button>
