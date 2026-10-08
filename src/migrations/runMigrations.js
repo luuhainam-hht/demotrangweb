@@ -4,6 +4,7 @@
 // khong tu cap nhat CSDL da ton tai - can co buoc migrate rieng nay).
 const { pool } = require('../config/db');
 const { FORM_GUIDES } = require('../data/formGuides');
+const { SERVICE_FEES } = require('../data/serviceFees');
 
 async function addSoftDeleteToCounters() {
   // Cho phep "xoa" quay ma khong pha vo FK Audit Trail (tickets/ticket_status_history van
@@ -193,6 +194,23 @@ async function addUpgrade202610() {
   `);
 }
 
+// Le phi tung thu tuc theo quy dinh dang ap dung tai Ha Noi (doi chieu Cong DVC quoc gia + nghi
+// quyet HDND TP, xem src/data/serviceFees.js). Truoc day seed ghi so uoc chung (VD sang ten so do
+// 500.000 d) - sai va de gay hieu nham vi thu tuc dat dai tinh theo gia tri dat. Chay MOI lan khoi
+// dong (idempotent): file serviceFees.js la nguon duy nhat, CSDL luon khop voi file.
+async function updateServiceFees() {
+  await pool.query(`ALTER TABLE services ADD COLUMN IF NOT EXISTS fee_label VARCHAR(80)`);
+  await pool.query(`ALTER TABLE services ADD COLUMN IF NOT EXISTS fee_note TEXT`);
+  for (const code of Object.keys(SERVICE_FEES)) {
+    const f = SERVICE_FEES[code];
+    await pool.query(
+      `UPDATE services SET fee_amount = ?, fee_label = ?, fee_note = ?
+       WHERE code = ? AND (fee_amount <> ? OR fee_label IS DISTINCT FROM ? OR fee_note IS DISTINCT FROM ?)`,
+      [f.amount, f.label, f.note, code, f.amount, f.label, f.note]
+    );
+  }
+}
+
 async function run() {
   await addSoftDeleteToCounters();
   await addTrichLucHoTichService();
@@ -204,6 +222,7 @@ async function run() {
   await makeCitizenNameOptional();
   await addKioskHoursAndWifiSecurityConfigs();
   await addUpgrade202610();
+  await updateServiceFees();
 }
 
-module.exports = { run, addSoftDeleteToCounters };
+module.exports = { run, addSoftDeleteToCounters, updateServiceFees };

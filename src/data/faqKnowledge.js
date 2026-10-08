@@ -11,8 +11,9 @@
 //       UNVERIFIED = CHUA doi chieu duoc nguon - chi de nguoi dan biet ma hoi can bo, TUYET DOI
 //                    khong duoc trinh bay nhu quy dinh chinh thuc.
 //   - KHONG suy dien: khong tu che so tien, so ngay, ten van ban.
-//   - Muc tien/le phi cu the va gio lam viec THAY DOI THEO TINH/THANH (HDND tinh quyet dinh)
-//     nen o day chi ghi nguyen tac, khong ghi con so cung.
+//   - Muc tien/le phi THAY DOI THEO TINH/THANH (HDND tinh quyet dinh). Con so dang ap dung tai
+//     HA NOI nam o src/data/serviceFees.js (doi chieu 08/10/2026) - cac cau hoi ve tien o day
+//     dan lai dung so do kem nguon H1..H4, khong tu che so.
 //
 // CANH BAO CHO CAN BO TRUNG TAM:
 //   Cac trang nguon duoc doc qua cong cu tom tat noi dung, phan lon la bao/trang luat (nguon thu
@@ -23,7 +24,29 @@
 
 const ACCESSED = '22/09/2026';
 
+const FEES_ACCESSED = '08/10/2026';
+
 const SOURCES = {
+  H1: {
+    title: 'Nghị quyết 06/2020/NQ-HĐND TP Hà Nội – lệ phí hộ tịch, lệ phí cấp Giấy chứng nhận quyền sử dụng đất, phí thẩm định hồ sơ',
+    url: 'https://thuvienphapluat.vn/van-ban/Thue-Phi-Le-Phi/Nghi-quyet-06-2020-NQ-HDND-thu-phi-le-phi-thuoc-tham-quyen-quyet-dinh-Hoi-dong-Ha-Noi-447524.aspx',
+    accessed: FEES_ACCESSED
+  },
+  H2: {
+    title: 'LuatVietnam – Từ 25/7/2026 Hà Nội áp dụng lệ phí 0 đồng với đăng ký hộ kinh doanh trực tuyến (Nghị quyết 78/2026/NQ-HĐND)',
+    url: 'https://luatvietnam.vn/tin-van-ban-moi/tu-25-7-2026-ha-noi-ap-dung-le-phi-0-dong-voi-mot-so-thu-tuc-dang-ky-kinh-doanh-online-186-110817-article.html',
+    accessed: FEES_ACCESSED
+  },
+  H3: {
+    title: 'Thư viện pháp luật – Mức phí bản sao trích lục hộ tịch 2026: 8.000 đồng/bản (Thông tư 281/2016/TT-BTC)',
+    url: 'https://thuvienphapluat.vn/hoi-dap-phap-luat/muc-phi-cua-ban-sao-trich-luc-giay-to-ho-tich-2026-la-bao-nhieu-138089691.html',
+    accessed: FEES_ACCESSED
+  },
+  H4: {
+    title: 'Báo Chính phủ – Toàn văn Thông tư 117/2026/TT-BTC miễn, giảm phí, lệ phí cho công dân số (15/8/2026 – 28/02/2027)',
+    url: 'https://xaydungchinhsach.chinhphu.vn/toan-van-thong-tu-117-2026-tt-btc-quy-dinh-mien-giam-mot-so-khoan-phi-le-phi-de-trien-khai-nghi-quyet-ve-phat-trien-cong-dan-so-119260828175124756.htm',
+    accessed: FEES_ACCESSED
+  },
   K1: {
     title: 'VietNamNet – Từ 1/7, người dân có thể làm thủ tục hành chính ở bất cứ đâu trong tỉnh, thành (mô hình chính quyền 2 cấp, Nghị định 118/2025/NĐ-CP về cơ chế một cửa)',
     url: 'https://vietnamnet.vn/tu-1-7-nguoi-dan-co-the-lam-thu-tuc-hanh-chinh-o-bat-cu-dau-trong-tinh-thanh-2411625.html',
@@ -349,16 +372,17 @@ const FAQS = [
     ]
   },
   {
-    id: 'HTI-06', topic: 'HOTICH', status: 'PARTIAL', sources: ['K5'],
+    id: 'HTI-06', topic: 'HOTICH', status: 'VERIFIED', sources: ['K5', 'H1', 'H3'],
     q: 'Làm khai sinh, khai tử, kết hôn có mất lệ phí không?',
     aliases: ['lệ phí khai sinh', 'lệ phí kết hôn', 'lệ phí hộ tịch', 'có tốn tiền không'],
-    short: 'Đăng ký khai sinh và khai tử ĐÚNG HẠN, đăng ký kết hôn của công dân Việt Nam cư trú trong nước được miễn lệ phí. Bản sao trích lục thì phải trả phí.',
+    short: 'Đăng ký khai sinh và khai tử ĐÚNG HẠN, đăng ký kết hôn của công dân Việt Nam cư trú trong nước được miễn lệ phí. Bản sao trích lục thì mất 8.000 đ/bản.',
     details: [
-      'Người thuộc hộ nghèo, người khuyết tật, người có công với cách mạng cũng được miễn lệ phí hộ tịch.',
-      'Mức thu các việc còn lại do Hội đồng nhân dân cấp tỉnh quyết định nên KHÁC NHAU giữa các tỉnh, thành.',
-      'Hãy xem bảng niêm yết lệ phí tại Trung tâm hoặc hỏi cán bộ để biết con số chính xác của địa phương bạn.'
+      'Tại Hà Nội, đăng ký khai sinh hoặc khai tử QUÁ HẠN: 5.000 đ/việc; cấp Giấy xác nhận tình trạng hôn nhân: 3.000 đ/việc (Nghị quyết 06/2020/NQ-HĐND).',
+      'Người thuộc hộ nghèo, người khuyết tật, người thuộc gia đình có công với cách mạng được miễn lệ phí hộ tịch.',
+      'Bản sao trích lục (khai sinh, kết hôn, khai tử…): 8.000 đ/bản; từ 15/8/2026 đến hết 28/02/2027 được miễn nếu có VNeID mức 2 và đủ điều kiện.',
+      'Ở tỉnh, thành khác mức thu có thể khác — xem bảng niêm yết lệ phí tại Trung tâm.'
     ],
-    note: 'Nguồn dẫn Thông tư 179/2015/TT-BTC (đăng năm 2015). Nguyên tắc miễn lệ phí vẫn được nhắc lại trong các nguồn 2026, nhưng mức thu cụ thể phải tra nghị quyết HĐND tỉnh hiện hành.'
+    note: 'Mức thu đối chiếu ngày 08/10/2026 theo Nghị quyết 06/2020/NQ-HĐND TP Hà Nội và Cổng Dịch vụ công quốc gia.'
   },
   {
     id: 'HTI-07', topic: 'HOTICH', status: 'VERIFIED', sources: ['K2', 'K6'],
@@ -384,17 +408,17 @@ const FAQS = [
     note: 'Chưa đối chiếu được nguồn cho thời hạn đăng ký khai tử theo quy định đang áp dụng năm 2026.'
   },
   {
-    id: 'HTI-09', topic: 'HOTICH', status: 'PARTIAL', sources: ['K5'],
+    id: 'HTI-09', topic: 'HOTICH', status: 'VERIFIED', sources: ['H3', 'H4'],
     q: 'Tôi cần bản sao giấy khai sinh cũ, xin ở đâu?',
     aliases: ['trích lục khai sinh', 'bản sao giấy khai sinh', 'mất giấy khai sinh', 'trích lục hộ tịch'],
-    short: 'Bạn xin cấp bản sao trích lục hộ tịch tại nơi đã đăng ký trước đây, hoặc nơi đang lưu trữ sổ hộ tịch. Thủ tục này có thu lệ phí.',
+    short: 'Bạn xin cấp bản sao trích lục hộ tịch tại nơi đã đăng ký trước đây, hoặc nơi đang lưu trữ sổ hộ tịch. Phí: 8.000 đ cho mỗi bản sao.',
     details: [
       'Mang theo giấy tờ tùy thân và thông tin sự kiện đã đăng ký (số, quyển, ngày đăng ký nếu còn nhớ) để tra nhanh hơn.',
-      'Mức lệ phí do HĐND cấp tỉnh quy định, khác nhau giữa các địa phương.',
+      'Phí 8.000 đ/bản theo Thông tư 281/2016/TT-BTC (Cổng Dịch vụ công quốc gia ghi đúng mức này).',
+      'Từ 15/8/2026 đến hết 28/02/2027: miễn phí nếu bạn có tài khoản VNeID mức 2 và đủ điều kiện (Thông tư 117/2026/TT-BTC).',
       'Thủ tục cấp bản sao trích lục hộ tịch cũng nộp trực tuyến được trên Cổng Dịch vụ công quốc gia.'
     ],
-    link: 'nop-ho-so-truc-tuyen.html',
-    note: 'Mức lệ phí do HĐND cấp tỉnh quy định nên khác nhau giữa các địa phương; nguồn đã đọc chỉ nêu nguyên tắc miễn/thu, không nêu con số cụ thể.'
+    link: 'nop-ho-so-truc-tuyen.html'
   },
   {
     id: 'HTI-10', topic: 'HOTICH', status: 'UNVERIFIED',
@@ -422,14 +446,15 @@ const FAQS = [
     ]
   },
   {
-    id: 'DD-02', topic: 'DATDAI', status: 'VERIFIED', sources: ['K7'],
+    id: 'DD-02', topic: 'DATDAI', status: 'VERIFIED', sources: ['K7', 'H1', 'H4'],
     q: 'Sang tên sổ đỏ phải nộp những khoản tiền gì?',
     aliases: ['thuế sang tên', 'lệ phí trước bạ', 'chi phí sang tên đất', 'thuế 2%'],
     short: 'Các khoản chính: thuế thu nhập cá nhân 2% và lệ phí trước bạ 0,5%, cộng thêm phí thẩm định hồ sơ, lệ phí cấp giấy và phí công chứng hợp đồng.',
     details: [
       'Thuế thu nhập cá nhân 2% tính trên giá chuyển nhượng, bên bán thường là người nộp (hai bên có thể thỏa thuận khác).',
       'Lệ phí trước bạ 0,5% tính trên giá trị đất theo quy định.',
-      'Phí thẩm định hồ sơ và lệ phí cấp giấy do từng địa phương quy định nên khác nhau.',
+      'Tại Hà Nội: phí thẩm định hồ sơ 0,15% giá chuyển nhượng, tối đa 5.000.000 đ/hồ sơ; lệ phí chứng nhận đăng ký biến động 28.000 đ (phường) hoặc 14.000 đ (khu vực khác) — Nghị quyết 06/2020/NQ-HĐND.',
+      'Từ 15/8/2026 đến hết 28/02/2027: người có VNeID mức 2 kê khai điện tử được giảm 10% lệ phí trước bạ nhà đất (tối đa 5 lần lương cơ sở).',
       'Kể cả khi thuộc diện được miễn thuế, bạn VẪN phải nộp tờ khai thuế — đây là bắt buộc.'
     ]
   },
@@ -495,16 +520,17 @@ const FAQS = [
     ]
   },
   {
-    id: 'KD-02', topic: 'KINHDOANH', status: 'PARTIAL', sources: ['K5', 'K8'],
+    id: 'KD-02', topic: 'KINHDOANH', status: 'VERIFIED', sources: ['H2', 'K8'],
     q: 'Lệ phí đăng ký hộ kinh doanh là bao nhiêu?',
     aliases: ['phí đăng ký kinh doanh', 'lệ phí hộ kinh doanh bao nhiêu tiền'],
-    short: 'Lệ phí đăng ký hộ kinh doanh thuộc thẩm quyền quyết định của Hội đồng nhân dân cấp tỉnh nên khác nhau giữa các địa phương.',
+    short: 'Tại Hà Nội: 100.000 đ/lần khi nộp hồ sơ giấy, 0 đ khi nộp trực tuyến — áp dụng cho cấp mới, thay đổi nội dung và cấp lại Giấy chứng nhận đăng ký hộ kinh doanh.',
     details: [
-      'Nộp hồ sơ qua mạng ở nhiều nơi được miễn hoặc giảm lệ phí — hãy hỏi cán bộ.',
-      'Xem bảng niêm yết lệ phí tại Trung tâm để biết con số chính xác.',
-      'Con số hiển thị trên màn hình tra cứu của hệ thống là cấu hình của Trung tâm, Admin cập nhật theo nghị quyết của tỉnh.'
+      'Căn cứ: Nghị quyết 78/2026/NQ-HĐND TP Hà Nội, hiệu lực từ 25/7/2026.',
+      'Tạm ngừng hoặc chấm dứt hoạt động hộ kinh doanh không thu lệ phí.',
+      'Không thu lệ phí khi chỉ điều chỉnh địa chỉ do thay đổi địa giới hành chính, tên đường, số nhà.',
+      'Lệ phí không được hoàn lại nếu hồ sơ không được cấp đăng ký.'
     ],
-    note: 'Mức lệ phí cụ thể do HĐND tỉnh quy định; chưa đối chiếu nghị quyết của từng địa phương.'
+    note: 'Đối chiếu ngày 08/10/2026. Ở tỉnh, thành khác mức thu có thể khác.'
   },
   {
     id: 'KD-03', topic: 'KINHDOANH', status: 'UNVERIFIED',

@@ -9,6 +9,7 @@ const serviceRepo = require('../repositories/serviceRepository');
 const kioskFeatureGuide = require('./kioskFeatureGuide');
 const kioskHours = require('./kioskHours');
 const faqKnowledge = require('../data/faqKnowledge');
+const { formatFeeAmount } = require('../data/serviceFees');
 
 // Vietnamese hay go khong dau/co dau lan lon - bo dau + ha chu thuong de so khop dang tin cay
 // hon la yeu cau khop chinh xac tung ky tu.
@@ -33,7 +34,7 @@ function formatServiceAnswer(service) {
     `Tên thủ tục: ${service.name}`,
     `Giấy tờ cần chuẩn bị:`,
     docs,
-    `Lệ phí: ${Number(service.fee_amount).toLocaleString('vi-VN')}đ`,
+    `Lệ phí: ${service.fee_note || formatFeeAmount(service.fee_amount)}`,
     `Thời gian phục vụ tại quầy (ước tính): ${service.sla_minutes} phút`
   ];
 

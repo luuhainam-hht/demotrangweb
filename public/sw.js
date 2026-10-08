@@ -8,7 +8,7 @@
 // Lay so (POST) KHONG bao gio duoc gia lap khi mat mang - STT phai do may chu cap de khong trung.
 // Khu vuc noi bo (Quay/Admin) va moi API ghi khong di qua bo nho dem.
 // =====================================================================================
-const CACHE = 'hcc-offline-v5';
+const CACHE = 'hcc-offline-v6';
 const PRECACHE = [
   '/', '/index.html', '/kiosk-checklist.html', '/hoi-dap.html', '/huong-dan.html',
   '/huong-dan-dien-mau.html', '/nop-ho-so-truc-tuyen.html', '/ket-noi-wifi.html', '/theo-doi.html', '/offline.html',

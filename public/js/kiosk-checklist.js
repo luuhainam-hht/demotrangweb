@@ -75,7 +75,7 @@ async function loadChecklist(serviceId) {
         ${d.hasFillGuide ? `<a class="btn btn-outline doc-guide-btn" href="${guideUrl(data.service.id)}">📝 Xem cách điền tờ khai này</a>` : ''}
       </div>
     `).join('');
-    renderServiceExtra(data.extra);
+    renderServiceExtra(data.extra, data.service);
     renderChecklistStatus();
     showScreen('checklist');
   } catch (err) {
@@ -87,12 +87,15 @@ async function loadChecklist(serviceId) {
 // online duoc khong, can cu phap ly, luu y. Lay tu `extra` cua /api/kiosk/services/:id/checklist
 // (nguon: src/data/faqKnowledge.js). Muc nao CHUA XAC THUC thi noi thang la chua xac thuc, khong
 // im lang de nguoi dan tuong la chac chan.
-function renderServiceExtra(extra) {
+function renderServiceExtra(extra, service) {
   const box = document.getElementById('serviceExtraBox');
   if (!box) return;
   if (!extra) { box.innerHTML = ''; return; }
 
+  // Le phi: lay tu CSDL (ghi tu src/data/serviceFees.js - muc dang ap dung tai Ha Noi).
+  const feeText = service && (service.fee_note || (service.fee_label ? service.fee_label : null));
   const rows = [
+    ['💰', 'Lệ phí', feeText],
     ['📍', 'Nơi nộp hồ sơ', extra.where],
     ['⏳', 'Thời hạn giải quyết theo quy định', extra.slaNote],
     ['💻', 'Nộp trực tuyến', extra.online],

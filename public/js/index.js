@@ -6,7 +6,8 @@ function renderCategoryCards(services, opts) {
     return;
   }
   grid.innerHTML = services.map((s) => {
-    const fee = Number(s.fee_amount) > 0 ? Number(s.fee_amount).toLocaleString('vi-VN') + ' đ' : 'Miễn phí';
+    // fee_label: chu ngan do src/data/serviceFees.js ghi vao CSDL (VD thu tuc dat dai "Theo giá đất").
+    const fee = s.fee_label || (Number(s.fee_amount) > 0 ? Number(s.fee_amount).toLocaleString('vi-VN') + ' đ' : 'Miễn phí');
     return `
     <a href="kiosk-checklist.html?serviceId=${encodeURIComponent(s.id)}" class="card-link category-card svc-card">
       <div class="card">
@@ -14,7 +15,7 @@ function renderCategoryCards(services, opts) {
         <h3>${escHtml(s.name)}</h3>
         <div class="svc-facts">
           <span>⏱ Tiếp nhận ~${Number(s.sla_minutes) || '-'} phút</span>
-          <span class="svc-fee">${fee}</span>
+          <span class="svc-fee">${escHtml(fee)}</span>
         </div>
         <div class="meta">Xem giấy tờ cần chuẩn bị →</div>
       </div>

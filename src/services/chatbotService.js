@@ -3,6 +3,7 @@ const { pool } = require('../config/db');
 const serviceRepo = require('../repositories/serviceRepository');
 const kioskFeatureGuide = require('./kioskFeatureGuide');
 const faqKnowledge = require('../data/faqKnowledge');
+const { formatFeeAmount } = require('../data/serviceFees');
 
 // gemini-2.5-flash da bi Google ngung ho tro tai khoan moi (loi 404 "no longer available").
 // Chuyen sang gemini-3.6-flash theo dung khuyen nghi tra ve tu chinh API cua Google.
@@ -42,7 +43,7 @@ async function buildGroundingContext() {
 
   const serviceLines = services.map((s) => {
     const docs = (s.required_docs || []).map((d) => d.name).join(', ');
-    return `- [${s.field_name}] "${s.name}" (bí danh: ${s.short_alias || s.name}): thời gian xử lý ${s.sla_minutes} phút, lệ phí ${Number(s.fee_amount).toLocaleString('vi-VN')}đ. Giấy tờ cần: ${docs}.`;
+    return `- [${s.field_name}] "${s.name}" (bí danh: ${s.short_alias || s.name}): thời gian xử lý ${s.sla_minutes} phút, lệ phí: ${s.fee_note || formatFeeAmount(s.fee_amount)} Giấy tờ cần: ${docs}.`;
   }).join('\n');
 
   const counterLines = counters.map((c) =>

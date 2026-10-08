@@ -13,7 +13,9 @@ const FAKE_SERVICES = [
   },
   {
     id: 2, name: 'Sang tên Giấy chứng nhận Quyền sử dụng đất', short_alias: 'sang tên sổ đỏ',
-    field_name: 'Đất đai - Tài nguyên', sla_minutes: 30, fee_amount: 500000,
+    field_name: 'Đất đai - Tài nguyên', sla_minutes: 30, fee_amount: 28000,
+    fee_label: 'Theo giá chuyển nhượng',
+    fee_note: 'Các khoản chính: thuế thu nhập cá nhân 2% giá chuyển nhượng; lệ phí trước bạ 0,5%; phí thẩm định hồ sơ 0,15% giá chuyển nhượng, tối đa 5.000.000 đ/hồ sơ.',
     required_docs: [{ code: 'CCCD', name: 'CCCD hai bên', mandatory: true }]
   }
 ];
@@ -43,14 +45,16 @@ test('tryAnswer: khop dung thu tuc theo bi danh, khong dau khong phan biet hoa t
   const reply = await ruleBasedAssistant.tryAnswer('LAM GIAY Khai Sinh can gi?');
   assert.match(reply, /Đăng ký khai sinh/);
   assert.match(reply, /CCCD\/CMND bản chính/);
-  assert.match(reply, /Lệ phí: 0đ/);
+  // Khong co fee_note (DB cu) -> 0 dong hien "Miễn phí" thay vi "0đ" kho hieu.
+  assert.match(reply, /Lệ phí: Miễn phí/);
 });
 
 test('tryAnswer: khop dung thu tuc co gia tri (khong nham lan giua 2 thu tuc)', async () => {
   const ruleBasedAssistant = require('../src/services/ruleBasedAssistant');
   const reply = await ruleBasedAssistant.tryAnswer('Lệ phí sang tên sổ đỏ bao nhiêu?');
   assert.match(reply, /Sang tên Giấy chứng nhận Quyền sử dụng đất/);
-  assert.match(reply, /500\.000đ/);
+  // Thu tuc dat dai: hien giai thich tinh theo gia tri (fee_note), KHONG phai 1 con so co dinh.
+  assert.match(reply, /0,15% giá chuyển nhượng/);
 });
 
 test('tryAnswer: nhan dien cau hoi ve tinh trang quay', async () => {
