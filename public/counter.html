@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Quầy tiếp nhận - Một Cửa Thông Minh</title>
-<link rel="stylesheet" href="css/common.css?v=13" />
+<link rel="stylesheet" href="css/common.css?v=14" />
 <link rel="icon" href="assets/logoKiosk-icon-transparent.png" type="image/png" />
 <style>
   .layout { display: grid; grid-template-columns: 320px 1fr; gap: 20px; }
@@ -92,7 +92,8 @@
     <p style="margin:0;">Giấy tờ cần bổ sung:</p>
     <ul id="reentryMissingList"></ul>
     <div class="slip-qr" id="reentryQr"></div>
-    <p style="font-size:0.95rem;">Bổ sung xong, <b>quét mã này tại Kiosk</b> (hoặc bằng điện thoại) để được xếp lại <b>ưu tiên</b> vào quầy — không phải lấy số mới. Mã chỉ dùng được 1 lần.</p>
+    <p class="slip-code" style="margin:0 0 6px;">Mã quay lại: <b id="reentryShortCode" style="font-family:monospace;font-size:1.25rem;letter-spacing:2px;">—</b></p>
+    <p style="font-size:0.95rem;">Bổ sung xong, <b>quét mã này tại Kiosk</b> (màn hình "Quét mã quay lại") hoặc bằng điện thoại để được xếp lại <b>ưu tiên</b> vào quầy — không phải lấy số mới. Không quét được thì nhập <b>Số thứ tự + Mã quay lại</b> tại Kiosk. Mã chỉ dùng được 1 lần.</p>
     <p class="text-muted" id="reentryIssued" style="font-size:0.8rem;"></p>
     <div class="flex gap-12 mt-16 no-print">
       <button class="btn btn-outline" style="flex:1" data-action="closeReentryModal">Đóng</button>
@@ -106,7 +107,7 @@
 <script src="js/toast.js"></script>
 <script src="js/wsClient.js"></script>
 <script src="js/actionDelegate.js"></script>
-<script src="js/counter.js?v=2"></script>
+<script src="js/counter.js?v=3"></script>
 <script src="js/chatbot.js?v=10"></script>
 </body>
 </html>

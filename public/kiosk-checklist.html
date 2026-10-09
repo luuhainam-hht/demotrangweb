@@ -4,8 +4,8 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Kiosk Tiếp nhận - Một cửa Thông minh</title>
-<link rel="stylesheet" href="css/common.css?v=13" />
-<link rel="stylesheet" href="css/kiosk.css?v=6" />
+<link rel="stylesheet" href="css/common.css?v=14" />
+<link rel="stylesheet" href="css/kiosk.css?v=7" />
 <link rel="icon" href="assets/logoKiosk-icon-transparent.png" type="image/png" />
 </head>
 <body data-show-header-clock="true" data-show-hours-banner="true">
@@ -60,10 +60,29 @@
         <p class="text-muted">Quét mã bằng điện thoại để <b>theo dõi số của bạn từ xa</b> — không cần nhập tên hay số điện thoại.<br/>
           <a id="ticketTrackLink" href="theo-doi.html">Mở trang theo dõi</a></p>
       </div>
-      <button class="btn btn-primary btn-lg mt-24" data-action="goBackToSearch">Hoàn tất</button>
+      <div class="ticket-actions mt-24">
+        <button class="btn btn-outline btn-lg" data-action="printTicketSlip">In phiếu số</button>
+        <button class="btn btn-primary btn-lg" data-action="goBackToSearch">Hoàn tất</button>
+      </div>
     </div>
   </section>
 </div>
+
+<!-- ================= PHIEU SO THU TU (chi hien khi in - may in nhiet 72/80mm tai Kiosk) ================= -->
+<section id="ticketSlip" class="ticket-slip" aria-hidden="true">
+  <div class="slip-head">
+    <img src="assets/logoKiosk-icon-transparent.png" alt="" class="slip-logo" />
+    <div><b>BỘ PHẬN MỘT CỬA</b><br/><span>Phiếu số thứ tự</span></div>
+  </div>
+  <div class="slip-number" id="slipNumber">—</div>
+  <div class="slip-row" id="slipService"></div>
+  <div class="slip-row slip-counter" id="slipCounter"></div>
+  <div class="slip-row" id="slipWait"></div>
+  <div class="slip-qr" id="slipQr"></div>
+  <p class="slip-note">Quét mã QR bằng điện thoại để theo dõi số của bạn từ xa (không cần nhập tên/SĐT).<br/>
+    Vui lòng có mặt khi được gọi — quá <span id="slipRetry">3</span> lần vắng mặt, số sẽ bị hủy.</p>
+  <p class="slip-time" id="slipTime"></p>
+</section>
 
 <!-- ================= MODAL: FORM TEMPLATE (Annotated Sample) ================= -->
 <div id="formTemplateModal" class="modal-overlay hidden">

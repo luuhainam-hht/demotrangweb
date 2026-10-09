@@ -62,8 +62,23 @@ test('toPublicTracking: ve khong cho (dang goi/da xong) khong co so nguoi cho; k
   assert.equal(t.aheadCount, null);
   assert.equal(t.estimatedWaitMinutes, null);
   assert.equal(t.isPriority, true);
+  // Dot 2 (10/2026): them retryCount (3-Strike), missingDocs + canReenter (chi co gia tri khi SUPP_PENDING).
   assert.deepEqual(Object.keys(t).sort(),
-    ['aheadCount', 'counterName', 'estimatedWaitMinutes', 'isPriority', 'serviceName', 'status', 'ticketNumber']);
+    ['aheadCount', 'canReenter', 'counterName', 'estimatedWaitMinutes', 'isPriority', 'missingDocs', 'retryCount', 'serviceName', 'status', 'ticketNumber']);
+  assert.equal(t.canReenter, false);
+  assert.equal(t.missingDocs, null);
+  assert.ok(!JSON.stringify(t).includes('"X"') && !('citizenName' in t) && !('phone' in t));
+});
+
+test('toPublicTracking: ve cho bo sung -> missingDocs doi ma thanh ten theo required_docs, canReenter = true', () => {
+  const t = toPublicTracking({
+    ticket_number: 'A-101', status: 'SUPP_PENDING', is_priority: 0, counter_name: 'Q1', service_name: 'S', sla_minutes: 10,
+    aheadCount: 0, activeCount: 0, avgSeconds: null, retry_count: 2,
+    missing_doc_codes: ['B', 'Z'], required_docs: [{ code: 'A', name: 'Giay A' }, { code: 'B', name: 'Giay B' }]
+  });
+  assert.equal(t.canReenter, true);
+  assert.equal(t.retryCount, 2);
+  assert.deepEqual(t.missingDocs, [{ code: 'B', name: 'Giay B' }, { code: 'Z', name: 'Z' }]);
 });
 
 test('getVietnamClock: doi dung sang gio Viet Nam (UTC+7) ke ca khi qua nua dem', () => {

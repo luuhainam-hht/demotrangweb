@@ -265,9 +265,60 @@ router.get('/tickets/:id/status', async (req, res) => {
       const fb = await feedbackService.getFeedbackForTicket(req.params.id).catch(() => null);
       body.feedback = fb ? { rated: true, rating: fb.rating } : { rated: false };
     }
+    // Cho bo sung ho so: kem vi tri lay phoi to khai (ke/khay/ban viet) de cong dan tu di bo sung.
+    if (info.status === 'SUPP_PENDING') {
+      const form = await formTemplateRepo.findByServiceId(pool, info.service_id).catch(() => null);
+      body.formTemplate = form
+        ? { form_name: form.form_name, shelf_name: form.shelf_name, tray_number: form.tray_number, desk_area: form.desk_area }
+        : null;
+      body.hasFillGuide = !!(form && form.fill_guide);
+      body.serviceId = info.service_id;
+    }
     res.json(body);
   } catch (err) {
     res.status(500).json({ error: 'Loi he thong noi bo.' });
+  }
+});
+
+// Sau khi ve quay lai hang doi (Re-entry): tra cung mot "goi" thong tin cho moi loi vao (quet QR
+// tai Kiosk, nhap tay, nut tren trang theo doi) de giao dien hien so nguoi phia truoc + QR theo doi.
+async function buildReentryResponse(ticket) {
+  const info = await ticketRepo.getTrackingInfo(pool, ticket.id).catch(() => null);
+  return {
+    status: 'REQUEUED',
+    ticket: { id: ticket.id, ticket_number: ticket.ticket_number, status: ticket.status, counter_id: ticket.counter_id },
+    counterName: info ? info.counter_name : null,
+    tracking: info ? toPublicTracking(info) : null,
+    message: `Số ${ticket.ticket_number} đã trở lại hàng đợi ở vị trí ưu tiên. Vui lòng ở gần quầy và chú ý loa gọi số.`
+  };
+}
+
+// Ma quay lai in tren phieu = 8 ky tu dau cua token (nhap tay duoc). Chap nhan cach viet
+// "3F9A-2B7C", co khoang trang, hoa/thuong.
+function normalizeShortCode(value) {
+  return String(value || '').replace(/[^0-9a-fA-F]/g, '').slice(0, 8).toLowerCase();
+}
+function normalizeTicketNumber(value) {
+  return String(value || '').trim().toUpperCase().replace(/\s+/g, '').replace(/^([A-Z]+)-?(\d+)$/, '$1-$2');
+}
+
+// Cong dan tu bam "Toi da bo sung xong" tren trang theo doi (mo tu QR phieu STT): dinh danh bang
+// id ve (UUID ngau nhien) - khong can token Re-entry, vi ai giu duoc lien ket theo doi thi cung
+// chinh la nguoi giu phieu. Ket qua giong het quet QR Re-entry (UC-09).
+router.post('/tickets/:id/reentry', async (req, res) => {
+  try {
+    if (!UUID_PATTERN.test(req.params.id)) return res.status(404).json({ error: 'Khong tim thay ve.' });
+    const hours = await getHoursStatusSafe();
+    if (!hours.open) return res.status(200).json({ status: 'CLOSED', message: hours.message, hoursText: hours.hoursText, opensAt: hours.opensAt });
+    const ticket = await ticketRepo.findTicketById(pool, req.params.id);
+    if (!ticket) return res.status(404).json({ error: 'Khong tim thay ve.' });
+    if (ticket.status !== 'SUPP_PENDING' || !ticket.reentry_qr_token) {
+      return res.status(400).json({ error: 'Vé này không ở trạng thái chờ bổ sung hồ sơ, không thể xếp lại hàng đợi.' });
+    }
+    const updated = await queueEngine.reentryScan(ticket.reentry_qr_token);
+    res.json(await buildReentryResponse(updated));
+  } catch (err) {
+    res.status(400).json({ error: err.message });
   }
 });
 
@@ -287,12 +338,34 @@ router.post('/tickets/:id/feedback', async (req, res) => {
   }
 });
 
-// Cong dan quet lai ma QR Re-entry sau khi bo sung ho so tai Ban ke khai
+// Cong dan quet lai ma QR Re-entry sau khi bo sung ho so tai Ban ke khai (UC-09). Hai cach goi:
+//   { token }                 - may quet/camera tai Kiosk, chatbot, lien ket ?reentry=<token>
+//   { ticketNumber, code }    - nhap tay so thu tu + ma quay lai 8 ky tu in tren phieu
+// UC-09 «include» UC-12: ngoai gio lam viec cung khong xep lai (quay da dong, khong ai goi).
 router.post('/reentry-scan', async (req, res) => {
   try {
-    const { token } = req.body;
+    const body = req.body || {};
+    const hours = await getHoursStatusSafe();
+    if (!hours.open) return res.status(200).json({ status: 'CLOSED', message: hours.message, hoursText: hours.hoursText, opensAt: hours.opensAt });
+
+    let token = typeof body.token === 'string' ? body.token.trim() : '';
+    // Nguoi dung dan ca lien ket (VD may quet ma go nguyen URL): tach token tu ?reentry=
+    const m = /[?&]reentry=([0-9a-fA-F]{16,})/.exec(token);
+    if (m) token = m[1];
+
+    if (!token) {
+      const ticketNumber = normalizeTicketNumber(body.ticketNumber);
+      const code = normalizeShortCode(body.code);
+      if (!ticketNumber || code.length < 8) {
+        return res.status(400).json({ error: 'Vui lòng quét mã QR trên phiếu, hoặc nhập đủ Số thứ tự và Mã quay lại (8 ký tự).' });
+      }
+      const found = await ticketRepo.findSuppPendingByNumberAndCode(pool, ticketNumber, code);
+      if (!found) return res.status(400).json({ error: 'Không tìm thấy vé chờ bổ sung khớp Số thứ tự và Mã quay lại này. Vui lòng kiểm tra lại phiếu hoặc nhờ cán bộ hỗ trợ.' });
+      token = found.reentry_qr_token;
+    }
+
     const ticket = await queueEngine.reentryScan(token);
-    res.json({ ticket });
+    res.json(await buildReentryResponse(ticket));
   } catch (err) {
     res.status(400).json({ error: err.message });
   }

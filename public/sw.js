@@ -8,13 +8,13 @@
 // Lay so (POST) KHONG bao gio duoc gia lap khi mat mang - STT phai do may chu cap de khong trung.
 // Khu vuc noi bo (Quay/Admin) va moi API ghi khong di qua bo nho dem.
 // =====================================================================================
-const CACHE = 'hcc-offline-v7';
+const CACHE = 'hcc-offline-v8';
 const PRECACHE = [
-  '/', '/index.html', '/kiosk-checklist.html', '/hoi-dap.html', '/huong-dan.html',
+  '/', '/index.html', '/kiosk-checklist.html', '/quet-ma.html', '/hoi-dap.html', '/huong-dan.html',
   '/huong-dan-dien-mau.html', '/nop-ho-so-truc-tuyen.html', '/ket-noi-wifi.html', '/theo-doi.html', '/offline.html',
   '/css/common.css', '/css/kiosk.css', '/css/guide-pages.css', '/css/form-guide.css',
   '/js/apiClient.js', '/js/header.js', '/js/toast.js', '/js/actionDelegate.js',
-  '/vendor/qrcode.min.js', '/js/qrLoader.js', '/js/chatbot.js', '/js/mindtek-chat.js', '/js/index.js', '/js/kiosk-checklist.js', '/js/hoi-dap.js',
+  '/vendor/qrcode.min.js', '/vendor/jsQR.min.js', '/js/qrLoader.js', '/js/quet-ma.js', '/js/chatbot.js', '/js/mindtek-chat.js', '/js/index.js', '/js/kiosk-checklist.js', '/js/hoi-dap.js',
   '/vendor/fonts/be-vietnam-pro-vietnamese-400-normal.woff2', '/vendor/fonts/be-vietnam-pro-vietnamese-500-normal.woff2', '/vendor/fonts/be-vietnam-pro-vietnamese-600-normal.woff2', '/vendor/fonts/be-vietnam-pro-vietnamese-700-normal.woff2',
   '/vendor/fonts/be-vietnam-pro-latin-400-normal.woff2', '/vendor/fonts/be-vietnam-pro-latin-500-normal.woff2', '/vendor/fonts/be-vietnam-pro-latin-600-normal.woff2', '/vendor/fonts/be-vietnam-pro-latin-700-normal.woff2',
   '/assets/logoKiosk-trimmed-transparent.png', '/assets/logoKiosk-icon-transparent.png'

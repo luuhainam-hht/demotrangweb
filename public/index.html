@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Trang chủ - Hỗ trợ Tra cứu Thủ tục Hành chính</title>
-<link rel="stylesheet" href="css/common.css?v=13" />
+<link rel="stylesheet" href="css/common.css?v=14" />
 <link rel="icon" href="assets/logoKiosk-icon-transparent.png" type="image/png" />
 </head>
 <body data-show-hours-banner="true" class="page-home">
@@ -49,6 +49,23 @@
     <a href="ket-noi-wifi.html" class="card-link category-card help-tile tone-amber"><div class="card"><div class="help-ico" aria-hidden="true">📶</div><h3>Kết nối Wi-Fi</h3><p class="desc">Quét mã QR, có hướng dẫn cho Android và iPhone.</p><div class="meta">Xem hướng dẫn →</div></div></a>
     <a href="hoi-dap.html" class="card-link category-card help-tile tone-violet"><div class="card"><div class="help-ico" aria-hidden="true">❓</div><h3>Hỏi đáp</h3><p class="desc">Giải đáp các thắc mắc thường gặp, có ghi rõ nguồn.</p><div class="meta">Xem hỏi đáp →</div></div></a>
   </div>
+  <!-- UC-09: cong dan da bo sung ho so quay lai Kiosk - quet ma tren phieu quay lai (quet-ma.html) -->
+  <a href="quet-ma.html" class="card-link reentry-banner"><div class="card reentry-banner-card">
+    <div class="help-ico" aria-hidden="true">🔁</div>
+    <div><h3>Đã bổ sung hồ sơ xong? Quét mã quay lại hàng đợi</h3>
+    <p class="desc">Dùng phiếu quay lại cán bộ đã đưa: đưa mã QR vào camera, dùng máy quét, hoặc nhập Số thứ tự + Mã quay lại. Giữ số cũ, xếp lại ở vị trí ưu tiên — không phải lấy số mới.</p></div>
+    <div class="meta">Quét mã →</div>
+  </div></a>
+
+  <!-- UC-06 Xem trang thai quay va so nguoi cho: tung quay, linh vuc, dang mo/tam dung/dong, so nguoi dang cho -->
+  <div class="section-heading">
+    <div>
+      <div class="eyebrow">Tại Trung tâm lúc này</div>
+      <h2 id="countersTitle">Tình trạng các quầy</h2>
+      <p id="countersSub">Quầy nào đang tiếp nhận và số người đang chờ, cập nhật tự động.</p>
+    </div>
+  </div>
+  <div class="counter-status-list" id="counterStatusList"></div>
 
   <div class="section-heading">
     <div>
@@ -82,6 +99,6 @@
 <script src="js/deviceHeartbeat.js?v=1"></script>
 <script src="js/chatbot.js?v=10"></script>
 <script src="js/searchSuggest.js"></script>
-<script src="js/index.js?v=5"></script>
+<script src="js/index.js?v=6"></script>
 </body>
 </html>

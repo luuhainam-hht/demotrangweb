@@ -70,15 +70,48 @@ SearchSuggest.attach(document.getElementById('searchInput'), document.getElement
   onSelect: (service) => { window.location.href = `kiosk-checklist.html?serviceId=${service.id}`; }
 });
 
-fetch('/api/kiosk/counters/status')
-  .then((r) => r.json())
-  .then((counters) => {
-    const open = counters.filter((c) => c.status === 'OPEN').length;
-    const waiting = counters.reduce((sum, c) => sum + Number(c.waiting_count || 0), 0);
-    document.getElementById('statOpenCounters').textContent = open;
-    document.getElementById('statWaiting').textContent = waiting;
-  })
-  .catch(() => {});
+// UC-06 Xem trang thai quay va so nguoi cho: so tong o hero + danh sach tung quay (ten, linh vuc,
+// trang thai, so nguoi dang cho). Lam moi moi 15s - khong can WebSocket cho trang cong khai.
+const COUNTER_STATUS_TEXT = { OPEN: 'Đang tiếp nhận', PAUSED: 'Tạm dừng', CLOSED: 'Đóng' };
+const COUNTER_STATUS_CLASS = { OPEN: 'badge-green', PAUSED: 'badge-yellow', CLOSED: 'badge-gray' };
+
+function renderCounterStatus(counters) {
+  const open = counters.filter((c) => c.status === 'OPEN').length;
+  const waiting = counters.reduce((sum, c) => sum + Number(c.waiting_count || 0), 0);
+  document.getElementById('statOpenCounters').textContent = open;
+  document.getElementById('statWaiting').textContent = waiting;
+
+  const list = document.getElementById('counterStatusList');
+  if (!list) return;
+  if (!counters.length) { list.innerHTML = '<div class="empty-search">Chưa có quầy nào được cấu hình.</div>'; return; }
+  list.innerHTML = counters.map((c) => {
+    const w = Number(c.waiting_count || 0);
+    const status = COUNTER_STATUS_TEXT[c.status] || c.status;
+    return `
+      <div class="counter-status-row ${c.status === 'OPEN' ? 'open' : ''}">
+        <span class="counter-status-name">${escHtml(c.name)}</span>
+        <span class="counter-status-field">${escHtml(c.field_name)}</span>
+        <span class="badge ${COUNTER_STATUS_CLASS[c.status] || 'badge-gray'}">${escHtml(status)}</span>
+        <span class="counter-status-wait">${c.status === 'OPEN' ? `${w} người chờ` : '—'}</span>
+      </div>`;
+  }).join('');
+}
+
+function loadCounterStatus() {
+  fetch('/api/kiosk/counters/status')
+    .then((r) => r.json())
+    .then((counters) => renderCounterStatus(Array.isArray(counters) ? counters : []))
+    .catch(() => {});
+}
+loadCounterStatus();
+setInterval(loadCounterStatus, 15000);
+
+// May quet ma USB tai Kiosk "go" nguyen URL tren phieu quay lai vao o dang focus - neu do la o tim
+// kiem thi chuyen ngay sang trang quet ma thay vi di tim thu tuc ten "http://...".
+document.getElementById('searchInput').addEventListener('input', (e) => {
+  const m = /[?&]reentry=([0-9a-fA-F]{16,})/.exec(e.target.value);
+  if (m) window.location.href = `quet-ma.html?reentry=${encodeURIComponent(m[1])}`;
+});
 
 // ---- Khoi "Thac mac thuong gap" tren Trang chu ----
 // Lay 6 cau hoi tieu bieu, moi chu de 1-2 cau, tu chinh kho tri thuc (/api/kiosk/faq) de khong

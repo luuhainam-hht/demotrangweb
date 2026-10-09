@@ -113,6 +113,14 @@ app.post('/api/display/heartbeat', rateLimit({
   windowMs: 60 * 1000, limit: 30, standardHeaders: true, legacyHeaders: false,
   message: { error: 'Qua nhieu heartbeat.' }
 }));
+// Quay lai hang doi (UC-09) nay nhan ca "So thu tu + Ma quay lai 8 ky tu" nhap tay -> gioi han
+// tan suat de khong the do ma: 20 lan / 10 phut / IP (1 may Kiosk dung chung IP van du dung).
+const reentryLimiter = rateLimit({
+  windowMs: 10 * 60 * 1000, limit: 20, standardHeaders: true, legacyHeaders: false,
+  message: { error: 'Ban thu qua nhieu lan, vui long cho it phut hoac nho can bo ho tro.' }
+});
+app.post('/api/kiosk/reentry-scan', reentryLimiter);
+app.post('/api/kiosk/tickets/:id/reentry', reentryLimiter);
 
 // Luu y thu tu: cac prefix CU THE hon (/api/auth, /api/kiosk, /api/admin, /api/display,
 // /api/health) phai duoc dang ky TRUOC '/api' (counterRoutes) - Express khop app.use()

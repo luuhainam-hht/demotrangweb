@@ -82,6 +82,7 @@ async function init() {
 
   const ws = createWsClient();
   ws.on('*', (payload, msg) => {
+    if (msg.type === 'CALL_NEXT' && payload && Number(payload.timeoutSeconds) > 0) callTimeoutSeconds = Number(payload.timeoutSeconds);
     const relatedCounterId = payload && (payload.counterId || (payload.ticket && payload.ticket.counter_id) || (payload.counter && payload.counter.id));
     if (myCounter && (relatedCounterId === myCounter.id || relatedCounterId === undefined)) {
       if (CHIME_EVENT_TYPES.has(msg.type)) playChime();
@@ -162,15 +163,22 @@ function renderActiveSlot() {
   }
 }
 
+// Dem nguoc hien thi: tinh tu called_at cua ve (server) + CALL_TIMEOUT_SECONDS (nhan qua su kien
+// CALL_NEXT, mac dinh 45s) - tai lai trang giua chung van dem dung, khong "reset" ve 45s. Server
+// van la nguon su that: het gio thi server tu xu ly vang mat (UC-50), giao dien chi hien thi.
+let callTimeoutSeconds = 45;
 let countdownDeadline = null;
 function startCountdown() {
-  countdownDeadline = Date.now() + 45000; // hien thi tam thoi; server la nguon su that cho Timeout
-  countdownTimer = setInterval(() => {
+  const calledAt = activeTicket && activeTicket.called_at ? new Date(activeTicket.called_at).getTime() : Date.now();
+  countdownDeadline = calledAt + callTimeoutSeconds * 1000;
+  const tick = () => {
     const remain = Math.max(0, Math.round((countdownDeadline - Date.now()) / 1000));
     const el = document.getElementById('countdownDisplay');
     if (el) el.textContent = `${remain}s`;
     if (remain <= 0) clearInterval(countdownTimer);
-  }, 1000);
+  };
+  tick();
+  countdownTimer = setInterval(tick, 1000);
 }
 
 async function callNext() {
@@ -244,8 +252,12 @@ async function submitSupplement() {
 // Yeu cau Bo sung + nut In phieu (kho giay nhiet 72mm). QR mo trang chu ?reentry=<token>, widget
 // Tro ly AI tren moi trang cong khai tu xu ly va xep lai ve vao hang doi (chatbot.js).
 async function showReentrySlip(ticketNumber, missingNames, token) {
-  const url = `${window.location.origin}/index.html?reentry=${encodeURIComponent(token)}`;
+  // Dot 2 (10/2026): QR tro toi trang quet-ma.html (co man hinh ket qua ro rang, cung trang dung
+  // cho camera Kiosk/may quet). Ma ngan 8 ky tu dau cua token in kem de nhap tay khi khong quet duoc.
+  const url = `${window.location.origin}/quet-ma.html?reentry=${encodeURIComponent(token)}`;
+  const shortCode = `${token.slice(0, 4)}-${token.slice(4, 8)}`.toUpperCase();
   document.getElementById('reentryTicketNumber').textContent = ticketNumber;
+  document.getElementById('reentryShortCode').textContent = shortCode;
   const list = document.getElementById('reentryMissingList');
   list.innerHTML = '';
   missingNames.forEach((n) => { const li = document.createElement('li'); li.textContent = n; list.appendChild(li); });

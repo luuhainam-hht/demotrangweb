@@ -6,7 +6,7 @@
 //    con 0.8rem, rat kho bam - chinh la nhom nguoi dung ma he thong phuc vu nhieu nhat).
 (function () {
   // login.html KHONG dung header nay (tu quan ly rieng, xem public/login.html).
-  const PUBLIC_PAGES = ['', 'index.html', 'kiosk-checklist.html', 'huong-dan.html', 'huong-dan-dien-mau.html', 'hoi-dap.html', 'theo-doi.html', 'ket-noi-wifi.html', 'nop-ho-so-truc-tuyen.html', 'display.html', '404.html'];
+  const PUBLIC_PAGES = ['', 'index.html', 'kiosk-checklist.html', 'quet-ma.html', 'huong-dan.html', 'huong-dan-dien-mau.html', 'hoi-dap.html', 'theo-doi.html', 'ket-noi-wifi.html', 'nop-ho-so-truc-tuyen.html', 'display.html', '404.html'];
   const currentPage = window.location.pathname.split('/').pop();
   const isPublicPage = PUBLIC_PAGES.includes(currentPage);
 

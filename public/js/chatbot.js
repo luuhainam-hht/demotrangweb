@@ -417,7 +417,16 @@
         renderSuggestions();
         return;
       }
-      appendMessage(`Đã xác nhận! Số thứ tự ${result.ticket.ticket_number} của bạn đã được chèn trở lại hàng đợi ưu tiên. Vui lòng theo dõi Bảng LED/Loa.`, 'bot');
+      // Ngoai gio lam viec: may chu khong xep lai (quay da dong) - bao ro gio mo cua ke tiep.
+      if (result.status === 'CLOSED') {
+        appendMessage(result.message || 'Trung tâm đang ngoài giờ làm việc, chưa thể xếp lại hàng đợi lúc này.', 'bot');
+        renderSuggestions();
+        return;
+      }
+      const ahead = result.tracking && typeof result.tracking.aheadCount === 'number'
+        ? ` Phía trước còn ${result.tracking.aheadCount} người.` : '';
+      const counter = result.counterName ? ` Vui lòng đến ${result.counterName}.` : '';
+      appendMessage(`Đã xác nhận! Số thứ tự ${result.ticket.ticket_number} của bạn đã được xếp trở lại hàng đợi ở vị trí ưu tiên.${counter}${ahead} Vui lòng theo dõi Bảng LED/Loa.`, 'bot');
       renderSuggestions();
     } catch (err) {
       removeTypingIndicator();

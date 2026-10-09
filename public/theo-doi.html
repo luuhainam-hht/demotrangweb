@@ -4,8 +4,8 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Theo dõi số thứ tự - Một Cửa Thông Minh</title>
-<link rel="stylesheet" href="css/common.css?v=13" />
-<link rel="stylesheet" href="css/kiosk.css?v=6" />
+<link rel="stylesheet" href="css/common.css?v=14" />
+<link rel="stylesheet" href="css/kiosk.css?v=7" />
 <link rel="icon" href="assets/logoKiosk-icon-transparent.png" type="image/png" />
 <style>
   .track-wrap { max-width: 520px; margin: 0 auto; padding: 24px 16px 60px; }
@@ -14,6 +14,10 @@
   .track-card.calling { border: 3px solid var(--color-success); background: #f0fdf4; }
   .track-card.bad { border: 3px solid var(--color-danger); background: #fef2f2; }
   .track-updated { font-size: 0.8rem; color: var(--color-text-muted); margin-top: 16px; }
+  .track-card.calling .track-status { color: #14532d; }
+  .track-card.supp { border: 3px solid var(--color-warning); background: #fffbeb; }
+  .supp-list { margin: 6px 0 0; padding-left: 22px; font-size: 1.05rem; line-height: 1.7; }
+  .supp-card .location-box { margin: 12px 0 0; }
 </style>
 </head>
 <body>
@@ -25,7 +29,24 @@
     <p id="trackCounter" class="track-detail"></p>
     <p id="trackWait" class="track-detail"></p>
     <p id="trackService" class="track-detail"></p>
+    <p id="trackRetry" class="track-detail"></p>
     <p class="track-updated" id="trackUpdated"></p>
+  </div>
+
+  <!-- Dot 2 (10/2026): cho bo sung ho so - ke giay to thieu, noi lay phoi, nut quay lai hang doi (UC-11 «extend» UC-09) -->
+  <div class="card mt-16 supp-card" id="suppCard" hidden>
+    <h2 style="margin:0 0 6px; font-size:1.2rem;">Giấy tờ cần bổ sung</h2>
+    <ul id="suppMissingList" class="supp-list"></ul>
+    <div id="suppLocation" class="location-box" hidden></div>
+    <p class="text-muted" style="margin:10px 0 0;">Bổ sung xong, bấm nút dưới đây (hoặc quét lại mã trên phiếu tại Kiosk). Số thứ tự cũ được giữ nguyên và xếp ở <b>vị trí ưu tiên</b>.</p>
+    <button class="btn btn-primary btn-block btn-lg mt-16" id="suppReenterBtn">Tôi đã bổ sung xong — xếp lại vào hàng đợi</button>
+    <p id="suppError" class="svc-warning" hidden></p>
+  </div>
+
+  <!-- Ve da bi huy/het han: loi di tiep -->
+  <div class="card mt-16" id="endCard" hidden>
+    <p style="margin:0 0 12px;">Bạn vẫn có thể lấy số mới tại Kiosk hoặc trên điện thoại:</p>
+    <a class="btn btn-primary btn-block btn-lg" href="index.html">Lấy số mới</a>
   </div>
   <!-- Nang cap 10/2026: danh gia muc do hai long (hien khi ve da Hoan tat) -->
   <div class="card mt-16" id="feedbackCard" hidden>
@@ -44,6 +65,6 @@
 
 <script src="js/apiClient.js"></script>
 <script src="js/header.js?v=4"></script>
-<script src="js/theo-doi.js?v=2"></script>
+<script src="js/theo-doi.js?v=3"></script>
 </body>
 </html>

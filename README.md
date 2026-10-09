@@ -15,6 +15,8 @@ CSS3/JavaScript ES6+ + Web Speech API ở frontend (không dùng framework FE, k
 
 Nâng cấp theo đúng mục **6.17 – Hạn chế** và **Hướng phát triển** của báo cáo đồ án. Chi tiết: [`docs/NANG-CAP-2026-10.md`](docs/NANG-CAP-2026-10.md).
 
+**Đợt 2 (09/10/2026) — đối chiếu với bộ sơ đồ báo cáo** (52 UC, 9 luồng, trạng thái vé, màn hình): [`docs/DOI-CHIEU-SO-DO-BAO-CAO-2026-10.md`](docs/DOI-CHIEU-SO-DO-BAO-CAO-2026-10.md). Thêm trang **Quét mã quay lại hàng đợi** tại Kiosk (`quet-ma.html`: camera / máy quét / nhập Số + Mã 8 ký tự), **In phiếu số** có QR theo dõi, trang theo dõi hiện giấy tờ thiếu + nút "Tôi đã bổ sung xong", khối **Tình trạng các quầy** trên Trang chủ. Lưu ý khi demo: ngoài giờ 07:30–17:00 Kiosk **không cấp số** (đặt `KIOSK_HOURS_ENFORCED = 0` trong tab Cấu hình để thử).
+
 - **Docker + đồng bộ với Neon**: `docker compose up -d --build`, hoặc bấm đúp `docker-dong-bo.bat` để dùng menu tiếng Việt. Gồm sao chép realtime Neon → PostgreSQL trong Docker, kéo/đẩy dữ liệu, sao lưu tự động, và chạy offline khi mất Internet — xem [`docs/DOCKER-NEON-SYNC.md`](docs/DOCKER-NEON-SYNC.md).
 - **Chatbot Mindtek (bot.mindtek.ai)** chạy song song Trợ lý AI nội bộ: dán mã nhúng vào tham số `MINDTEK_BOT_ID` trong Admin là bật, không cần deploy lại. Xuất tri thức cho bot bằng `npm run mindtek:knowledge` — xem [`docs/CHATBOT-MINDTEK.md`](docs/CHATBOT-MINDTEK.md).
 - **Realtime giữa nhiều bản chạy** (Render + Docker) qua Postgres LISTEN/NOTIFY: `src/realtime/pgBus.js`.

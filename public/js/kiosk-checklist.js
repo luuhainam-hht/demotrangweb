@@ -2,6 +2,8 @@
 // ?serviceId=<id> khi vao trang (den tu the danh muc/goi y tim kiem tren index.html - trang
 // "Tim thu tuc" rieng da bi bo vi trung lap voi tim kiem san co tren Trang chu).
 let currentService = null;
+// Ve vua cap (ticket/counter/service/gio cap) - dung de in phieu so ma khong phai goi lai may chu.
+let lastTicket = null;
 
 // Noi dung dong tu DB (ten giay to, goi y...) chen vao innerHTML - escape de an toan.
 function esc(value) {
@@ -178,6 +180,7 @@ async function submitCheckGate() {
 
     document.getElementById('ticketNumber').textContent = result.ticket.ticket_number;
     document.getElementById('ticketCounterName').textContent = `Vui lòng đến ${result.counter.name}`;
+    lastTicket = { ticket: result.ticket, counter: result.counter, service: result.service, issuedAt: new Date() };
     showScreen('ticket');
     renderTicketExtras(result.ticket.id);
   } catch (err) { showToast(err.message, 'error'); }
@@ -227,22 +230,53 @@ async function renderTicketExtras(ticketId) {
   const waitEl = document.getElementById('ticketWait');
   waitEl.textContent = '';
   document.getElementById('ticketQr').innerHTML = '';
+  document.getElementById('slipQr').innerHTML = '';
   document.getElementById('ticketTrackLink').href = trackUrl;
 
+  let waitText = '';
   try {
     const info = await ApiClient.get(`/api/kiosk/tickets/${encodeURIComponent(ticketId)}/status`);
-    waitEl.textContent = info.aheadCount === 0
+    waitText = info.aheadCount === 0
       ? 'Bạn là người tiếp theo — vui lòng ở gần quầy.'
       : `Phía trước còn ${info.aheadCount} người • Chờ khoảng ${info.estimatedWaitMinutes} phút (ước tính)`;
+    waitEl.textContent = waitText;
   } catch (err) { /* khong chan viec hien so neu khong lay duoc thong tin cho */ }
+
+  fillTicketSlip(waitText);
 
   try {
     await loadQrLibrary();
     // eslint-disable-next-line no-new
     new window.QRCode(document.getElementById('ticketQr'), { text: trackUrl, width: 150, height: 150 });
+    // Ban in: QR nho hon cho vua kho giay nhiet 72mm, muc in don sac doc tot.
+    // eslint-disable-next-line no-new
+    new window.QRCode(document.getElementById('slipQr'), { text: trackUrl, width: 120, height: 120, correctLevel: window.QRCode.CorrectLevel.M });
   } catch (err) {
     document.getElementById('ticketQr').textContent = ''; // khong co CDN: van con lien ket ben duoi
   }
+}
+
+// Phieu so thu tu de in (so do bao cao, Hinh 7.1: "phieu so in ma QR theo doi"): so, thu tuc, quay,
+// so nguoi phia truoc, QR theo doi, gio cap. In bang may in nhiet tai Kiosk (khung 72mm, xem CSS
+// .ticket-slip / body.printing-ticket) - khong co may in thi nut In mo hop thoai in cua trinh duyet.
+function fillTicketSlip(waitText) {
+  if (!lastTicket) return;
+  const { ticket, counter, service, issuedAt } = lastTicket;
+  document.getElementById('slipNumber').textContent = ticket.ticket_number;
+  document.getElementById('slipService').textContent = service ? service.name : (currentService ? currentService.service.name : '');
+  document.getElementById('slipCounter').textContent = counter ? `Vui lòng đến ${counter.name}` : '';
+  document.getElementById('slipWait').textContent = waitText || '';
+  document.getElementById('slipTime').textContent = `Cấp lúc ${issuedAt.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })} ngày ${issuedAt.toLocaleDateString('vi-VN')}`;
+}
+
+function printTicketSlip() {
+  tapFeedback();
+  if (!lastTicket) return;
+  document.body.classList.add('printing-ticket');
+  // Dung afterprint de bo lop in: setTimeout co dinh co the chay truoc khi hop thoai in dong tren Kiosk cham.
+  const cleanup = () => { document.body.classList.remove('printing-ticket'); window.removeEventListener('afterprint', cleanup); };
+  window.addEventListener('afterprint', cleanup);
+  setTimeout(() => { try { window.print(); } finally { setTimeout(cleanup, 1500); } }, 50);
 }
 
 function showMissingDocsGuide(result) {

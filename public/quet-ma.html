@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Quét mã quay lại hàng đợi - Một cửa Thông minh</title>
+<link rel="stylesheet" href="css/common.css?v=14" />
+<link rel="stylesheet" href="css/kiosk.css?v=7" />
+<link rel="icon" href="assets/logoKiosk-icon-transparent.png" type="image/png" />
+</head>
+<body data-show-header-clock="true" data-show-hours-banner="true">
+
+<div class="kiosk-wrap scan-wrap">
+
+  <!-- ================= MAN HINH QUET ================= -->
+  <section id="screen-scan">
+    <div class="card">
+      <h2>Đã bổ sung hồ sơ xong? Quét mã để quay lại hàng đợi</h2>
+      <p class="text-muted">Dùng <b>phiếu quay lại</b> cán bộ đã đưa cho bạn. Số thứ tự cũ được giữ nguyên và xếp ở <b>vị trí ưu tiên</b> — không phải lấy số mới.</p>
+
+      <div class="scan-grid">
+        <!-- Cach 1: camera Kiosk / dien thoai -->
+        <div class="scan-box">
+          <h3>Cách 1 — Đưa mã QR vào camera</h3>
+          <div class="scan-view" id="scanView">
+            <video id="scanVideo" playsinline muted autoplay></video>
+            <div class="scan-frame" aria-hidden="true"></div>
+            <div class="scan-overlay" id="scanOverlay">
+              <p id="scanOverlayText">Camera chưa bật</p>
+              <button class="btn btn-primary btn-lg" data-action="startCamera">Bật camera</button>
+            </div>
+          </div>
+          <p class="text-muted scan-hint" id="scanHint">Giữ phiếu cách camera khoảng 15–25 cm, mã QR nằm trong khung.</p>
+          <canvas id="scanCanvas" hidden></canvas>
+        </div>
+
+        <!-- Cach 2: may quet ma (sung quet USB) + Cach 3: nhap tay -->
+        <div class="scan-box">
+          <h3>Cách 2 — Dùng máy quét mã tại quầy</h3>
+          <p class="text-muted">Hướng mã QR vào máy quét, hệ thống tự nhận.</p>
+          <label class="sr-only" for="scannerInput">Ô nhận dữ liệu máy quét</label>
+          <input id="scannerInput" class="scanner-input" type="text" autocomplete="off" placeholder="Đang chờ máy quét…" aria-live="polite" />
+
+          <h3 class="mt-24">Cách 3 — Nhập tay theo phiếu</h3>
+          <form id="manualForm" autocomplete="off">
+            <label for="manualNumber">Số thứ tự (in to trên phiếu)</label>
+            <input id="manualNumber" type="text" placeholder="Ví dụ: A-105" maxlength="12" />
+            <label for="manualCode" class="mt-16">Mã quay lại (8 ký tự dưới mã QR)</label>
+            <input id="manualCode" type="text" placeholder="Ví dụ: 3F9A-2B7C" maxlength="9" style="text-transform:uppercase;letter-spacing:2px;" />
+            <button type="submit" class="btn btn-primary btn-lg btn-block mt-16" id="manualSubmit">Xếp lại vào hàng đợi</button>
+          </form>
+        </div>
+      </div>
+
+      <div class="step-nav">
+        <a class="btn btn-outline" href="index.html">← Về Trang chủ</a>
+        <span class="text-muted scan-foot">Không có phiếu? Hãy hỏi cán bộ tại bàn hướng dẫn.</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= KET QUA: DA QUAY LAI HANG DOI ================= -->
+  <section id="screen-done" class="hidden">
+    <div class="card ticket-hero">
+      <p>Số thứ tự của bạn đã trở lại hàng đợi</p>
+      <div id="doneNumber" class="ticket-number">—</div>
+      <p class="mt-16" id="doneCounter" style="font-size:1.3rem;font-weight:600;"></p>
+      <p id="doneWait" class="ticket-wait"></p>
+      <p class="text-muted" id="doneMessage"></p>
+      <div class="ticket-qr-box">
+        <div id="doneQr" class="ticket-qr"></div>
+        <p class="text-muted">Quét mã bằng điện thoại để <b>theo dõi số của bạn</b> trong lúc chờ.<br/>
+          <a id="doneTrackLink" href="theo-doi.html">Mở trang theo dõi</a></p>
+      </div>
+      <a class="btn btn-primary btn-lg mt-24" href="index.html">Hoàn tất</a>
+    </div>
+  </section>
+
+  <!-- ================= KET QUA: LOI / NGOAI GIO ================= -->
+  <section id="screen-error" class="hidden">
+    <div class="card closed-card">
+      <div class="closed-icon" aria-hidden="true">!</div>
+      <h2 id="errorTitle">Không xếp lại được</h2>
+      <p id="errorMessage" class="closed-message"></p>
+      <p id="errorOpensAt" class="closed-opens"></p>
+      <button class="btn btn-primary btn-lg mt-16" data-action="backToScan">Thử lại</button>
+      <a class="btn btn-outline btn-lg mt-16" href="index.html">Về Trang chủ</a>
+    </div>
+  </section>
+</div>
+
+<script src="js/apiClient.js"></script>
+<script src="js/toast.js"></script>
+<script src="js/actionDelegate.js"></script>
+<script src="js/qrLoader.js"></script>
+<script src="js/quet-ma.js?v=1"></script>
+<script src="js/header.js?v=4"></script>
+<script src="js/deviceHeartbeat.js?v=1"></script>
+</body>
+</html>

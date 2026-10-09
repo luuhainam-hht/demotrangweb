@@ -471,6 +471,8 @@ xem UC-16) quay lại hệ thống bằng cách quét mã QR Re-entry, đưa vé
 
 **Trigger:** Công dân quét mã QR Re-entry (nhận được khi bị yêu cầu bổ sung hồ sơ) bằng widget chatbot hoặc thiết bị quét tại Kiosk.
 
+**Cập nhật 10/2026 (đợt 2):** trang `quet-ma.html` tại Kiosk nhận mã theo 3 cách — camera (`BarcodeDetector`/jsQR), máy quét mã USB, hoặc nhập tay **Số thứ tự + Mã quay lại 8 ký tự** (8 ký tự đầu của `reentry_qr_token`, in trên phiếu). API `POST /api/kiosk/reentry-scan` nhận `{ token }` (token thuần hoặc cả URL `?reentry=`) hoặc `{ ticketNumber, code }`; ngoài giờ làm việc trả `status: CLOSED` (UC-09 «include» UC-12); thành công trả `{ status: 'REQUEUED', ticket, counterName, tracking, message }`. Giới hạn 20 lần/10 phút/IP. Trang theo dõi (UC-11) có nút "Tôi đã bổ sung xong" gọi `POST /api/kiosk/tickets/:id/reentry` (định danh bằng id vé, không lộ token). Xem `docs/DOI-CHIEU-SO-DO-BAO-CAO-2026-10.md`.
+
 **Precondition:**
 - `token` Re-entry hợp lệ, chưa hết hạn, chưa được sử dụng lại.
 - Vé tương ứng đang ở trạng thái `SUPP_PENDING`.
@@ -574,6 +576,8 @@ sequenceDiagram
 ## UC-11 — Tự theo dõi số thứ tự (không cần tên/SĐT)
 
 **Actor:** Công dân.
+
+**Cập nhật 10/2026 (đợt 2):** phản hồi của `GET /api/kiosk/tickets/:id/status` có thêm `retryCount` (số lần vắng mặt), và khi vé `SUPP_PENDING`: `missingDocs` (mã + tên giấy tờ thiếu), `formTemplate` (kệ/khay/bàn viết), `hasFillGuide`, `serviceId`, `canReenter = true`. Trang `theo-doi.html` hiển thị các mục này, rung điện thoại khi `CALLING`, và có nút xếp lại vào hàng đợi (xem UC-09). Phiếu số thứ tự tại Kiosk in được (nút "In phiếu số", khổ 72 mm) kèm QR mở trang này.
 
 **Priority:** Cao (bù đắp việc không thu thập tên/SĐT).
 

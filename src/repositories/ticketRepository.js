@@ -42,6 +42,20 @@ async function findByReentryToken(client, token) {
   return mapTicket(rows[0]);
 }
 
+// Nhap tay tai Kiosk (khong co camera/khong quet duoc QR): cong dan doc SO THU TU + MA QUAY LAI
+// in tren phieu (8 ky tu dau cua reentry_qr_token). Phai khop CA HAI va ve phai dang SUPP_PENDING
+// trong ngay - mot minh ma ngan 8 ky tu khong du de doan (16^8 ~ 4,3 ty kha nang, lai bi gioi
+// han tan suat), con so thu tu thi ai cung nhin thay tren Bang LED nen khong dung mot minh.
+async function findSuppPendingByNumberAndCode(client, ticketNumber, shortCode) {
+  const { rows } = await client.query(
+    `SELECT * FROM tickets
+     WHERE ticket_number = ? AND status = 'SUPP_PENDING' AND DATE(created_at) = CURRENT_DATE
+       AND reentry_qr_token IS NOT NULL AND LOWER(LEFT(reentry_qr_token, 8)) = LOWER(?)`,
+    [ticketNumber, shortCode]
+  );
+  return mapTicket(rows[0]);
+}
+
 // Vé QUEUED tiếp theo của 1 quầy, ưu tiên is_priority rồi tới queue_position/created_at (FIFO).
 async function findNextQueuedForCounter(client, counterId) {
   const { rows } = await client.query(
@@ -177,7 +191,8 @@ async function lockFieldForNumbering(client, fieldId) {
 async function getTrackingInfo(client, ticketId) {
   const { rows } = await client.query(
     `SELECT t.id, t.ticket_number, t.status, t.is_priority, t.queue_position, t.created_at, t.counter_id,
-            c.name AS counter_name, s.name AS service_name, s.sla_minutes
+            t.service_id, t.missing_doc_codes, t.retry_count,
+            c.name AS counter_name, s.name AS service_name, s.sla_minutes, s.required_docs
      FROM tickets t
      JOIN services s ON s.id = t.service_id
      LEFT JOIN counters c ON c.id = t.counter_id
@@ -186,6 +201,8 @@ async function getTrackingInfo(client, ticketId) {
   );
   const t = rows[0];
   if (!t) return null;
+  t.missing_doc_codes = parseJson(t.missing_doc_codes);
+  t.required_docs = parseJson(t.required_docs);
 
   let aheadCount = 0;
   let activeCount = 0;
@@ -219,7 +236,7 @@ async function getTrackingInfo(client, ticketId) {
 
 module.exports = {
   lockFieldForNumbering, getTrackingInfo,
-  insertTicket, lockTicketById, findTicketById, findByReentryToken,
+  insertTicket, lockTicketById, findTicketById, findByReentryToken, findSuppPendingByNumberAndCode,
   findNextQueuedForCounter, countActiveForCounter, maxQueuePositionForCounter,
   updateStatus, insertHistory, listQueueForCounter, listTailQueued, listActionableForAdmin,
   reassignCounter, findExpiredForPurge, findAllQueuedAndCallingForEOD, countTodayByField
