@@ -59,6 +59,33 @@ const STRING_VALIDATORS = {
   },
   WIFI_SECURITY(value) {
     if (!['WPA', 'WEP', 'nopass'].includes(String(value).trim())) throw new Error('Kieu bao mat Wi-Fi chi nhan: WPA, WEP hoac nopass.');
+  },
+  // Chatbot Mindtek (bot.mindtek.ai) - xem public/js/mindtek-chat.js va docs/CHATBOT-MINDTEK.md.
+  CHATBOT_MODE(value) {
+    if (!['internal', 'mindtek', 'both'].includes(String(value).trim())) {
+      throw new Error('CHATBOT_MODE chi nhan: internal (chi tro ly noi bo), mindtek (chi bot Mindtek) hoac both (ca hai).');
+    }
+  },
+  MINDTEK_BOT_ID(value) {
+    if (String(value) !== '' && !MINDTEK_BOT_ID_PATTERN.test(String(value))) {
+      throw new Error('MINDTEK_BOT_ID khong hop le. Dan Bot ID (chu, so, dau - hoac _) hoac dan nguyen doan ma nhung <script ... data-bot-id="..."> lay tu bot.mindtek.ai.');
+    }
+  }
+};
+
+// Chuan hoa gia tri truoc khi kiem tra: Admin co the dan NGUYEN doan ma nhung Mindtek
+// (<script src="https://bot.mindtek.ai/embed.js" data-bot-id="abc..."></script>) hoac link
+// https://bot.mindtek.ai/embed/abc... - tu tach lay dung Bot ID, khoi phai tu cat chuoi.
+const MINDTEK_BOT_ID_PATTERN = /^[A-Za-z0-9_-]{4,100}$/;
+const STRING_NORMALIZERS = {
+  CHATBOT_MODE: (v) => String(v).trim().toLowerCase(),
+  MINDTEK_BOT_ID(v) {
+    const raw = String(v || '').trim();
+    const fromAttr = /data-bot-id\s*=\s*["']?([A-Za-z0-9_-]+)/i.exec(raw);
+    if (fromAttr) return fromAttr[1];
+    const fromUrl = /\/(?:embed|bot|bots|chat)\/([A-Za-z0-9_-]{4,100})/i.exec(raw);
+    if (fromUrl) return fromUrl[1];
+    return raw;
   }
 };
 
@@ -79,6 +106,7 @@ async function set(key, value, updatedBy) {
     }
   }
 
+  if (STRING_NORMALIZERS[key]) value = STRING_NORMALIZERS[key](value);
   if (STRING_VALIDATORS[key]) STRING_VALIDATORS[key](value, cache);
 
   await pool.query(

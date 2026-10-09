@@ -54,7 +54,7 @@
   const CANCEL_KEYWORDS = ['huy', 'thoat', 'bo qua', 'khong can nua', 'doi cau hoi'];
 
   const widgetHtml = `
-    <div class="chatbot-widget">
+    <div class="hcc-chat-widget">
       <button class="chatbot-fab" id="chatbotFab" aria-label="Mở trợ lý AI">
         <span class="chatbot-fab-icon">💬</span>
       </button>
@@ -67,7 +67,7 @@
               <div class="chatbot-panel-sub">Hỏi về thủ tục, giấy tờ, lệ phí...</div>
             </div>
           </div>
-          <button class="chatbot-close" id="chatbotClose" aria-label="Đóng">✕</button>
+          <button class="hcc-chat-close" id="chatbotClose" aria-label="Đóng">✕</button>
         </div>
         <div class="chatbot-messages" id="chatbotMessages">
           <div class="chatbot-row chatbot-row-bot">
@@ -534,4 +534,11 @@
     open: () => togglePanel(true),
     ask: (message) => { togglePanel(true); sendMessage(message); }
   };
+
+  // Chatbot Mindtek (bot.mindtek.ai) - tu nap tren moi trang dang co Tro ly noi bo, bat/tat va
+  // nhap Bot ID trong Admin -> Cau hinh Tham so (CHATBOT_MODE, MINDTEK_BOT_ID).
+  const mindtekLoader = document.createElement('script');
+  mindtekLoader.src = 'js/mindtek-chat.js?v=1';
+  mindtekLoader.async = true;
+  document.body.appendChild(mindtekLoader);
 })();

@@ -325,7 +325,21 @@ th { color: var(--color-text-muted); font-weight: 600; text-transform: uppercase
 .search-suggest-empty { padding: 14px 18px; color: var(--color-text-muted); font-size: 0.88rem; }
 
 /* ============== Chatbot Widget (tu gan qua js/chatbot.js) ============== */
-.chatbot-widget { position: fixed; right: 22px; bottom: 22px; z-index: 500; }
+/* Ten class noi bo la hcc-chat-* (khong phai chatbot-widget/chatbot-close): embed.js cua Mindtek
+   chen CSS toan cuc cho dung 2 ten do (position fixed, nut dong opacity:0...) - trung ten la nut
+   dong khung chat noi bo bi an mat. Xem js/mindtek-chat.js. */
+body.mindtek-only .hcc-chat-widget { display: none; }
+.mindtek-switch {
+  display: flex; align-items: center; gap: 8px; width: 100%; flex-shrink: 0;
+  padding: 10px 16px; border: none; border-bottom: 1px solid var(--color-border);
+  background: #eef4ff; color: var(--color-primary-dark);
+  font: inherit; font-size: 0.86rem; font-weight: 600; text-align: left; cursor: pointer;
+  transition: background 0.15s ease;
+}
+.mindtek-switch:hover { background: #dbe7ff; }
+.mindtek-switch:focus-visible { outline: 3px solid rgba(37, 99, 235, 0.4); outline-offset: -3px; }
+.mindtek-switch-arrow { margin-left: auto; }
+.hcc-chat-widget { position: fixed; right: 22px; bottom: 22px; z-index: 500; }
 .chatbot-fab {
   width: 60px; height: 60px; border-radius: 50%; border: none; cursor: pointer;
   background: var(--gradient-brand);
@@ -371,12 +385,12 @@ th { color: var(--color-text-muted); font-weight: 600; text-transform: uppercase
 .chatbot-panel-title { font-weight: 700; font-size: 0.96rem; display: flex; align-items: center; gap: 6px; }
 .chatbot-status-dot { width: 7px; height: 7px; border-radius: 50%; background: #4ade80; box-shadow: 0 0 0 2px rgba(74, 222, 128, 0.35); flex-shrink: 0; }
 .chatbot-panel-sub { font-size: 0.74rem; color: rgba(255,255,255,0.85); margin-top: 1px; }
-.chatbot-close {
+.hcc-chat-close {
   background: rgba(255,255,255,0.14); border: none; color: #fff; font-size: 0.9rem; cursor: pointer;
   width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0;
   display: flex; align-items: center; justify-content: center; transition: background 0.15s ease;
 }
-.chatbot-close:hover { background: rgba(255,255,255,0.28); }
+.hcc-chat-close:hover { background: rgba(255,255,255,0.28); }
 .chatbot-messages {
   flex: 1; overflow-y: auto; padding: 16px 14px; display: flex; flex-direction: column; gap: 12px;
   background: #f6f8fb;
@@ -601,7 +615,7 @@ input[type='checkbox'], input[type='radio'] { min-height: 0; width: 26px; height
 .chatbot-panel-title { font-size: 1.05rem; }
 .chatbot-panel-sub { font-size: 0.82rem; }
 .chatbot-fab { width: 68px; height: 68px; font-size: 1.7rem; }
-.chatbot-close { width: 36px; height: 36px; font-size: 1.05rem; }
+.hcc-chat-close { width: 36px; height: 36px; font-size: 1.05rem; }
 .chatbot-link { text-decoration: underline; }
 @media (max-width: 480px) {
   .chatbot-panel { height: 80vh; }

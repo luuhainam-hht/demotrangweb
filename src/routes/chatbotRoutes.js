@@ -1,6 +1,7 @@
 const express = require('express');
 const chatbotService = require('../services/chatbotService');
 const ruleBasedAssistant = require('../services/ruleBasedAssistant');
+const configService = require('../config/configService');
 
 const router = express.Router();
 
@@ -56,6 +57,21 @@ router.post('/ask', async (req, res) => {
     console.error('[chatbot] Loi khong xac dinh:', err);
     res.status(400).json({ error: err.message || 'Da xay ra loi, vui long thu lai.' });
   }
+});
+
+// Cau hinh widget cho trinh duyet (public/js/mindtek-chat.js). Bot ID Mindtek von di nam cong khai
+// trong ma nhung cua moi trang nen tra ra o day khong lo bi mat. Thieu Bot ID -> ep ve 'internal'
+// de trang khong bao gio bi mat chatbot vi cau hinh do dang.
+router.get('/config', async (req, res) => {
+  let mode = 'internal';
+  let mindtekBotId = '';
+  try {
+    mode = await configService.get('CHATBOT_MODE');
+    mindtekBotId = await configService.get('MINDTEK_BOT_ID');
+  } catch (e) { /* CSDL cu chua chay migration -> giu mac dinh internal */ }
+  if (!mindtekBotId) mode = 'internal';
+  res.set('Cache-Control', 'no-store');
+  res.json({ mode, mindtekBotId, mindtekOrigin: 'https://bot.mindtek.ai' });
 });
 
 module.exports = router;

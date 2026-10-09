@@ -211,6 +211,19 @@ async function updateServiceFees() {
   }
 }
 
+// Chatbot Mindtek (https://bot.mindtek.ai): Admin dan Bot ID vao tab "Cau hinh Tham so" la
+// widget tu hien tren moi trang cong khai, khong can sua code/deploy lai. Mac dinh 'both':
+// giu tro ly noi bo (du lieu hang doi/Wi-Fi/DVC that) + them nut mo bot Mindtek trong khung chat.
+// MINDTEK_BOT_ID de trong = chua bat Mindtek, he thong chay y nhu cu.
+async function addMindtekChatbotConfigs() {
+  await pool.query(`
+    INSERT INTO system_configs (config_key, config_value, value_type, min_bound, max_bound, description) VALUES
+      ('CHATBOT_MODE', 'both', 'STRING', NULL, NULL, 'Chatbot hien tren web: internal = chi tro ly noi bo, mindtek = chi bot Mindtek, both = ca hai (nut chuyen trong khung chat)'),
+      ('MINDTEK_BOT_ID', '', 'STRING', NULL, NULL, 'Bot ID tren bot.mindtek.ai (dan Bot ID hoac nguyen doan ma nhung <script data-bot-id=...>). De trong = tat Mindtek')
+    ON CONFLICT (config_key) DO NOTHING
+  `);
+}
+
 async function run() {
   await addSoftDeleteToCounters();
   await addTrichLucHoTichService();
@@ -223,6 +236,7 @@ async function run() {
   await addKioskHoursAndWifiSecurityConfigs();
   await addUpgrade202610();
   await updateServiceFees();
+  await addMindtekChatbotConfigs();
 }
 
 module.exports = { run, addSoftDeleteToCounters, updateServiceFees };

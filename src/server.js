@@ -49,7 +49,11 @@ app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       ...helmet.contentSecurityPolicy.getDefaultDirectives(),
-      'script-src': ["'self'", 'https://cdnjs.cloudflare.com'],
+      // bot.mindtek.ai: widget chatbot Mindtek (embed.js tao 1 iframe + icon nut chat). Thieu 3 dong
+      // script/frame/img nay thi CSP chan im lang - nut chat Mindtek khong bao gio hien.
+      'script-src': ["'self'", 'https://cdnjs.cloudflare.com', 'https://bot.mindtek.ai'],
+      'frame-src': ["'self'", 'https://bot.mindtek.ai'],
+      'img-src': ["'self'", 'data:', 'https://bot.mindtek.ai'],
       // Dich vu Wi-Fi cuc bo tren may Kiosk (wifi-local-service, cong 5000) - trinh duyet goi thang
       // vao do de doc mang Wi-Fi THAT. Truoc day thieu dong nay nen CSP (default-src 'self') chan
       // hoan toan cac loi goi nay: the QR Wi-Fi tu may Kiosk chua bao gio hien duoc tren ban chay that.

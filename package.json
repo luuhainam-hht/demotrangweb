@@ -15,7 +15,8 @@
     "demo:history": "node scripts/seed-demo-history.js",
     "load:test": "node scripts/kiem-thu-tai.js",
     "docker:up": "docker compose up -d --build",
-    "docker:down": "docker compose down"
+    "docker:down": "docker compose down",
+    "mindtek:knowledge": "node scripts/xuat-tri-thuc-mindtek.js"
   },
   "license": "UNLICENSED",
   "dependencies": {

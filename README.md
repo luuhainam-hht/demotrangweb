@@ -16,6 +16,7 @@ CSS3/JavaScript ES6+ + Web Speech API ở frontend (không dùng framework FE, k
 Nâng cấp theo đúng mục **6.17 – Hạn chế** và **Hướng phát triển** của báo cáo đồ án. Chi tiết: [`docs/NANG-CAP-2026-10.md`](docs/NANG-CAP-2026-10.md).
 
 - **Docker + đồng bộ với Neon**: `docker compose up -d --build`, hoặc bấm đúp `docker-dong-bo.bat` để dùng menu tiếng Việt. Gồm sao chép realtime Neon → PostgreSQL trong Docker, kéo/đẩy dữ liệu, sao lưu tự động, và chạy offline khi mất Internet — xem [`docs/DOCKER-NEON-SYNC.md`](docs/DOCKER-NEON-SYNC.md).
+- **Chatbot Mindtek (bot.mindtek.ai)** chạy song song Trợ lý AI nội bộ: dán mã nhúng vào tham số `MINDTEK_BOT_ID` trong Admin là bật, không cần deploy lại. Xuất tri thức cho bot bằng `npm run mindtek:knowledge` — xem [`docs/CHATBOT-MINDTEK.md`](docs/CHATBOT-MINDTEK.md).
 - **Realtime giữa nhiều bản chạy** (Render + Docker) qua Postgres LISTEN/NOTIFY: `src/realtime/pgBus.js`.
 - **Phiếu QR quay lại + In phiếu** trên giao diện quầy sau "Yêu cầu Bổ sung".
 - **Nhiều khung giờ/ngày** (nghỉ trưa): tham số `KIOSK_TIME_SLOTS`.
