@@ -71,7 +71,7 @@ async function loadChecklist(serviceId) {
       <div class="checklist-row">
         <label class="checklist-item">
           <input type="checkbox" value="${esc(d.code)}" />
-          <span>${esc(d.name)}${d.mandatory ? ' <b style="color:var(--color-danger)">*</b>' : ''}</span>
+          <span>${esc(d.name)}${d.mandatory ? ' <b style="color:var(--color-danger)">*</b>' : ' <span class="badge badge-gray">Không bắt buộc</span>'}</span>
         </label>
         ${d.hint ? `<div class="doc-hint">💡 ${esc(d.hint)}</div>` : ''}
         ${d.hasFillGuide ? `<a class="btn btn-outline doc-guide-btn" href="${guideUrl(data.service.id)}">📝 Xem cách điền tờ khai này</a>` : ''}
@@ -148,10 +148,16 @@ function renderChecklistStatus() {
         </div>
       </div>`;
   } else {
+    // Giay to KHONG bat buoc chua danh dau van duoc lay so - nhac de cong dan biet co the
+    // can bo se yeu cau bo sung sau.
+    const optionalMissing = (currentService.requiredDocs || []).filter((d) => !d.mandatory && !checkedCodes.has(d.code));
     box.innerHTML = `
       <div class="checklist-status checklist-status-ok">
         <span class="icon">✅</span>
-        <div>Đã đủ giấy tờ bắt buộc — sẵn sàng lấy số thứ tự!</div>
+        <div>
+          <div>Đã đủ giấy tờ bắt buộc — sẵn sàng lấy số thứ tự!</div>
+          ${optionalMissing.length ? `<div class="sub">Chưa có giấy tờ không bắt buộc (${esc(optionalMissing.map((d) => d.name).join(', '))}) vẫn được lấy số; cán bộ có thể đề nghị bổ sung sau nếu cần.</div>` : ''}
+        </div>
       </div>`;
   }
 }

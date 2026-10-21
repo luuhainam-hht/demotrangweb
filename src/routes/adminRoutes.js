@@ -9,6 +9,7 @@ const counterService = require('../services/counterService');
 const queueEngine = require('../services/queueEngine');
 const analyticsService = require('../services/analyticsService');
 const staffService = require('../services/staffService');
+const serviceDocsService = require('../services/serviceDocsService');
 const staffRepo = require('../repositories/staffRepository');
 const wsHub = require('../websocket/wsHub');
 const { authenticate, requirePermission } = require('../middleware/auth');
@@ -191,6 +192,29 @@ router.put('/form-templates', requirePermission('CONFIG'), async (req, res) => {
     res.json(saved);
   } catch (err) {
     res.status(400).json({ error: err.message });
+  }
+});
+
+// ===================== Giay to cua tung thu tuc (SERVICE_DOCS) =====================
+// Admin/Truong Trung tam/Dieu phoi cai danh sach giay to (bat buoc / khong bat buoc) cho MOI
+// thu tuc. Officer cai rieng o trang Quay qua /api/services/:id/required-docs (chi linh vuc minh).
+router.get('/services', requirePermission('SERVICE_DOCS'), async (req, res) => {
+  try {
+    res.json(await serviceDocsService.listEditableServices(req.staff));
+  } catch (err) {
+    serviceDocsService.sendError(res, err);
+  }
+});
+
+router.put('/services/:id/required-docs', requirePermission('SERVICE_DOCS'), async (req, res) => {
+  try {
+    const serviceId = requireInt(req.params.id, 'Ma thu tuc');
+    const result = await serviceDocsService.updateRequiredDocs(serviceId, req.body.docs, req.staff, {
+      expectedUpdatedAt: req.body.expectedUpdatedAt, reason: req.body.reason
+    });
+    res.json(result);
+  } catch (err) {
+    serviceDocsService.sendError(res, err);
   }
 });
 

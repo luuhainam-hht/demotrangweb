@@ -12,6 +12,10 @@ document.getElementById('staffName').textContent = `${staff.fullName} (${staff.r
 function logout() {
   ApiClient.post('/api/auth/logout', {}).finally(() => { ApiClient.clearSession(); window.location.href = 'login.html'; });
 }
+function escHtml(value) {
+  return String(value === null || value === undefined ? '' : value)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
 function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
 function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
 
@@ -82,6 +86,10 @@ async function init() {
 
   const ws = createWsClient();
   ws.on('*', (payload, msg) => {
+    if (msg.type === 'SERVICE_DOCS_UPDATED') {
+      if (serviceDocsEditor && payload) serviceDocsEditor.onRemoteUpdate(payload.serviceId, payload.updatedAt);
+      return;
+    }
     if (msg.type === 'CALL_NEXT' && payload && Number(payload.timeoutSeconds) > 0) callTimeoutSeconds = Number(payload.timeoutSeconds);
     const relatedCounterId = payload && (payload.counterId || (payload.ticket && payload.ticket.counter_id) || (payload.counter && payload.counter.id));
     if (myCounter && (relatedCounterId === myCounter.id || relatedCounterId === undefined)) {
@@ -224,10 +232,12 @@ async function undoComplete(ticketId) {
 async function openSupplementModal() {
   try {
     const data = await ApiClient.get(`/api/kiosk/services/${activeTicket.service_id}/checklist`);
+    // Ten giay to do can bo tu cai (trang Quan tri/Quay) -> phai escape truoc khi chen HTML.
     document.getElementById('supplementChecklist').innerHTML = (data.requiredDocs || []).map((d) => `
       <label class="checklist-item">
-        <input type="checkbox" value="${d.code}" />
-        <span>${d.name}</span>
+        <input type="checkbox" value="${escHtml(d.code)}" />
+        <span class="doc-name">${escHtml(d.name)}</span>
+        <span class="badge ${d.mandatory ? 'badge-red' : 'badge-gray'}" style="margin-left:auto;">${d.mandatory ? 'Bắt buộc' : 'Không bắt buộc'}</span>
       </label>`).join('');
     openModal('supplementModal');
   } catch (err) { showToast(err.message, 'error'); }
@@ -236,7 +246,7 @@ async function submitSupplement() {
   const missingDocCodes = Array.from(document.querySelectorAll('#supplementChecklist input:checked')).map((el) => el.value);
   if (missingDocCodes.length === 0) return showToast('Vui lòng chọn ít nhất 1 giấy tờ còn thiếu.', 'error');
   const missingNames = Array.from(document.querySelectorAll('#supplementChecklist input:checked'))
-    .map((el) => el.closest('label').querySelector('span').textContent);
+    .map((el) => el.closest('label').querySelector('.doc-name').textContent);
   const ticketNumber = activeTicket.ticket_number;
   try {
     const result = await ApiClient.post(`/api/tickets/${activeTicket.id}/supplement`, { missingDocCodes });
@@ -273,6 +283,29 @@ async function showReentrySlip(ticketNumber, missingNames, token) {
     box.textContent = 'Không tải được thư viện QR. Mã quay lại: ' + token.slice(0, 12) + '…';
   }
 }
+// ---- Cai giay to cho thu tuc (chi thu tuc thuoc linh vuc quay minh; SUPER_ADMIN thay tat ca) ----
+let serviceDocsEditor = null;
+function openServiceDocsModal() {
+  if (!serviceDocsEditor) {
+    serviceDocsEditor = ServiceDocsEditor.mount(document.getElementById('counterServiceDocsEditor'), {
+      listUrl: '/api/me/services',
+      saveUrl: (id) => `/api/services/${id}/required-docs`,
+      scopeNote: staff.role === 'SUPER_ADMIN'
+        ? 'Bạn là Quản trị viên nên thấy mọi thủ tục.'
+        : 'Chỉ hiện các thủ tục thuộc lĩnh vực của quầy bạn đang phụ trách.'
+    });
+  } else if (!serviceDocsEditor.isDirty()) {
+    serviceDocsEditor.reload();
+  }
+  openModal('serviceDocsModal');
+}
+async function closeServiceDocsModal() {
+  if (serviceDocsEditor && serviceDocsEditor.isDirty()
+    && !(await ConfirmDialog.confirm('Có thay đổi chưa lưu. Đóng và bỏ các thay đổi đó?', { okLabel: 'Bỏ thay đổi', danger: true }))) return;
+  if (serviceDocsEditor && serviceDocsEditor.isDirty()) serviceDocsEditor.reload();
+  closeModal('serviceDocsModal');
+}
+
 function closeReentryModal() { closeModal('reentryModal'); }
 function printReentrySlip() {
   document.body.classList.add('printing-slip');

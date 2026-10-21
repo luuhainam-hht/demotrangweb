@@ -8,6 +8,7 @@ const PERMISSION_GROUPS = {
   PRIORITY_RESTORE: ['SUPER_ADMIN', 'MANAGER', 'SUPERVISOR'],  // Khoi phuc / VIP
   REPORTS: ['SUPER_ADMIN', 'MANAGER'],                         // Xem Bao cao / Audit
   COUNTER_OPS: ['SUPER_ADMIN', 'OFFICER'],                     // Van hanh quay (Officer chi xem quay minh)
+  SERVICE_DOCS: ['SUPER_ADMIN', 'MANAGER', 'SUPERVISOR'],       // Cai giay to cho thu tuc (moi thu tuc)
   STAFF_MANAGEMENT: ['SUPER_ADMIN']                            // Quan ly Tai khoan Can bo
 };
 

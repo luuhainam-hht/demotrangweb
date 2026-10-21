@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Quản trị - Một Cửa Thông Minh</title>
-<link rel="stylesheet" href="css/common.css?v=14" />
+<link rel="stylesheet" href="css/common.css?v=15" />
 <link rel="icon" href="assets/logoKiosk-icon-transparent.png" type="image/png" />
 <style>
   .tabs { display: flex; gap: 6px; margin-bottom: 20px; border-bottom: 1px solid var(--color-border); }
@@ -91,6 +91,7 @@
   <div class="tabs">
     <button class="tab-btn active" data-tab="monitor" data-action="switchTab" data-args='["monitor"]'><span class="tab-emoji"></span><span>Giám sát</span></button>
     <button class="tab-btn" data-tab="dispatch" data-action="switchTab" data-args='["dispatch"]'><span class="tab-emoji"></span><span>Điều phối</span></button>
+    <button class="tab-btn" data-tab="docs" data-action="switchTab" data-args='["docs"]'><span class="tab-emoji"></span><span>Giấy tờ thủ tục</span></button>
     <button class="tab-btn" data-tab="config" data-action="switchTab" data-args='["config"]'><span class="tab-emoji"></span><span>Cấu hình</span></button>
     <button class="tab-btn" data-tab="reports" data-action="switchTab" data-args='["reports"]'><span class="tab-emoji"></span><span>Báo cáo</span></button>
     <button class="tab-btn" data-tab="staff" data-action="switchTab" data-args='["staff"]' id="staffTabBtn"><span class="tab-emoji"></span><span>Tài khoản</span></button>
@@ -169,6 +170,15 @@
           <button class="btn btn-success" style="flex:1" data-action="submitRestore">↩️ Khôi phục Vé</button>
         </div>
       </div>
+    </div>
+  </div>
+
+  <!-- ============ TAB: GIAY TO THU TUC (SERVICE_DOCS) ============ -->
+  <div id="tab-docs" class="tab-content hidden">
+    <div class="card">
+      <h3>Giấy tờ cần nộp của từng thủ tục</h3>
+      <p class="text-muted" style="margin-top:0;">Thêm, sửa, xóa, sắp xếp giấy tờ và đặt <b>Bắt buộc</b> / <b>Không bắt buộc</b>. Kiosk và trang Quầy dùng ngay danh sách mới sau khi lưu; mọi thay đổi được ghi vào Nhật ký Audit.</p>
+      <div id="serviceDocsEditor"></div>
     </div>
   </div>
 
@@ -274,10 +284,12 @@
 <script src="js/admin-monitor.js"></script>
 <script src="js/admin-dispatch.js"></script>
 <script src="js/admin-config.js"></script>
+<script src="js/serviceDocsEditor.js?v=2"></script>
+<script src="js/admin-servicedocs.js?v=2"></script>
 <script src="js/admin-reports.js"></script>
 <script src="js/admin-staff.js"></script>
 <script src="js/admin-insights.js?v=2"></script>
-<script src="js/admin.js?v=3"></script>
+<script src="js/admin.js?v=5"></script>
 <script src="js/chatbot.js?v=10"></script>
 </body>
 </html>

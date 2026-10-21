@@ -47,7 +47,8 @@ router.get('/services/:id/checklist', async (req, res) => {
     const guideDocCode = form && form.fill_guide ? form.fill_guide.docCode : null;
     const requiredDocs = (service.required_docs || []).map((d) => ({
       ...d,
-      hint: DOC_HINTS[d.code] || null,
+      // Ghi chu do can bo tu cai cho giay to (trang Quan tri/Quay) uu tien hon goi y co san.
+      hint: d.note || DOC_HINTS[d.code] || null,
       hasFillGuide: !!guideDocCode && d.code === guideDocCode
     }));
     res.json({

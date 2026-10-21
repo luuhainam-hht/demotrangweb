@@ -4,7 +4,9 @@ const counterRepo = require('../repositories/counterRepository');
 const ticketRepo = require('../repositories/ticketRepository');
 const queueEngine = require('../services/queueEngine');
 const analyticsService = require('../services/analyticsService');
+const serviceDocsService = require('../services/serviceDocsService');
 const { authenticate, requirePermission } = require('../middleware/auth');
+const { requireInt } = require('../utils/validate');
 
 const router = express.Router();
 router.use(authenticate, requirePermission('COUNTER_OPS'));
@@ -80,6 +82,28 @@ router.post('/tickets/:ticketId/undo', async (req, res) => {
     res.json(result);
   } catch (err) {
     res.status(400).json({ error: err.message });
+  }
+});
+
+// Cai giay to cho thu tuc ngay tai trang Quay: Officer chi thay/sua cac thu tuc thuoc linh vuc
+// cua quay minh phu trach (kiem tra lai trong serviceDocsService, khong tin du lieu giao dien).
+router.get('/me/services', async (req, res) => {
+  try {
+    res.json(await serviceDocsService.listEditableServices(req.staff));
+  } catch (err) {
+    serviceDocsService.sendError(res, err);
+  }
+});
+
+router.put('/services/:serviceId/required-docs', async (req, res) => {
+  try {
+    const serviceId = requireInt(req.params.serviceId, 'Ma thu tuc');
+    const result = await serviceDocsService.updateRequiredDocs(serviceId, req.body.docs, req.staff, {
+      expectedUpdatedAt: req.body.expectedUpdatedAt, reason: req.body.reason
+    });
+    res.json(result);
+  } catch (err) {
+    serviceDocsService.sendError(res, err);
   }
 });
 

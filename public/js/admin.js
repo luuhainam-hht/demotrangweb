@@ -20,6 +20,7 @@ function switchTab(name) {
   document.querySelectorAll('.tab-content').forEach((c) => c.classList.toggle('hidden', c.id !== `tab-${name}`));
   if (name === 'monitor') { loadMonitor(); loadMonitorExtras(); }
   if (name === 'dispatch') loadDispatch();
+  if (name === 'docs') loadServiceDocsTab();
   if (name === 'config') loadConfig();
   if (name === 'reports') { loadReports(); loadInsights(); }
   if (name === 'staff') loadStaffTab();
@@ -52,6 +53,7 @@ ws.on('*', (payload, msg) => {
     loadMonitor();
     if (msg.type === 'DEVICE_HEALTH_CHANGED') loadMonitorExtras();
   }
+  if (msg.type === 'SERVICE_DOCS_UPDATED' && payload) onServiceDocsUpdated(payload.serviceId, payload.updatedAt);
   notifyImportantEvent(msg.type, payload || {});
 });
 
