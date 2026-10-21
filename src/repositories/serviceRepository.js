@@ -43,4 +43,14 @@ async function searchServices(client, keyword) {
   return rows.map(mapService);
 }
 
-module.exports = { listFields, listServices, findServiceById, searchServices };
+// Ca thu tuc dang an (is_active = 0) - chi dung cho trang Quan tri (quan ly danh muc thu tuc).
+async function listAllServices(client) {
+  const { rows } = await client.query(
+    `SELECT s.*, sf.name AS field_name, sf.code AS field_code, sf.ticket_prefix
+     FROM services s JOIN service_fields sf ON sf.id = s.field_id
+     ORDER BY s.is_active DESC, sf.id ASC, s.name ASC`
+  );
+  return rows.map(mapService);
+}
+
+module.exports = { listFields, listServices, listAllServices, findServiceById, searchServices };

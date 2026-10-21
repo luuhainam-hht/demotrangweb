@@ -880,3 +880,9 @@ footer.site-footer b { color: var(--color-text); }
   .sde-order { justify-content: flex-end; }
 }
 .sde-code::placeholder { text-transform: none; font-family: inherit; }
+/* Danh muc thu tuc (tab Thu tuc & giay to, admin-servicedocs.js) */
+.counter-row.svc-row { flex-direction: row; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.svc-info { flex: 1; min-width: 260px; }
+.svc-meta { font-size: 0.86rem; margin-top: 4px; }
+.svc-hidden .svc-info b { color: var(--color-text-muted); }
+.svc-actions { flex-wrap: wrap; }

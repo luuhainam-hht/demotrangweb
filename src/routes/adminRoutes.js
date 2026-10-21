@@ -10,6 +10,7 @@ const queueEngine = require('../services/queueEngine');
 const analyticsService = require('../services/analyticsService');
 const staffService = require('../services/staffService');
 const serviceDocsService = require('../services/serviceDocsService');
+const serviceCatalogService = require('../services/serviceCatalogService');
 const staffRepo = require('../repositories/staffRepository');
 const wsHub = require('../websocket/wsHub');
 const { authenticate, requirePermission } = require('../middleware/auth');
@@ -201,6 +202,41 @@ router.put('/form-templates', requirePermission('CONFIG'), async (req, res) => {
 router.get('/services', requirePermission('SERVICE_DOCS'), async (req, res) => {
   try {
     res.json(await serviceDocsService.listEditableServices(req.staff));
+  } catch (err) {
+    serviceDocsService.sendError(res, err);
+  }
+});
+
+// Them / sua / an-hien thu tuc (danh muc thu tuc tren Kiosk). Khong co xoa - xem serviceCatalogService.js.
+router.get('/services/catalog', requirePermission('SERVICE_DOCS'), async (req, res) => {
+  try {
+    res.json(await serviceCatalogService.listForAdmin());
+  } catch (err) {
+    serviceDocsService.sendError(res, err);
+  }
+});
+
+router.post('/services', requirePermission('SERVICE_DOCS'), async (req, res) => {
+  try {
+    res.status(201).json(await serviceCatalogService.createService(req.body, req.staff));
+  } catch (err) {
+    serviceDocsService.sendError(res, err);
+  }
+});
+
+router.put('/services/:id', requirePermission('SERVICE_DOCS'), async (req, res) => {
+  try {
+    const serviceId = requireInt(req.params.id, 'Ma thu tuc');
+    res.json(await serviceCatalogService.updateService(serviceId, req.body, req.staff));
+  } catch (err) {
+    serviceDocsService.sendError(res, err);
+  }
+});
+
+router.post('/services/:id/active', requirePermission('SERVICE_DOCS'), async (req, res) => {
+  try {
+    const serviceId = requireInt(req.params.id, 'Ma thu tuc');
+    res.json(await serviceCatalogService.setServiceActive(serviceId, req.body.active, req.staff));
   } catch (err) {
     serviceDocsService.sendError(res, err);
   }

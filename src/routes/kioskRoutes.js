@@ -42,7 +42,7 @@ function withoutGuide(form) {
 router.get('/services/:id/checklist', async (req, res) => {
   try {
     const service = await serviceRepo.findServiceById(pool, req.params.id);
-    if (!service) return res.status(404).json({ error: 'Thu tuc khong ton tai.' });
+    if (!service || Number(service.is_active) === 0) return res.status(404).json({ error: 'Thu tuc khong ton tai hoac da ngung tiep nhan.' });
     const form = await formTemplateRepo.findByServiceId(pool, service.id);
     const guideDocCode = form && form.fill_guide ? form.fill_guide.docCode : null;
     const requiredDocs = (service.required_docs || []).map((d) => ({
@@ -223,7 +223,8 @@ router.post('/tickets', async (req, res) => {
     const serviceId = requireInt(req.body.serviceId, 'Ma thu tuc (serviceId)');
 
     const service = await serviceRepo.findServiceById(pool, serviceId);
-    if (!service) return res.status(404).json({ error: 'Thu tuc khong ton tai.' });
+    // Thu tuc da AN tren trang Quan tri -> khong cap so (du Kiosk cu con giu trang checklist).
+    if (!service || Number(service.is_active) === 0) return res.status(404).json({ error: 'Thu tuc khong ton tai hoac da ngung tiep nhan.' });
 
     // Ngoai gio lam viec (neu cong tac KIOSK_HOURS_ENFORCED dang bat): khong cap so, tra ve
     // thong bao ro rang kem gio mo cua ke tiep de nguoi dan biet khi nao quay lai.

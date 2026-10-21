@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Quản trị - Một Cửa Thông Minh</title>
-<link rel="stylesheet" href="css/common.css?v=15" />
+<link rel="stylesheet" href="css/common.css?v=16" />
 <link rel="icon" href="assets/logoKiosk-icon-transparent.png" type="image/png" />
 <style>
   .tabs { display: flex; gap: 6px; margin-bottom: 20px; border-bottom: 1px solid var(--color-border); }
@@ -91,7 +91,7 @@
   <div class="tabs">
     <button class="tab-btn active" data-tab="monitor" data-action="switchTab" data-args='["monitor"]'><span class="tab-emoji"></span><span>Giám sát</span></button>
     <button class="tab-btn" data-tab="dispatch" data-action="switchTab" data-args='["dispatch"]'><span class="tab-emoji"></span><span>Điều phối</span></button>
-    <button class="tab-btn" data-tab="docs" data-action="switchTab" data-args='["docs"]'><span class="tab-emoji"></span><span>Giấy tờ thủ tục</span></button>
+    <button class="tab-btn" data-tab="docs" data-action="switchTab" data-args='["docs"]'><span class="tab-emoji"></span><span>Thủ tục &amp; giấy tờ</span></button>
     <button class="tab-btn" data-tab="config" data-action="switchTab" data-args='["config"]'><span class="tab-emoji"></span><span>Cấu hình</span></button>
     <button class="tab-btn" data-tab="reports" data-action="switchTab" data-args='["reports"]'><span class="tab-emoji"></span><span>Báo cáo</span></button>
     <button class="tab-btn" data-tab="staff" data-action="switchTab" data-args='["staff"]' id="staffTabBtn"><span class="tab-emoji"></span><span>Tài khoản</span></button>
@@ -176,9 +176,38 @@
   <!-- ============ TAB: GIAY TO THU TUC (SERVICE_DOCS) ============ -->
   <div id="tab-docs" class="tab-content hidden">
     <div class="card">
+      <div class="flex-between">
+        <h3 style="margin:0;">Danh mục thủ tục</h3>
+        <button class="btn btn-primary action-chip" data-action="openServiceForm">+ Thêm thủ tục mới</button>
+      </div>
+      <p class="text-muted">Thủ tục <b>đang ẩn</b> không hiện trên Kiosk, Trang chủ, Trợ lý AI và không được cấp số. Thủ tục mới nên để ẩn, cài xong giấy tờ ở khung bên dưới rồi mới bấm <b>Hiện</b>. Thủ tục không xóa được (vì vé cũ và báo cáo vẫn dùng), chỉ ẩn.</p>
+      <div id="serviceCatalogList"></div>
+    </div>
+    <div class="card mt-16" id="serviceDocsCard">
       <h3>Giấy tờ cần nộp của từng thủ tục</h3>
       <p class="text-muted" style="margin-top:0;">Thêm, sửa, xóa, sắp xếp giấy tờ và đặt <b>Bắt buộc</b> / <b>Không bắt buộc</b>. Kiosk và trang Quầy dùng ngay danh sách mới sau khi lưu; mọi thay đổi được ghi vào Nhật ký Audit.</p>
       <div id="serviceDocsEditor"></div>
+    </div>
+  </div>
+
+  <!-- ============ MODAL: THEM / SUA THU TUC ============ -->
+  <div id="serviceFormModal" class="modal-overlay hidden">
+    <div class="modal-box" style="max-width:640px;">
+      <h2 id="serviceFormTitle" style="margin-top:0;">Thêm thủ tục mới</h2>
+      <div class="field"><label for="svcField">Lĩnh vực (quyết định quầy tiếp nhận và chữ cái đầu số thứ tự)</label><select id="svcField"></select></div>
+      <div class="field"><label for="svcName">Tên thủ tục</label><input id="svcName" maxlength="255" placeholder="VD: Đăng ký thay đổi chủ hộ kinh doanh" /></div>
+      <div class="field"><label for="svcAlias">Tên gọi ngắn / từ khóa người dân hay gõ</label><input id="svcAlias" maxlength="80" placeholder="VD: đổi chủ hộ kinh doanh" /></div>
+      <div class="field"><label for="svcSla">Thời gian tiếp nhận tại quầy (phút)</label><input id="svcSla" type="number" min="1" max="480" value="20" /></div>
+      <div id="svcFeeLockedNote" class="text-muted hidden" style="font-size:0.9rem;margin-bottom:8px;">Lệ phí của thủ tục gốc này được quản lý trong file <code>src/data/serviceFees.js</code> (đã đối chiếu văn bản), không sửa ở đây.</div>
+      <div class="field"><label for="svcFee">Lệ phí (đồng, 0 = miễn phí)</label><input id="svcFee" type="number" min="0" step="1000" value="0" /></div>
+      <div class="field"><label for="svcFeeLabel">Chữ hiện lệ phí trên thẻ thủ tục (không bắt buộc)</label><input id="svcFeeLabel" maxlength="80" placeholder="VD: 100.000 đ, nộp online miễn phí" /></div>
+      <div class="field"><label for="svcFeeNote">Ghi chú lệ phí / căn cứ (không bắt buộc)</label><textarea id="svcFeeNote" rows="2" maxlength="2000"></textarea></div>
+      <div class="field" id="svcCodeWrap"><label for="svcCode">Mã thủ tục (để trống = tự sinh từ tên; không đổi được sau khi tạo)</label><input id="svcCode" maxlength="30" placeholder="VD: DOICHU_HKD" style="text-transform:uppercase;" /></div>
+      <label class="checklist-item" id="svcActiveWrap"><input type="checkbox" id="svcActive" /> <span>Hiện ngay trên Kiosk (bỏ chọn nếu còn phải cài giấy tờ)</span></label>
+      <div class="flex gap-12 mt-16">
+        <button class="btn btn-outline" style="flex:1" data-action="closeServiceForm">Hủy</button>
+        <button class="btn btn-primary" style="flex:1" data-action="submitServiceForm" id="svcSubmitBtn">Lưu thủ tục</button>
+      </div>
     </div>
   </div>
 
@@ -284,8 +313,8 @@
 <script src="js/admin-monitor.js"></script>
 <script src="js/admin-dispatch.js"></script>
 <script src="js/admin-config.js"></script>
-<script src="js/serviceDocsEditor.js?v=2"></script>
-<script src="js/admin-servicedocs.js?v=2"></script>
+<script src="js/serviceDocsEditor.js?v=3"></script>
+<script src="js/admin-servicedocs.js?v=3"></script>
 <script src="js/admin-reports.js"></script>
 <script src="js/admin-staff.js"></script>
 <script src="js/admin-insights.js?v=2"></script>

@@ -141,7 +141,7 @@ const ServiceDocsEditor = (() => {
       services.forEach((s) => { (groups[s.field_name || 'Khác'] = groups[s.field_name || 'Khác'] || []).push(s); });
       Object.keys(groups).forEach((g) => {
         const og = el('optgroup', { label: g });
-        groups[g].forEach((s) => og.appendChild(el('option', { value: String(s.id), text: s.name })));
+        groups[g].forEach((s) => og.appendChild(el('option', { value: String(s.id), text: Number(s.is_active) === 0 ? `${s.name} (đang ẩn)` : s.name })));
         select.appendChild(og);
       });
       const target = services.find((s) => s.id === keepId) ? keepId : (services[0] && services[0].id);
@@ -203,8 +203,8 @@ const ServiceDocsEditor = (() => {
       }
     });
 
-    async function reload() {
-      const keepId = current ? current.id : null;
+    async function reload(preferId) {
+      const keepId = preferId || (current ? current.id : null);
       try {
         services = await ApiClient.get(options.listUrl);
       } catch (err) {
@@ -230,7 +230,15 @@ const ServiceDocsEditor = (() => {
     }
 
     reload();
-    return { reload, isDirty, onRemoteUpdate };
+    // Chon 1 thu tuc tu ben ngoai (VD vua tao thu tuc moi o danh muc -> chuyen sang cai giay to).
+    async function selectById(id) {
+      if (isDirty() && !(await ask('Thủ tục đang sửa có thay đổi chưa lưu. Bỏ các thay đổi đó?', 'Bỏ thay đổi', true))) return false;
+      if (current) { docs = cloneDocs(current.required_docs); savedSnapshot = serialize(docs); }
+      await reload(id);
+      return true;
+    }
+
+    return { reload, isDirty, onRemoteUpdate, selectById };
   }
 
   return { mount };

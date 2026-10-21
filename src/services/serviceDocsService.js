@@ -106,8 +106,9 @@ async function officerFieldIds(client, staffId) {
 }
 
 async function listEditableServices(actor) {
+  // Admin thay ca thu tuc dang an (de cai giay to xong roi moi cho hien tren Kiosk).
+  if (isAdminRole(actor.role)) return serviceRepo.listAllServices(db.pool);
   const services = await serviceRepo.listServices(db.pool);
-  if (isAdminRole(actor.role)) return services;
   const fields = await officerFieldIds(db.pool, actor.staffId);
   return services.filter((s) => fields.includes(Number(s.field_id)));
 }
