@@ -36,13 +36,22 @@ function withoutGuide(form) {
   return rest;
 }
 
+// Thu tuc con TIEP NHAN (is_active = 1)? findServiceById khong loc is_active (Admin/Quay can xem ca thu
+// tuc dang an), nen cac route CONG KHAI phai tu kiem tra - neu khong, thu tuc da an van lay so duoc
+// (lech Hinh 4.3: "Thu tuc ton tai va dang tiep nhan (is_active = 1)?" -> 404).
+// Chi coi la ngung tiep nhan khi is_active la 0/false ro rang (ban ghi cu khong co cot -> van cho qua).
+function isAccepting(service) {
+  return !!service && service.is_active !== 0 && service.is_active !== false;
+}
+const SERVICE_UNAVAILABLE = 'Thu tuc khong ton tai hoac da ngung tiep nhan.';
+
 // Checklist giay to bat buoc + vi tri phoi/to khai mau (Pre-validation & Form Resolution).
 // Moi giay to kem goi y "cach co/can mang gi" (hint) va co danh dau giay nao la to khai co
 // huong dan dien chi tiet (hasFillGuide) de Kiosk hien nut "Xem cach dien".
 router.get('/services/:id/checklist', async (req, res) => {
   try {
     const service = await serviceRepo.findServiceById(pool, req.params.id);
-    if (!service) return res.status(404).json({ error: 'Thu tuc khong ton tai.' });
+    if (!isAccepting(service)) return res.status(404).json({ error: SERVICE_UNAVAILABLE });
     const form = await formTemplateRepo.findByServiceId(pool, service.id);
     const guideDocCode = form && form.fill_guide ? form.fill_guide.docCode : null;
     const requiredDocs = (service.required_docs || []).map((d) => ({
@@ -102,7 +111,7 @@ router.get('/form-guides', async (req, res) => {
 router.get('/services/:id/form-guide', async (req, res) => {
   try {
     const service = await serviceRepo.findServiceById(pool, req.params.id);
-    if (!service) return res.status(404).json({ error: 'Thu tuc khong ton tai.' });
+    if (!isAccepting(service)) return res.status(404).json({ error: SERVICE_UNAVAILABLE });
     const form = await formTemplateRepo.findByServiceId(pool, service.id);
     if (!form || !form.fill_guide) {
       return res.status(404).json({ error: 'Thu tuc nay chua co huong dan dien to khai. Vui long hoi can bo ho tro.' });
@@ -222,29 +231,37 @@ router.post('/tickets', async (req, res) => {
     const serviceId = requireInt(req.body.serviceId, 'Ma thu tuc (serviceId)');
 
     const service = await serviceRepo.findServiceById(pool, serviceId);
-    if (!service) return res.status(404).json({ error: 'Thu tuc khong ton tai.' });
+    if (!isAccepting(service)) return res.status(404).json({ error: SERVICE_UNAVAILABLE });
 
     // Ngoai gio lam viec (neu cong tac KIOSK_HOURS_ENFORCED dang bat): khong cap so, tra ve
     // thong bao ro rang kem gio mo cua ke tiep de nguoi dan biet khi nao quay lai.
     const hours = await getHoursStatusSafe();
     if (!hours.open) return res.status(200).json({ status: 'CLOSED', message: hours.message, hoursText: hours.hoursText, opensAt: hours.opensAt });
 
-    const mandatoryCodes = (service.required_docs || []).filter((d) => d.mandatory).map((d) => d.code);
-    const provided = new Set(confirmedDocCodes || []);
-    const missing = mandatoryCodes.filter((c) => !provided.has(c));
+    const docs = service.required_docs || [];
+    const provided = new Set(Array.isArray(confirmedDocCodes) ? confirmedDocCodes : []);
+    const missingDocs = docs.filter((d) => d.mandatory && !provided.has(d.code));
 
-    if (missing.length > 0) {
+    if (missingDocs.length > 0) {
       const form = await formTemplateRepo.findByServiceId(pool, service.id);
       return res.status(200).json({
         status: 'REJECTED',
-        missing,
+        missing: missingDocs.map((d) => d.code),
+        // Kem ten + ghi chu can bo de Kiosk hien ro giay nao con thieu (khong chi ma code).
+        missingDocs: missingDocs.map((d) => ({ code: d.code, name: d.name, note: d.note || null })),
         message: 'Ho so chua du 100%. Vui long bo sung theo huong dan.',
-        formTemplate: form
+        // Bo fill_guide (dai) nhu route /checklist - Kiosk chi can vi tri phoi (ke, khay, ban viet).
+        formTemplate: withoutGuide(form)
       });
     }
 
+    // Giay KHONG bat buoc chua co: van cap so, nhung nhac cong dan (Hinh 4.3 - "co the bi yeu cau bo sung sau").
+    const optionalMissing = docs
+      .filter((d) => !d.mandatory && !provided.has(d.code))
+      .map((d) => ({ code: d.code, name: d.name, note: d.note || null }));
+
     const result = await queueEngine.createTicket({ serviceId, citizenName, phone });
-    res.status(201).json({ status: 'QUEUED', ...result });
+    res.status(201).json({ status: 'QUEUED', ...result, optionalMissing });
   } catch (err) {
     const status = err.code === 'NO_COUNTER_AVAILABLE' ? 409 : 400;
     res.status(status).json({ error: err.message });

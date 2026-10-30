@@ -65,17 +65,20 @@ async function loadChecklist(serviceId) {
     currentService = data;
     document.getElementById('checklistServiceName').textContent = data.service.name;
     // Moi giay to: o tich chon + goi y "cach co giay nay/can mang gi" + nut xem cach dien neu la to khai.
+    // Hinh 4.3: moi giay hien ro Bat buoc (*) / Khong bat buoc kem ghi chu can bo (neu co).
     document.getElementById('checklistItems').innerHTML = (data.requiredDocs || []).map((d) => `
       <div class="checklist-row">
         <label class="checklist-item">
           <input type="checkbox" value="${esc(d.code)}" />
           <span>${esc(d.name)}${d.mandatory ? ' <b style="color:var(--color-danger)">*</b>' : ''}</span>
+          <span class="doc-tag ${d.mandatory ? 'doc-tag-must' : 'doc-tag-opt'}">${d.mandatory ? 'Bắt buộc' : 'Không bắt buộc'}</span>
         </label>
+        ${d.note ? `<div class="doc-note">📌 ${esc(d.note)}</div>` : ''}
         ${d.hint ? `<div class="doc-hint">💡 ${esc(d.hint)}</div>` : ''}
         ${d.hasFillGuide ? `<a class="btn btn-outline doc-guide-btn" href="${guideUrl(data.service.id)}">📝 Xem cách điền tờ khai này</a>` : ''}
       </div>
     `).join('');
-    renderServiceExtra(data.extra);
+    renderServiceExtra(data.extra, data.service);
     renderChecklistStatus();
     showScreen('checklist');
   } catch (err) {
@@ -87,12 +90,15 @@ async function loadChecklist(serviceId) {
 // online duoc khong, can cu phap ly, luu y. Lay tu `extra` cua /api/kiosk/services/:id/checklist
 // (nguon: src/data/faqKnowledge.js). Muc nao CHUA XAC THUC thi noi thang la chua xac thuc, khong
 // im lang de nguoi dan tuong la chac chan.
-function renderServiceExtra(extra) {
+function renderServiceExtra(extra, service) {
   const box = document.getElementById('serviceExtraBox');
   if (!box) return;
   if (!extra) { box.innerHTML = ''; return; }
 
+  // Le phi: lay tu CSDL (ghi tu src/data/serviceFees.js - muc dang ap dung tai Ha Noi).
+  const feeText = service && (service.fee_note || (service.fee_label ? service.fee_label : null));
   const rows = [
+    ['💰', 'Lệ phí', feeText],
     ['📍', 'Nơi nộp hồ sơ', extra.where],
     ['⏳', 'Thời hạn giải quyết theo quy định', extra.slaNote],
     ['💻', 'Nộp trực tuyến', extra.online],
@@ -143,10 +149,15 @@ function renderChecklistStatus() {
         </div>
       </div>`;
   } else {
+    // Giay KHONG bat buoc chua tich: van lay so duoc, chi nhac truoc (khong chan).
+    const optionalMissing = (currentService.requiredDocs || []).filter((d) => !d.mandatory && !checkedCodes.has(d.code));
     box.innerHTML = `
       <div class="checklist-status checklist-status-ok">
         <span class="icon">✅</span>
-        <div>Đã đủ giấy tờ bắt buộc — sẵn sàng lấy số thứ tự!</div>
+        <div>
+          <div>Đã đủ giấy tờ bắt buộc — sẵn sàng lấy số thứ tự!</div>
+          ${optionalMissing.length > 0 ? `<div class="sub">Chưa có giấy không bắt buộc: ${esc(optionalMissing.map((d) => d.name).join(', '))}. Bạn vẫn lấy số được, nhưng cán bộ có thể yêu cầu bổ sung sau.</div>` : ''}
+        </div>
       </div>`;
   }
 }
@@ -175,9 +186,23 @@ async function submitCheckGate() {
 
     document.getElementById('ticketNumber').textContent = result.ticket.ticket_number;
     document.getElementById('ticketCounterName').textContent = `Vui lòng đến ${result.counter.name}`;
+    renderOptionalReminder(result.optionalMissing);
     showScreen('ticket');
     renderTicketExtras(result.ticket.id);
   } catch (err) { showToast(err.message, 'error'); }
+}
+
+// Hinh 4.3: "Nhac giay Khong bat buoc chua co - van cap so, co the bi yeu cau bo sung sau".
+function renderOptionalReminder(optionalMissing) {
+  const box = document.getElementById('optionalMissingBox');
+  if (!box) return;
+  const list = Array.isArray(optionalMissing) ? optionalMissing : [];
+  if (list.length === 0) { box.innerHTML = ''; return; }
+  box.innerHTML = `
+    <div class="optional-reminder">
+      <b>Lưu ý:</b> bạn chưa mang theo giấy không bắt buộc. Bạn vẫn được lấy số, nhưng cán bộ có thể yêu cầu bổ sung sau:
+      <ul>${list.map((d) => `<li>${esc(d.name)}${d.note ? ` <span class="text-muted">— ${esc(d.note)}</span>` : ''}</li>`).join('')}</ul>
+    </div>`;
 }
 
 // Ngoai gio lam viec: thong bao ro rang (kem gio mo cua ke tiep) thay vi chi bao loi.
@@ -244,15 +269,19 @@ async function renderTicketExtras(ticketId) {
 
 function showMissingDocsGuide(result) {
   const allDocs = currentService.requiredDocs || [];
-  const missingNames = (result.missing || []).map((code) => {
-    const doc = allDocs.find((d) => d.code === code);
-    return doc ? doc.name : code;
-  });
+  // May chu tra missingDocs (ten + ghi chu); ban cu chi co ma `missing` -> tu tra ten tu checklist da tai.
+  const missingList = Array.isArray(result.missingDocs) && result.missingDocs.length > 0
+    ? result.missingDocs
+    : (result.missing || []).map((code) => {
+      const doc = allDocs.find((d) => d.code === code);
+      return { code, name: doc ? doc.name : code, note: doc ? doc.note : null };
+    });
 
+  // Ten giay to la du lieu DB (Admin/Can bo nhap) -> bat buoc escape truoc khi chen vao innerHTML.
   document.getElementById('missingDocsBox').innerHTML = `
     <div class="missing-list">
-      <b>Bạn còn thiếu ${missingNames.length} giấy tờ:</b>
-      <ul>${missingNames.map((n) => `<li>${n}</li>`).join('')}</ul>
+      <b>Bạn còn thiếu ${missingList.length} giấy tờ bắt buộc:</b>
+      <ul>${missingList.map((d) => `<li>${esc(d.name)}${d.note ? ` <span class="text-muted">— ${esc(d.note)}</span>` : ''}</li>`).join('')}</ul>
     </div>`;
 
   const form = result.formTemplate;

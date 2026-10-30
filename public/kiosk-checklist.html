@@ -4,8 +4,8 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Kiosk Tiếp nhận - Một cửa Thông minh</title>
-<link rel="stylesheet" href="css/common.css?v=12" />
-<link rel="stylesheet" href="css/kiosk.css?v=6" />
+<link rel="stylesheet" href="css/common.css?v=13" />
+<link rel="stylesheet" href="css/kiosk.css?v=7" />
 <link rel="icon" href="assets/logoKiosk-icon-transparent.png" type="image/png" />
 </head>
 <body data-show-header-clock="true" data-show-hours-banner="true">
@@ -54,6 +54,7 @@
       <div id="ticketNumber" class="ticket-number">A-101</div>
       <p class="mt-16" id="ticketCounterName" style="font-size:1.3rem;font-weight:600;"></p>
       <p id="ticketWait" class="ticket-wait"></p>
+      <div id="optionalMissingBox"></div>
       <p class="text-muted">Vui lòng theo dõi Bảng LED và lắng nghe Loa thông báo</p>
       <div class="ticket-qr-box">
         <div id="ticketQr" class="ticket-qr"></div>
@@ -78,7 +79,7 @@
 <script src="js/apiClient.js"></script>
 <script src="js/toast.js"></script>
 <script src="js/actionDelegate.js"></script>
-<script src="js/kiosk-checklist.js?v=4"></script>
+<script src="js/kiosk-checklist.js?v=6"></script>
 <script src="js/header.js?v=4"></script>
 <script src="js/deviceHeartbeat.js?v=1"></script>
 <script src="js/chatbot.js?v=9"></script>

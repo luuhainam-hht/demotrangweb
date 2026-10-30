@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Quầy tiếp nhận - Một Cửa Thông Minh</title>
-<link rel="stylesheet" href="css/common.css?v=12" />
+<link rel="stylesheet" href="css/common.css?v=13" />
 <link rel="icon" href="assets/logoKiosk-icon-transparent.png" type="image/png" />
 <style>
   .layout { display: grid; grid-template-columns: 320px 1fr; gap: 20px; }
@@ -44,6 +44,7 @@
   <div class="flex gap-16" style="align-items:center;">
     <span id="todayStats" class="badge badge-blue"></span>
     <span id="counterSelectWrap"></span>
+    <button class="btn btn-outline" data-action="openMyServices">Giấy tờ thủ tục</button>
     <span id="staffName" class="text-muted"></span>
     <button class="btn btn-outline" data-action="logout">Đăng xuất</button>
   </div>
@@ -68,6 +69,16 @@
       </div>
       <div id="conveyorList"></div>
     </div>
+  </div>
+</div>
+
+<!-- ============ MODAL: CAI GIAY TO CHO THU TUC (UC-61) ============ -->
+<div id="myServicesModal" class="modal-overlay hidden">
+  <div class="modal-box" style="max-width:720px;width:96%;max-height:90vh;overflow:auto;">
+    <h2 style="margin-top:0;">Giấy tờ của thủ tục thuộc lĩnh vực quầy bạn</h2>
+    <p class="text-muted">Chọn thủ tục để sửa danh sách giấy tờ (Bắt buộc / Không bắt buộc). Chỉ sửa được thủ tục thuộc lĩnh vực quầy bạn phụ trách.</p>
+    <div id="myServicesList"></div>
+    <div class="mt-16"><button class="btn btn-outline" data-action="closeModal" data-args='["myServicesModal"]'>Đóng</button></div>
   </div>
 </div>
 
@@ -106,7 +117,8 @@
 <script src="js/toast.js"></script>
 <script src="js/wsClient.js"></script>
 <script src="js/actionDelegate.js"></script>
-<script src="js/counter.js?v=2"></script>
+<script src="js/serviceDocsEditor.js"></script>
+<script src="js/counter.js?v=3"></script>
 <script src="js/chatbot.js?v=9"></script>
 </body>
 </html>

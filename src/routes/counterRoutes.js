@@ -93,4 +93,29 @@ router.post('/tickets/:ticketId/supplement', async (req, res) => {
   }
 });
 
+// ---- UC-61: Can bo Quay cai giay to cho thu tuc thuoc linh vuc quay minh (Hinh 3.4) ----
+// Quyen theo LINH VUC duoc kiem tra trong serviceCatalogService (Officer khong the sua thu tuc linh vuc khac).
+const serviceCatalog = require('../services/serviceCatalogService');
+const { requireInt } = require('../utils/validate');
+
+router.get('/services/mine', async (req, res) => {
+  try {
+    res.json(await serviceCatalog.listManageable(req.staff));
+  } catch (err) { serviceCatalog.respondError(res, err); }
+});
+
+// Danh sach giay to cua 1 thu tuc (ke ca thu tuc dang an) - dung cho man Yeu cau Bo sung (UC-21).
+router.get('/services/:id/docs', async (req, res) => {
+  try {
+    res.json(await serviceCatalog.getDocsForStaff(requireInt(req.params.id, 'Ma thu tuc'), req.staff));
+  } catch (err) { serviceCatalog.respondError(res, err); }
+});
+
+router.put('/services/:id/docs', async (req, res) => {
+  try {
+    const id = requireInt(req.params.id, 'Ma thu tuc');
+    res.json(await serviceCatalog.updateDocs(id, req.body.docs, req.body.version, req.staff, req.body.reason));
+  } catch (err) { serviceCatalog.respondError(res, err); }
+});
+
 module.exports = router;
