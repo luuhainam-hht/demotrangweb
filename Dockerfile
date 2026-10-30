@@ -1,11 +1,13 @@
 # =====================================================================================
 # Image chay he thong Mot Cua Thong Minh (web + WebSocket) va cong cu dong bo CSDL.
 # Dung chung 1 image cho 2 container: "app" (node src/server.js) va "sync" (scripts/db-sync.js).
-# postgresql17-client: pg_dump/pg_restore ban 17 doc duoc ca Neon PostgreSQL 16 lan 17.
+# postgresql18-client: pg_dump/pg_restore ban 18 doc duoc Neon PostgreSQL 18 (pg_dump tu choi may chu moi hon no).
 # =====================================================================================
 FROM node:22-alpine
 
-RUN apk add --no-cache postgresql17-client tini tzdata
+RUN apk add --no-cache tini tzdata \
+ && (apk add --no-cache postgresql18-client \
+      || apk add --no-cache postgresql18-client --repository=https://dl-cdn.alpinelinux.org/alpine/edge/community)
 ENV NODE_ENV=production \
     TZ=Asia/Ho_Chi_Minh \
     PORT=3000

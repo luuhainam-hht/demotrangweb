@@ -274,4 +274,43 @@ router.put('/staff/:id/password', requirePermission('STAFF_MANAGEMENT'), async (
   }
 });
 
+// ===================== Phan he 6: Danh muc thu tuc & giay to (SERVICE_DOCS) =====================
+// UC-60 (them / sua / an-hien thu tuc) va UC-61 (cai giay to Bat buoc / Khong bat buoc) - Hinh 3.6.
+// Moi lan luu phai gui kem `version` (chong ghi de); thay doi duoc ghi Audit Log va phat su kien
+// SERVICE_DOCS_UPDATED. KHONG co route xoa thu tuc - chi an/hien.
+const serviceCatalog = require('../services/serviceCatalogService');
+
+router.get('/services/manage', requirePermission('SERVICE_DOCS'), async (req, res) => {
+  try {
+    res.json(await serviceCatalog.listManageable(req.staff));
+  } catch (err) { serviceCatalog.respondError(res, err); }
+});
+
+router.post('/services', requirePermission('SERVICE_DOCS'), async (req, res) => {
+  try {
+    res.status(201).json(await serviceCatalog.createService(req.body, req.staff));
+  } catch (err) { serviceCatalog.respondError(res, err); }
+});
+
+router.put('/services/:id', requirePermission('SERVICE_DOCS'), async (req, res) => {
+  try {
+    const id = requireInt(req.params.id, 'Ma thu tuc');
+    res.json(await serviceCatalog.updateInfo(id, req.body, req.body.version, req.staff, req.body.reason));
+  } catch (err) { serviceCatalog.respondError(res, err); }
+});
+
+router.post('/services/:id/active', requirePermission('SERVICE_DOCS'), async (req, res) => {
+  try {
+    const id = requireInt(req.params.id, 'Ma thu tuc');
+    res.json(await serviceCatalog.setActive(id, req.body.isActive, req.body.version, req.staff, req.body.reason));
+  } catch (err) { serviceCatalog.respondError(res, err); }
+});
+
+router.put('/services/:id/docs', requirePermission('SERVICE_DOCS'), async (req, res) => {
+  try {
+    const id = requireInt(req.params.id, 'Ma thu tuc');
+    res.json(await serviceCatalog.updateDocs(id, req.body.docs, req.body.version, req.staff, req.body.reason));
+  } catch (err) { serviceCatalog.respondError(res, err); }
+});
+
 module.exports = router;

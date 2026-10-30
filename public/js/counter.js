@@ -221,16 +221,45 @@ async function undoComplete(ticketId) {
 }
 
 // ---- Yeu cau Bo sung ----
+function escHtml(v) {
+  return String(v === undefined || v === null ? '' : v).replace(/[&<>"']/g, (c) => (
+    { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+// UC-21: danh sach giay to lay tu /api/services/:id/docs (ke ca thu tuc da an), co nhan Bat buoc / Khong bat buoc.
 async function openSupplementModal() {
   try {
-    const data = await ApiClient.get(`/api/kiosk/services/${activeTicket.service_id}/checklist`);
-    document.getElementById('supplementChecklist').innerHTML = (data.requiredDocs || []).map((d) => `
+    const data = await ApiClient.get(`/api/services/${activeTicket.service_id}/docs`);
+    document.getElementById('supplementChecklist').innerHTML = (data.docs || []).map((d) => `
       <label class="checklist-item">
-        <input type="checkbox" value="${d.code}" />
-        <span>${d.name}</span>
+        <input type="checkbox" value="${escHtml(d.code)}" />
+        <span>${escHtml(d.name)}</span>
+        <span class="badge ${d.mandatory ? 'badge-red' : 'badge-blue'}" style="margin-left:auto;">${d.mandatory ? 'Bắt buộc' : 'Không bắt buộc'}</span>
       </label>`).join('');
     openModal('supplementModal');
   } catch (err) { showToast(err.message, 'error'); }
+}
+
+// UC-61: Can bo Quay cai giay to cho thu tuc thuoc linh vuc quay minh.
+let myServices = [];
+async function openMyServices() {
+  try {
+    myServices = await ApiClient.get('/api/services/mine');
+    document.getElementById('myServicesList').innerHTML = myServices.map((s) => `
+      <div class="queue-item" style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 0;border-bottom:1px dashed var(--color-border);">
+        <div><b>${escHtml(s.name)}</b>
+          <span class="badge ${s.is_active ? 'badge-green' : 'badge-gray'}">${s.is_active ? 'Đang hiện' : 'Đang ẩn'}</span>
+          <div class="text-muted" style="font-size:0.9rem;">${(s.required_docs || []).length} giấy tờ</div></div>
+        <button class="btn btn-outline action-chip" ${actionAttr('editMyService', s.id)}>Sửa giấy tờ</button>
+      </div>`).join('') || '<p class="text-muted">Quầy của bạn chưa phụ trách lĩnh vực nào.</p>';
+    openModal('myServicesModal');
+  } catch (err) { showToast(err.message, 'error'); }
+}
+function editMyService(id) {
+  const s = myServices.find((x) => x.id === Number(id));
+  if (!s) return;
+  closeModal('myServicesModal');
+  openServiceDocsEditor(s, () => openMyServices());
 }
 async function submitSupplement() {
   const missingDocCodes = Array.from(document.querySelectorAll('#supplementChecklist input:checked')).map((el) => el.value);

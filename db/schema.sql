@@ -111,6 +111,9 @@ CREATE TABLE IF NOT EXISTS services (
   -- khong the chi ghi 1 con so). Ghi tu src/data/serviceFees.js qua runMigrations.js.
   fee_label     VARCHAR(80),
   fee_note      TEXT,
+  -- fee_manual = 1: le phi da duoc sua tay tren giao dien (UC-60) -> migration updateServiceFees
+  -- (src/migrations/runMigrations.js) KHONG ghi de lai tu src/data/serviceFees.js khi server khoi dong.
+  fee_manual    SMALLINT      NOT NULL DEFAULT 0 CHECK (fee_manual IN (0,1)),
   required_docs JSONB         NOT NULL DEFAULT '[]'::jsonb,
   is_active     SMALLINT      NOT NULL DEFAULT 1 CHECK (is_active IN (0,1)),
   created_at    TIMESTAMPTZ   NOT NULL DEFAULT now(),

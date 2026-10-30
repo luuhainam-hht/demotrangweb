@@ -26,10 +26,10 @@ x-db-urls: &db-urls
   APP_DB_TARGET: ${APP_DB_TARGET:-neon}
 
 services:
-  # PostgreSQL 17 tai cho. wal_level=logical + replication slot: de lam ban sao realtime cua Neon
+  # PostgreSQL 18 tai cho. wal_level=logical + replication slot: de lam ban sao realtime cua Neon
   # (subscriber) va de co the nguoc lai lam nguon phat neu sau nay can.
   db:
-    image: postgres:17-alpine
+    image: postgres:18-alpine
     restart: unless-stopped
     environment:
       POSTGRES_DB: smart_queue
@@ -52,7 +52,7 @@ services:
     ports:
       - "127.0.0.1:${LOCAL_DB_PORT:-5433}:5432"
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - pgdata18:/var/lib/postgresql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -d smart_queue"]
       interval: 5s
@@ -119,4 +119,4 @@ services:
       - "127.0.0.1:8080:8080"
 
 volumes:
-  pgdata:
+  pgdata18:

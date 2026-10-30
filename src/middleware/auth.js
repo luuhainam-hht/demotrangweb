@@ -8,7 +8,11 @@ const PERMISSION_GROUPS = {
   PRIORITY_RESTORE: ['SUPER_ADMIN', 'MANAGER', 'SUPERVISOR'],  // Khoi phuc / VIP
   REPORTS: ['SUPER_ADMIN', 'MANAGER'],                         // Xem Bao cao / Audit
   COUNTER_OPS: ['SUPER_ADMIN', 'OFFICER'],                     // Van hanh quay (Officer chi xem quay minh)
-  STAFF_MANAGEMENT: ['SUPER_ADMIN']                            // Quan ly Tai khoan Can bo
+  STAFF_MANAGEMENT: ['SUPER_ADMIN'],                           // Quan ly Tai khoan Can bo
+  // UC-60/UC-61 (Hinh 3.6): Dieu phoi, Truong Trung tam, Quan tri vien quan ly danh muc thu tuc va
+  // giay to. Can bo Quay KHONG nam trong nhom nay - chi dung UC-61 cho thu tuc cua linh vuc quay
+  // minh qua counterRoutes (kiem tra rieng trong serviceCatalogService).
+  SERVICE_DOCS: ['SUPER_ADMIN', 'MANAGER', 'SUPERVISOR']
 };
 
 async function authenticate(req, res, next) {

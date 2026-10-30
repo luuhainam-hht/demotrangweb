@@ -92,6 +92,7 @@
     <button class="tab-btn active" data-tab="monitor" data-action="switchTab" data-args='["monitor"]'><span class="tab-emoji"></span><span>Giám sát</span></button>
     <button class="tab-btn" data-tab="dispatch" data-action="switchTab" data-args='["dispatch"]'><span class="tab-emoji"></span><span>Điều phối</span></button>
     <button class="tab-btn" data-tab="config" data-action="switchTab" data-args='["config"]'><span class="tab-emoji"></span><span>Cấu hình</span></button>
+    <button class="tab-btn" data-tab="services" data-action="switchTab" data-args='["services"]' id="servicesTabBtn"><span class="tab-emoji"></span><span>Thủ tục</span></button>
     <button class="tab-btn" data-tab="reports" data-action="switchTab" data-args='["reports"]'><span class="tab-emoji"></span><span>Báo cáo</span></button>
     <button class="tab-btn" data-tab="staff" data-action="switchTab" data-args='["staff"]' id="staffTabBtn"><span class="tab-emoji"></span><span>Tài khoản</span></button>
   </div>
@@ -181,6 +182,35 @@
     <div class="card mt-16">
       <h3>Tờ khai mẫu và vị trí lấy phôi</h3>
       <div id="formTemplateList"></div>
+    </div>
+  </div>
+
+  <!-- ============ TAB: THU TUC (UC-60/61) ============ -->
+  <div id="tab-services" class="tab-content hidden">
+    <div class="card">
+      <div class="counter-card-head">
+        <h3>Danh mục thủ tục, lệ phí và giấy tờ</h3>
+        <button class="btn btn-primary action-chip" data-action="newServiceForm">+ Thêm thủ tục</button>
+      </div>
+      <p class="text-muted">Chỉ ẩn/hiện, không xóa thủ tục. Thủ tục mới mặc định ẩn cho tới khi cài giấy tờ và bấm Hiện.</p>
+      <div id="svcForm" class="new-counter-box hidden">
+        <h4 id="svcFormTitle" style="margin-top:0;"></h4>
+        <input type="hidden" id="svcFormId" />
+        <div class="field" id="svcFormCodeWrap"><label>Mã thủ tục</label><input id="svcFormCode" maxlength="30" placeholder="VD: HO_TICH_KHAI_SINH" /></div>
+        <div class="field" id="svcFormFieldWrap"><label>Lĩnh vực</label><select id="newSvcField"></select></div>
+        <div class="field"><label>Tên thủ tục</label><input id="svcFormName" maxlength="255" /></div>
+        <div class="field"><label>Tên gọi tắt</label><input id="svcFormAlias" maxlength="80" /></div>
+        <div class="field"><label>Thời gian xử lý SLA (phút)</label><input id="svcFormSla" type="number" min="1" max="1440" /></div>
+        <div class="field"><label>Lệ phí (đồng, 0 = miễn phí / chưa thu)</label><input id="svcFormFeeAmount" type="number" min="0" step="1000" /></div>
+        <div class="field"><label>Lệ phí hiển thị ngắn (VD: 30.000 đ/bản)</label><input id="svcFormFeeLabel" maxlength="80" /></div>
+        <div class="field"><label>Giải thích lệ phí cho người dân</label><textarea id="svcFormFeeNote" maxlength="2000" rows="3"></textarea></div>
+        <div class="field"><label>Lý do thay đổi (ghi vào nhật ký)</label><input id="svcFormReason" maxlength="255" /></div>
+        <div class="flex gap-8">
+          <button class="btn btn-primary" style="flex:1" data-action="submitServiceForm">Lưu</button>
+          <button class="btn btn-outline" style="flex:1" data-action="closeServiceForm">Hủy</button>
+        </div>
+      </div>
+      <div id="serviceManageList"></div>
     </div>
   </div>
 
@@ -276,8 +306,10 @@
 <script src="js/admin-config.js"></script>
 <script src="js/admin-reports.js"></script>
 <script src="js/admin-staff.js"></script>
+<script src="js/serviceDocsEditor.js"></script>
+<script src="js/admin-services.js"></script>
 <script src="js/admin-insights.js?v=2"></script>
-<script src="js/admin.js?v=3"></script>
+<script src="js/admin.js?v=4"></script>
 <script src="js/chatbot.js?v=10"></script>
 </body>
 </html>
