@@ -20,6 +20,12 @@ async function loadServicesTab() {
     const seen = new Map();
     manageServices.forEach((s) => { if (!seen.has(s.field_id)) seen.set(s.field_id, s.field_name); });
     manageFields = Array.from(seen, ([id, name]) => ({ id, name }));
+    // Lay day du danh sach linh vuc (ke ca linh vuc moi tao chua co thu tuc nao) - truoc day chi
+    // suy ra tu thu tuc da co nen linh vuc moi khong bao gio hien trong o "Linh vuc".
+    try {
+      const allFields = await ApiClient.get('/api/admin/fields/manage');
+      if (Array.isArray(allFields) && allFields.length) manageFields = allFields.map((f) => ({ id: f.id, name: f.name }));
+    } catch (e) { /* giu danh sach suy ra o tren */ }
     document.getElementById('newSvcField').innerHTML = manageFields.map((f) => `<option value="${f.id}">${escSvc(f.name)}</option>`).join('');
     renderServicesTab();
   } catch (err) { showToast(err.message, 'error'); }

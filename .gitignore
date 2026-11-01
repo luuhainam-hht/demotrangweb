@@ -9,3 +9,10 @@ docs/BaoCao-DoAnTotNghiep.*
 # File cu da go o ban 2.0.1 - con sot trong cac thu muc chep tay, khong dua lai len GitHub
 /*.ps1
 public/js/a11y.js
+# Thu muc / file tam do cac lan cap nhat truoc de lai - khong dua len GitHub
+bundle-v2/
+gop-xung-dot/
+*.zip
+package-lock.json.new
+DON-DEP-FILE-THUA.bat
+.env

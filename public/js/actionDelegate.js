@@ -18,9 +18,19 @@
     return `data-action="${name}" data-args='${escapeAttr(JSON.stringify(args))}'`;
   };
 
+  // SUA LOI 11/2026: truoc day ca 'click' lan 'change' deu goi ham -> bam vao <select> (moi chi
+  // mo danh sach, chua chon gi) da goi ngay changeCounterField/changeCounterOfficer voi GIA TRI
+  // CU, hien toast "Da gan can bo...", roi loadDispatch() ve lai danh sach lam dropdown dong
+  // mat -> khong bao gio chon duoc muc khac. Quy tac moi: o nhap lieu (select/input/textarea)
+  // chi phan ung voi 'change'; nut/lien ket chi phan ung voi 'click'.
+  const FORM_TAGS = ['SELECT', 'INPUT', 'TEXTAREA'];
+
   function dispatch(e) {
     const el = e.target.closest('[data-action]');
     if (!el) return;
+    const isFormControl = FORM_TAGS.includes(el.tagName);
+    if (isFormControl && e.type !== 'change') return;
+    if (!isFormControl && e.type !== 'click') return;
     const fn = window[el.dataset.action];
     if (typeof fn !== 'function') {
       console.error(`[actionDelegate] Khong tim thay ham global: ${el.dataset.action}`);

@@ -32,6 +32,8 @@ async function loadDispatch() {
     const counterOptions = counters.map((c) => `<option value="${c.id}">${c.code} - ${c.name}</option>`).join('');
     document.getElementById('rebalFrom').innerHTML = counterOptions;
     document.getElementById('rebalTo').innerHTML = counterOptions;
+    // Mac dinh "Sang quay" khac "Tu quay" (truoc day ca 2 cung la QUAY-01).
+    if (counters.length > 1) document.getElementById('rebalTo').selectedIndex = 1;
     document.getElementById('vipCounter').innerHTML = '<option value="">Tự động (Least Queue Depth)</option>' + counterOptions;
 
     document.getElementById('vipService').innerHTML = services.map((s) => `<option value="${s.id}">${s.field_name} — ${s.name}</option>`).join('');
@@ -59,9 +61,8 @@ function counterRowHtml(c, fields, officers) {
         </div>
       </div>
       <div class="counter-row-bottom">
-        <select ${actionAttr('changeCounterField', c.id, '$value')}>
-          <option value="">Đổi lĩnh vực...</option>
-          ${fields.map((f) => `<option value="${f.id}" ${f.id === c.field_id ? 'selected' : ''}>${f.name}</option>`).join('')}
+        <select title="Lĩnh vực chuyên trách" ${actionAttr('changeCounterField', c.id, '$value')}>
+          ${fields.map((f) => `<option value="${f.id}" ${Number(f.id) === Number(c.field_id) ? 'selected' : ''}>${f.name}</option>`).join('')}
         </select>
         <div class="flex gap-8">
           <button class="btn btn-outline action-chip" ${actionAttr('editCounter', c.id, c.code, c.name)}>Sửa</button>
@@ -71,7 +72,7 @@ function counterRowHtml(c, fields, officers) {
       <div class="counter-row-bottom">
         <select ${actionAttr('changeCounterOfficer', c.id, '$value')}>
           <option value="">-- Chưa gán cán bộ --</option>
-          ${officers.map((o) => `<option value="${o.id}" ${o.id === c.officer_id ? 'selected' : ''}>${o.full_name} (${o.username})${o.is_active ? '' : ' — đã khóa'}</option>`).join('')}
+          ${officers.map((o) => `<option value="${o.id}" ${String(o.id) === String(c.officer_id) ? 'selected' : ''}>${o.full_name} (${o.username})${o.is_active ? '' : ' — đã khóa'}</option>`).join('')}
         </select>
         <span class="text-muted" style="font-size:0.85rem;">${c.officer_name ? `Đang phụ trách: ${c.officer_name}` : 'Chưa gán tài khoản Officer'}</span>
       </div>
@@ -148,20 +149,28 @@ async function changeCounterStatus(counterId, status) {
 }
 async function changeCounterField(counterId, fieldId) {
   if (!fieldId) return;
-  try { await ApiClient.post(`/api/admin/counters/${counterId}/field`, { fieldId, reason: 'Doi linh vuc tu Admin Dashboard' }); showToast('Đã đổi lĩnh vực chuyên trách.', 'success'); loadDispatch(); }
-  catch (err) { showToast(err.message, 'error'); }
+  const field = dispatchFieldsCache.find((f) => String(f.id) === String(fieldId));
+  const ok = await ConfirmDialog.confirm(`Đổi lĩnh vực chuyên trách của quầy sang "${field ? field.name : fieldId}"?`, { okLabel: 'Đổi lĩnh vực' });
+  if (!ok) return loadDispatch(); // tra dropdown ve gia tri cu
+  try {
+    await ApiClient.post(`/api/admin/counters/${counterId}/field`, { fieldId: Number(fieldId), reason: 'Doi linh vuc tu Admin Dashboard' });
+    showToast(`Đã đổi lĩnh vực sang ${field ? field.name : 'lĩnh vực mới'}.`, 'success');
+  } catch (err) { showToast(err.message, 'error'); }
+  loadDispatch();
 }
 async function changeCounterOfficer(counterId, officerId) {
+  const officer = dispatchOfficersCache.find((o) => String(o.id) === String(officerId));
   try {
     await ApiClient.post(`/api/admin/counters/${counterId}/officer`, { officerId: officerId || null, reason: 'Gan/Go can bo tu Admin Dashboard' });
-    showToast(officerId ? 'Đã gán cán bộ phụ trách quầy.' : 'Đã gỡ cán bộ khỏi quầy.', 'success');
-    loadDispatch();
-  } catch (err) { showToast(err.message, 'error'); loadDispatch(); }
+    showToast(officerId ? `Đã gán ${officer ? officer.full_name : 'cán bộ'} phụ trách quầy.` : 'Đã gỡ cán bộ khỏi quầy.', 'success');
+  } catch (err) { showToast(err.message, 'error'); }
+  loadDispatch();
 }
 async function submitRebalance() {
   const fromCounterId = document.getElementById('rebalFrom').value;
   const toCounterId = document.getElementById('rebalTo').value;
   const percent = document.getElementById('rebalPercent').value;
+  if (fromCounterId === toCounterId) return showToast('Quầy chuyển đi và quầy nhận phải khác nhau.', 'error');
   try {
     const result = await ApiClient.post('/api/admin/rebalance', { fromCounterId, toCounterId, percent });
     showToast(`Đã san tải ${result.movedCount} vé.`, 'success');

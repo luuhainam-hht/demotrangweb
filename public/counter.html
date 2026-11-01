@@ -36,11 +36,18 @@
     .topbar { flex-wrap: wrap; gap: 10px; }
     .action-row .btn { min-width: 100%; }
   }
+  /* Logo tren thanh tieu de (nang cap 11/2026) */
+  .topbar-brand { gap: 14px; }
+  .topbar-logo { height: 38px; width: auto; display: block; background: #fff; border-radius: 10px; padding: 4px 10px; }
+  @media (max-width: 600px) { .topbar-logo { height: 28px; } .topbar-brand span { font-size: 1rem; } }
 </style>
 </head>
 <body>
 <div class="topbar">
-  <h1>Quầy tiếp nhận</h1>
+  <h1 class="topbar-brand">
+    <img src="assets/logoKiosk-trimmed-transparent.png" alt="KIOSK - Digital Numbers &amp; Transformation" class="topbar-logo" />
+    <span>Quầy tiếp nhận</span>
+  </h1>
   <div class="flex gap-16" style="align-items:center;">
     <span id="todayStats" class="badge badge-blue"></span>
     <span id="counterSelectWrap"></span>
@@ -117,7 +124,7 @@
 <script src="js/qrLoader.js"></script>
 <script src="js/toast.js"></script>
 <script src="js/wsClient.js"></script>
-<script src="js/actionDelegate.js"></script>
+<script src="js/actionDelegate.js?v=20261101"></script>
 <script src="js/serviceDocsEditor.js"></script>
 <script src="js/counter.js?v=4"></script>
 <script src="js/chatbot.js?v=10"></script>

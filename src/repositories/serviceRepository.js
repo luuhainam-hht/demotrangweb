@@ -115,7 +115,57 @@ async function setActive(client, serviceId, isActive) {
   return mapService(rows[0]);
 }
 
+// ===== Quan ly Linh vuc (nang cap 11/2026) =====
+// Kem so quay (chua xoa) va so thu tuc de giao dien hien thi + chan xoa khi dang duoc dung.
+async function listFieldsWithUsage(client) {
+  const { rows } = await client.query(
+    `SELECT sf.*,
+       (SELECT COUNT(*) FROM counters c WHERE c.field_id = sf.id AND c.is_deleted = 0)::int AS counter_count,
+       (SELECT COUNT(*) FROM services s WHERE s.field_id = sf.id)::int AS service_count,
+       (SELECT COUNT(*) FROM services s WHERE s.field_id = sf.id AND s.is_active = 1)::int AS active_service_count
+     FROM service_fields sf ORDER BY sf.id ASC`
+  );
+  return rows;
+}
+
+async function findFieldById(client, fieldId) {
+  const { rows } = await client.query('SELECT * FROM service_fields WHERE id = ?', [fieldId]);
+  return rows[0] || null;
+}
+
+async function insertField(client, { code, name, ticketPrefix }) {
+  const { rows } = await client.query(
+    'INSERT INTO service_fields (code, name, ticket_prefix) VALUES (?, ?, ?) RETURNING *',
+    [code, name, ticketPrefix]
+  );
+  return rows[0];
+}
+
+async function updateFieldInfo(client, fieldId, { name, ticketPrefix }) {
+  const { rows } = await client.query(
+    'UPDATE service_fields SET name = ?, ticket_prefix = ? WHERE id = ? RETURNING *',
+    [name, ticketPrefix, fieldId]
+  );
+  return rows[0] || null;
+}
+
+// Tong so tham chieu (ke ca quay da xoa mem va thu tuc da an) - FK ON DELETE RESTRICT se chan
+// neu con tham chieu, kiem tra truoc de bao loi de hieu thay vi loi 23503.
+async function countFieldReferences(client, fieldId) {
+  const { rows } = await client.query(
+    `SELECT (SELECT COUNT(*) FROM counters WHERE field_id = ?)::int AS counters,
+            (SELECT COUNT(*) FROM services WHERE field_id = ?)::int AS services`,
+    [fieldId, fieldId]
+  );
+  return rows[0];
+}
+
+async function deleteField(client, fieldId) {
+  await client.query('DELETE FROM service_fields WHERE id = ?', [fieldId]);
+}
+
 module.exports = {
+  listFieldsWithUsage, findFieldById, insertField, updateFieldInfo, countFieldReferences, deleteField,
   listFields, listServices, findServiceById, searchServices,
   listForManage, lockById, insertService, updateInfo, updateRequiredDocs, setActive
 };

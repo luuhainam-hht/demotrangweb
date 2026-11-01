@@ -28,7 +28,7 @@ Nâng cấp theo đúng mục **6.17 – Hạn chế** và **Hướng phát tri�
 - **Chế độ mất mạng** cho Kiosk (Service Worker) và thư viện QR đóng gói sẵn, không cần CDN.
 - `npm audit`: 0 lỗ hổng · `npm run load:test` kiểm thử tải · 184 ca kiểm thử (có 3 ca tích hợp PostgreSQL thật).
 
-**Đẩy code lên GitHub** (`luuhainam-hht/demotrangweb`, Render tự deploy): bấm đúp `cap-nhat-github.bat`. Muốn **tự động** đẩy định kỳ: bấm đúp `bat-tu-dong-cap-nhat.bat` (tạo lịch Windows chạy ngầm; chỉ đẩy khi có thay đổi + test đạt; nhật ký ở `tu-dong-github.log`), tắt bằng `tat-tu-dong-cap-nhat.bat`.
+**Đẩy code lên GitHub** (`luuhainam-hht/demotrangweb`, Render tự deploy): bấm đúp `DAY-LEN-GIT.bat` — lấy bản mới nhất trên GitHub làm gốc, đưa toàn bộ thay đổi trên máy lên (không cần nén), chạy test trước, không bao giờ đẩy `.env`, không âm thầm xoá file trên GitHub. Muốn tự động: bấm đúp `TU-DONG-DAY-GIT.bat` và để cửa sổ mở - sửa code xong, để yên khoảng 1 phút là tự đẩy (nhật ký ở `tu-dong-github.log`).
 
 | Lệnh mới | Tác dụng |
 |---|---|

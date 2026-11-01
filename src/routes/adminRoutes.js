@@ -9,6 +9,7 @@ const counterService = require('../services/counterService');
 const queueEngine = require('../services/queueEngine');
 const analyticsService = require('../services/analyticsService');
 const staffService = require('../services/staffService');
+const fieldService = require('../services/fieldService');
 const staffRepo = require('../repositories/staffRepository');
 const wsHub = require('../websocket/wsHub');
 const { authenticate, requirePermission } = require('../middleware/auth');
@@ -24,6 +25,37 @@ router.get('/counters', requirePermission('MONITOR'), async (req, res) => {
 
 router.get('/fields', requirePermission('MONITOR'), async (req, res) => {
   res.json(await serviceRepo.listFields(pool));
+});
+
+// ===== Quan ly Linh vuc (nang cap 11/2026): them/sua/xoa ngay tren trang quan tri =====
+// Dung chung nhom quyen SERVICE_DOCS voi tab Thu tuc (Supervisor, Manager, Super Admin).
+router.get('/fields/manage', requirePermission('SERVICE_DOCS'), async (req, res) => {
+  res.json(await fieldService.listFields());
+});
+
+router.post('/fields', requirePermission('SERVICE_DOCS'), async (req, res) => {
+  try {
+    const { code, name, ticketPrefix } = req.body || {};
+    res.status(201).json(await fieldService.createField({ code, name, ticketPrefix }, req.staff.staffId));
+  } catch (err) { res.status(400).json({ error: err.message }); }
+});
+
+router.put('/fields/:id', requirePermission('SERVICE_DOCS'), async (req, res) => {
+  try {
+    const fieldId = requireInt(req.params.id, 'Linh vuc (id)');
+    const { name, ticketPrefix } = req.body || {};
+    res.json(await fieldService.updateField(fieldId, { name, ticketPrefix }, req.staff.staffId));
+  } catch (err) { res.status(400).json({ error: err.message }); }
+});
+
+router.delete('/fields/:id', requirePermission('SERVICE_DOCS'), async (req, res) => {
+  try {
+    const fieldId = requireInt(req.params.id, 'Linh vuc (id)');
+    res.json(await fieldService.deleteField(fieldId, req.staff.staffId, (req.body || {}).reason));
+  } catch (err) {
+    const message = err.code === '23503' ? 'Không thể xóa: lĩnh vực đang được quầy hoặc thủ tục sử dụng.' : err.message;
+    res.status(400).json({ error: message });
+  }
 });
 
 // Danh sach Officer (rut gon) de gan vao quay - dat o quyen DISPATCH (MANAGER/SUPERVISOR

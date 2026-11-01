@@ -25,6 +25,10 @@ if "!BEHIND!"=="0" exit /b 0
 
 if not "!AHEAD!"=="0" (
   rem Máy có commit chưa đẩy: dùng rebase thông thường.
+  rem Trước đó dọn các file "chưa theo dõi" trên máy mà GitHub cũng có (VD chép tay từ ổ khác):
+  rem git pull sẽ từ chối "untracked working tree files would be overwritten" dù nội dung giống hệt.
+  call :don_file_chua_theo_doi
+  if errorlevel 1 exit /b 1
   git pull -q --rebase --autostash origin %BR%
   if errorlevel 1 (
     git rebase --abort >nul 2>&1
@@ -62,6 +66,27 @@ for /f "usebackq delims=" %%F in ("%DS%") do (
 git reset -q origin/%BR%
 echo  Đã ghép !BEHIND! cập nhật mới từ GitHub vào thư mục này.
 exit /b 0
+
+rem File chưa theo dõi trên máy nhưng có trên GitHub:
+rem   - nội dung giống bản GitHub -> xoá bản trên máy (git pull sẽ đưa lại y hệt)
+rem   - nội dung khác             -> XUNG ĐỘT thật, dừng, không đụng gì
+:don_file_chua_theo_doi
+set "XUNG2=0"
+set "DS2=%TEMP%\hcc-chua-theo-doi.txt"
+git ls-files --others --exclude-standard > "%DS2%"
+for /f "usebackq delims=" %%F in ("%DS2%") do (
+  call :bam "%%F"
+  if defined O (
+    if "!L!"=="!O!" (
+      del /f /q "!P!"
+      echo  Đã bỏ bản trùng trên máy, sẽ lấy lại từ GitHub: %%F
+    ) else (
+      echo  [XUNG ĐỘT] %%F - file trên máy khác bản trên GitHub
+      set "XUNG2=1"
+    )
+  )
+)
+exit /b !XUNG2!
 
 rem Tính mã nội dung của 1 file: L = trên máy, H = bản cũ (HEAD), O = bản GitHub. Rỗng = không có.
 :bam

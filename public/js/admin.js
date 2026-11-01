@@ -11,7 +11,10 @@ document.getElementById('staffName').textContent = `${staff.fullName} (${staff.r
 // Tab Quan ly Tai khoan chi danh cho SUPER_ADMIN (khop voi STAFF_MANAGEMENT trong middleware/auth.js).
 if (staff.role !== 'SUPER_ADMIN') document.getElementById('staffTabBtn').remove();
 // Tab Thu tuc (UC-60/61) khop nhom quyen SERVICE_DOCS: Supervisor, Manager, Super Admin (xem middleware/auth.js).
-if (!['SUPER_ADMIN', 'MANAGER', 'SUPERVISOR'].includes(staff.role)) document.getElementById('servicesTabBtn').remove();
+if (!['SUPER_ADMIN', 'MANAGER', 'SUPERVISOR'].includes(staff.role)) {
+  document.getElementById('servicesTabBtn').remove();
+  document.getElementById('fieldsTabBtn').remove();
+}
 
 function logout() {
   ApiClient.post('/api/auth/logout', {}).finally(() => { ApiClient.clearSession(); window.location.href = 'login.html'; });
@@ -26,6 +29,7 @@ function switchTab(name) {
   if (name === 'reports') { loadReports(); loadInsights(); }
   if (name === 'staff') loadStaffTab();
   if (name === 'services') loadServicesTab();
+  if (name === 'fields') loadFieldsTab();
 }
 
 // Toast realtime cho cac su kien quan trong Admin can biet ngay ca khi khong dang mo dung
