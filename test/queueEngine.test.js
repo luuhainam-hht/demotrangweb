@@ -57,6 +57,12 @@ beforeEach(() => {
         const reason = state.priorityReasons.find((r) => r.code === params[0]);
         return { rows: reason ? [reason] : [] };
       }
+      if (sql.includes('MAX(queue_position) AS last_pos')) {
+        const positions = state.tickets
+          .filter((t) => t.counter_id === params[0] && t.status === 'QUEUED' && t.queue_position <= params[1])
+          .map((t) => t.queue_position);
+        return { rows: [{ last_pos: positions.length ? Math.max(...positions) : null }] };
+      }
       if (sql.includes('MIN(queue_position)')) {
         const positions = state.tickets
           .filter((t) => t.counter_id === params[0] && t.status === 'QUEUED')
@@ -290,7 +296,7 @@ test('requestSupplement: chuyen SUPP_PENDING, cap ma Re-entry va giai phong quay
 
 test('reentryScan: tu choi ma QR khong hop le hoac da duoc su dung', async () => {
   const queueEngine = require('../src/services/queueEngine');
-  await assert.rejects(() => queueEngine.reentryScan('token-khong-ton-tai'), /khong hop le/);
+  await assert.rejects(() => queueEngine.reentryScan('token-khong-ton-tai'), /không hợp lệ/);
 });
 
 test('reentryScan: chen lai vao QUEUED, uu tien hon toan bo hang doi hien tai (Active Slot + 2)', async () => {
@@ -299,8 +305,42 @@ test('reentryScan: chen lai vao QUEUED, uu tien hon toan bo hang doi hien tai (A
   const queueEngine = require('../src/services/queueEngine');
   const ticket = await queueEngine.reentryScan('tok123');
   assert.equal(ticket.status, 'QUEUED');
-  assert.equal(ticket.queue_position, 4);
+  assert.ok(ticket.queue_position < 5, 'phai dung truoc ve thuong');
   assert.equal(ticket.reentry_qr_token, null);
+  const next = await ticketRepo.findNextQueuedForCounter(null, 'c1');
+  assert.equal(next.id, 't1');
+});
+
+test('reentryScan: nhieu nguoi quay lai -> ai quay lai TRUOC duoc goi TRUOC, va deu truoc ve thuong', async () => {
+  state.tickets.push({ id: 'ra', service_id: 's1', counter_id: 'c1', status: 'SUPP_PENDING', reentry_qr_token: 'tokA' });
+  state.tickets.push({ id: 'rb', service_id: 's1', counter_id: 'c1', status: 'SUPP_PENDING', reentry_qr_token: 'tokB' });
+  state.tickets.push({ id: 'n1', service_id: 's1', counter_id: 'c1', status: 'QUEUED', queue_position: 1 });
+  const queueEngine = require('../src/services/queueEngine');
+  await queueEngine.reentryScan('tokA');
+  await queueEngine.reentryScan('tokB');
+  const order = state.tickets.filter((t) => t.counter_id === 'c1' && t.status === 'QUEUED')
+    .sort((a, b) => a.queue_position - b.queue_position).map((t) => t.id);
+  assert.deepEqual(order, ['ra', 'rb', 'n1']);
+  // ve moi cap sau do van xep sau cung, khong chen vao vung quay lai
+  assert.ok((await ticketRepo.maxQueuePositionForCounter(null, 'c1')) >= 1);
+});
+
+test('reentryScan: quay cu da dong/xoa -> chuyen sang quay dang mo cung linh vuc', async () => {
+  const c1 = state.counters.find((c) => c.id === 'c1');
+  c1.status = 'CLOSED';
+  state.tickets.push({ id: 'rx', service_id: 's1', counter_id: 'c1', status: 'SUPP_PENDING', reentry_qr_token: 'tokX' });
+  const queueEngine = require('../src/services/queueEngine');
+  const t = await queueEngine.reentryScan('tokX');
+  assert.equal(t.counter_id, 'c2');
+});
+
+test('reentryScan: quay cu doi sang linh vuc khac va khong con quay nao mo dung linh vuc -> bao loi ro, ve van cho', async () => {
+  state.counters.find((c) => c.id === 'c1').field_id = 2;
+  state.counters.find((c) => c.id === 'c2').status = 'CLOSED';
+  state.tickets.push({ id: 'ry', service_id: 's1', counter_id: 'c1', status: 'SUPP_PENDING', reentry_qr_token: 'tokY' });
+  const queueEngine = require('../src/services/queueEngine');
+  await assert.rejects(() => queueEngine.reentryScan('tokY'), /chưa có quầy nào đang mở/);
+  assert.equal(state.tickets.find((t) => t.id === 'ry').status, 'SUPP_PENDING');
 });
 
 test('priorityInject: bat buoc ly do uu tien hop le, tu choi neu thieu', async () => {

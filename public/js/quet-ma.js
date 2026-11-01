@@ -110,7 +110,11 @@
     scannerDebounce = setTimeout(() => { if (extractToken(scannerInput.value)) handleScannerValue(); }, 300);
   });
   // Giu focus o o nhan may quet khi nguoi dung khong dang go o nhap tay.
+  // Sua 11/2026: chi giu focus khi dang o man hinh quet va KHONG phai dien thoai - truoc day cu 2 giay
+  // lai focus o nay, tren dien thoai/man cam ung ban phim ao bat len lien tuc che mat trang.
+  const IS_MOBILE = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
   function refocusScanner() {
+    if (IS_MOBILE || $('screen-scan').classList.contains('hidden')) return;
     const a = document.activeElement;
     if (!a || a === document.body || a === scannerInput) scannerInput.focus({ preventScroll: true });
   }

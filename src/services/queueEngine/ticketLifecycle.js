@@ -293,25 +293,54 @@ async function requestSupplement(ticketId, missingDocCodes, officerId) {
   return result;
 }
 
-// Cong dan quet lai ma QR Re-entry sau khi bo sung tai Ban ke khai -> chen vao Active Slot + 2.
+// Vung vi tri danh rieng cho ve quay lai (Re-entry): moi so <= REENTRY_BAND_MAX deu dung TRUOC
+// moi ve thuong (ve thuong luon >= 0, xem ticketRepository.maxQueuePositionForCounter), va giua
+// cac ve quay lai voi nhau thi ai quay lai TRUOC duoc goi TRUOC (FIFO).
+const REENTRY_BAND_START = -1000000;
+const REENTRY_BAND_MAX = -1000;
+
+// Cong dan quet lai ma QR Re-entry sau khi bo sung tai Ban ke khai -> xep lai o vi tri uu tien
+// (sau ve VIP va sau nhung nguoi quay lai truoc minh, truoc toan bo ve thuong).
+//
+// Sua loi 11/2026:
+//  - Truoc day ve LUON quay ve quay cu, ke ca khi quay do da Dong / bi Xoa / doi sang linh vuc
+//    khac trong luc cong dan di bo sung ho so -> ve nam o quay khong ai goi, cho mai khong toi.
+//    Nay: quay cu khong con mo dung linh vuc thi chuyen sang quay mo cung linh vuc it nguoi nhat.
+//  - Truoc day nguoi quay lai SAU lai duoc goi TRUOC nguoi quay lai truoc (MIN - 1) -> nay FIFO.
 async function reentryScan(token) {
   const result = await db.withTransaction(async (client) => {
     const ticket = await ticketRepo.findByReentryToken(client, token);
-    if (!ticket) throw new Error('Ma QR khong hop le hoac da duoc su dung.');
+    if (!ticket) throw new Error('Mã QR không hợp lệ, đã được sử dụng hoặc đã hết hạn (phiếu chỉ dùng trong ngày cấp).');
 
-    const minPos = await client.query(
-      `SELECT COALESCE(MIN(queue_position), 1) AS min_pos FROM tickets
-       WHERE counter_id = ? AND status = 'QUEUED'`,
-      [ticket.counter_id]
+    const service = await serviceRepo.findServiceById(client, ticket.service_id);
+    const fieldId = service ? service.field_id : null;
+    const counter = ticket.counter_id ? await counterRepo.findById(client, ticket.counter_id) : null; // null neu quay da bi xoa
+    const counterUsable = counter && (fieldId === null || Number(counter.field_id) === Number(fieldId));
+    let targetCounterId = ticket.counter_id;
+    if (!counterUsable || counter.status !== 'OPEN') {
+      const alt = fieldId !== null ? await counterRepo.findLeastLoadedByField(client, fieldId, null) : null;
+      if (alt) {
+        targetCounterId = alt.id;
+      } else if (!counterUsable) {
+        throw new Error('Hiện chưa có quầy nào đang mở cho lĩnh vực của bạn. Vui lòng chờ ít phút rồi quét lại, hoặc nhờ cán bộ hỗ trợ.');
+      } // con lai: quay cu dung linh vuc dang tam dung/dong va chua co quay nao khac mo -> giu quay cu
+    }
+
+    const lastReentry = await client.query(
+      `SELECT MAX(queue_position) AS last_pos FROM tickets
+       WHERE counter_id = ? AND status = 'QUEUED' AND queue_position <= ?`,
+      [targetCounterId, REENTRY_BAND_MAX]
     );
-    const newPosition = Number(minPos.rows[0].min_pos) - 1; // Active Slot + 2: uu tien ngay sau ve VIP dang co (neu co)
+    const last = lastReentry.rows[0] ? lastReentry.rows[0].last_pos : null;
+    const newPosition = last === null || last === undefined ? REENTRY_BAND_START : Number(last) + 1;
 
     const updated = await ticketRepo.updateStatus(client, ticket.id, {
-      status: 'QUEUED', queue_position: newPosition, missing_doc_codes: null, reentry_qr_token: null
+      status: 'QUEUED', counter_id: targetCounterId, queue_position: newPosition,
+      missing_doc_codes: null, reentry_qr_token: null
     });
     await ticketRepo.insertHistory(client, {
-      ticketId: ticket.id, fromStatus: 'SUPP_PENDING', toStatus: 'QUEUED', counterId: ticket.counter_id,
-      eventData: { event: 'REENTRY_SCAN' }
+      ticketId: ticket.id, fromStatus: 'SUPP_PENDING', toStatus: 'QUEUED', counterId: targetCounterId,
+      eventData: { event: 'REENTRY_SCAN', ...(String(targetCounterId) !== String(ticket.counter_id) ? { fromCounterId: ticket.counter_id } : {}) }
     });
     return updated;
   });

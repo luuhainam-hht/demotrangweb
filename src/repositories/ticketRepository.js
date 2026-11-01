@@ -36,7 +36,7 @@ async function findTicketById(client, ticketId) {
 
 async function findByReentryToken(client, token) {
   const { rows } = await client.query(
-    "SELECT * FROM tickets WHERE reentry_qr_token = ? AND status = 'SUPP_PENDING' FOR UPDATE",
+    "SELECT * FROM tickets WHERE reentry_qr_token = ? AND status = 'SUPP_PENDING' AND DATE(created_at) = CURRENT_DATE FOR UPDATE",
     [token]
   );
   return mapTicket(rows[0]);
@@ -80,7 +80,7 @@ async function countActiveForCounter(client, counterId) {
 
 async function maxQueuePositionForCounter(client, counterId) {
   const { rows } = await client.query(
-    `SELECT COALESCE(MAX(queue_position), 0) AS max_pos FROM tickets
+    `SELECT GREATEST(COALESCE(MAX(queue_position), 0), 0) AS max_pos FROM tickets
      WHERE counter_id = ? AND status IN ('QUEUED', 'CALLING', 'PROCESSING')`,
     [counterId]
   );
