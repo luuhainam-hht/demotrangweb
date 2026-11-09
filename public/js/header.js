@@ -38,7 +38,50 @@
   const showClock = document.body.dataset.showHeaderClock === 'true';
   const clockHtml = showClock ? `<span id="site-clock" class="site-clock"></span>` : '';
 
-  const headerHtml = `
+  // ===== Giao dien chinh quyen (11/2026) - chi ap dung cho trang cong khai =====
+  // Ten don vi hien tren dau trang. Doi o day khi trien khai cho tung phuong/xa,
+  // hoac dat <body data-unit-name="..."> tren tung trang de ghi de.
+  const UNIT_NAME = 'ỦY BAN NHÂN DÂN PHƯỜNG XUÂN PHƯƠNG';
+  const SITE_NAME = 'CẨM NANG SỐ HỖ TRỢ THÔNG TIN HÀNH CHÍNH CÔNG';
+  const unitName = document.body.dataset.unitName || UNIT_NAME;
+  const isDisplay = currentPage === 'display.html';
+
+  let headerHtml;
+  if (isPublicPage) {
+    document.body.classList.add('theme-gov');
+    headerHtml = `
+    <header class="site-header gov-header">
+      <div class="gov-national">
+        <div class="gov-wrap">
+          <span>CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM · Độc lập – Tự do – Hạnh phúc</span>
+          <span id="gov-clock" class="gov-clock"></span>
+        </div>
+      </div>
+      <div class="gov-mast">
+        <div class="gov-wrap">
+          <a href="index.html" class="gov-brand">
+            <img src="assets/quoc-huy.png" alt="Quốc huy nước Cộng hòa xã hội chủ nghĩa Việt Nam" class="gov-emblem" />
+            <span class="gov-titles">
+              <span class="gov-unit"></span>
+              <span class="gov-name">${SITE_NAME}</span>
+              <span class="gov-tag">Tra cứu thủ tục, chuẩn bị hồ sơ và lấy số thứ tự tại Trung tâm Phục vụ Hành chính công</span>
+            </span>
+          </a>
+        </div>
+      </div>
+    </header>
+    ${isDisplay ? '' : `
+    <div class="gov-navbar">
+      <div class="gov-wrap">
+        <button type="button" class="site-nav-toggle" id="site-nav-toggle" aria-expanded="false" aria-controls="site-nav">
+          <span aria-hidden="true">☰</span> Menu
+        </button>
+        <nav class="site-nav" id="site-nav" aria-label="Điều hướng chính">${navHtml}</nav>
+      </div>
+    </div>`}
+  `;
+  } else {
+    headerHtml = `
     <header class="site-header">
       <a href="index.html" class="site-brand">
         <img src="assets/logoKiosk-trimmed-transparent.png" alt="KIOSK - Digital Numbers &amp; Transformation" class="site-logo" />
@@ -49,10 +92,24 @@
       <nav class="site-nav" id="site-nav" aria-label="Điều hướng chính">${clockHtml}${navHtml}</nav>
     </header>
   `;
+  }
 
   document.body.insertAdjacentHTML('afterbegin', headerHtml);
+  const unitEl = document.querySelector('.gov-unit');
+  if (unitEl) unitEl.textContent = unitName;   // textContent: ten don vi khong bao gio duoc hieu la HTML
+  document.querySelectorAll('[data-unit-name-slot]').forEach((el) => { el.textContent = unitName; });
 
-  if (showClock) {
+  if (isPublicPage) {
+    const govClock = document.getElementById('gov-clock');
+    const tickGov = () => {
+      const d = new Date();
+      const day = d.toLocaleDateString('vi-VN', { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' });
+      const time = d.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+      govClock.textContent = `${day.charAt(0).toUpperCase()}${day.slice(1)} · ${time}`;
+    };
+    tickGov();
+    setInterval(tickGov, 15000);
+  } else if (showClock) {
     const tick = () => { document.getElementById('site-clock').textContent = new Date().toLocaleString('vi-VN'); };
     tick();
     setInterval(tick, 1000);
@@ -63,20 +120,21 @@
   const toggle = document.getElementById('site-nav-toggle');
   const nav = document.getElementById('site-nav');
   const MOBILE_QUERY = window.matchMedia('(max-width: 860px)');
+  if (toggle && nav) {   // Bang LED (display.html) khong co menu
 
-  function applyNavMode() {
-    if (MOBILE_QUERY.matches) {
-      nav.hidden = toggle.getAttribute('aria-expanded') !== 'true';
-    } else {
-      nav.hidden = false;                       // man hinh rong: luon hien day du
-      toggle.setAttribute('aria-expanded', 'false');
-    }
-  }
-  toggle.addEventListener('click', () => {
-    const open = toggle.getAttribute('aria-expanded') === 'true';
-    toggle.setAttribute('aria-expanded', open ? 'false' : 'true');
-    applyNavMode();
-  });
+    const applyNavMode = () => {
+      if (MOBILE_QUERY.matches) {
+        nav.hidden = toggle.getAttribute('aria-expanded') !== 'true';
+      } else {
+        nav.hidden = false;                       // man hinh rong: luon hien day du
+        toggle.setAttribute('aria-expanded', 'false');
+      }
+    };
+    toggle.addEventListener('click', () => {
+      const open = toggle.getAttribute('aria-expanded') === 'true';
+      toggle.setAttribute('aria-expanded', open ? 'false' : 'true');
+      applyNavMode();
+    });
   // Bam ra ngoai hoac nhan Esc thi dong menu (nguoi dung hay bi "ket" trong menu mo).
   document.addEventListener('click', (e) => {
     if (!MOBILE_QUERY.matches) return;
@@ -95,6 +153,7 @@
   if (MOBILE_QUERY.addEventListener) MOBILE_QUERY.addEventListener('change', applyNavMode);
   else MOBILE_QUERY.addListener(applyNavMode);   // Safari cu
   applyNavMode();
+  }
 
   // Banner "Trung tam dang dong cua" (chi trang co <body data-show-hours-banner="true">: Trang chu,
   // Kiosk). Lay trang thai tu GET /api/kiosk/hours (xem src/services/kioskHours.js). Dung chung
@@ -117,7 +176,7 @@
       banner.setAttribute('role', 'status');
       banner.innerHTML = '<span class="hours-banner-icon">🕒</span><div></div>';
       banner.querySelector('div').textContent = hours.message;
-      const header = document.querySelector('.site-header');
+      const header = document.querySelector('.gov-navbar') || document.querySelector('.site-header');
       if (header) header.insertAdjacentElement('afterend', banner);
     });
   }

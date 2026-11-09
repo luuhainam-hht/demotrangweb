@@ -842,3 +842,185 @@ footer.site-footer b { color: var(--color-text); }
   .counter-status-row { grid-template-columns: 1fr auto; gap: 4px 12px; }
   .counter-status-field { grid-column: 1 / -1; }
 }
+
+
+/* =====================================================================================
+   GIAO DIEN CHINH QUYEN (11/2026) - "Cam nang so ho tro Thong tin Hanh chinh cong"
+   Chi ap dung khi <body class="theme-gov"> (header.js tu gan cho cac trang cong khai).
+   Trang can bo / Admin giu nguyen giao dien cu.
+   Mau: do co #A8151B, do dam #7E0F13, vang #F2C230; nen giay #F6F3EE.
+   ===================================================================================== */
+body.theme-gov {
+  --color-primary: #A8151B;
+  --color-primary-dark: #7E0F13;
+  --color-primary-text: #A8151B;      /* 6.9:1 tren nen trang */
+  --gov-red: #A8151B;
+  --gov-red-deep: #7E0F13;
+  --gov-gold: #F2C230;
+  --gov-gold-text: #F7D774;
+  --color-bg: #F6F3EE;
+  --color-border: #E5DED3;
+  --color-text: #1F1A17;
+  --color-text-muted: #5E5650;
+  --gradient-brand: linear-gradient(135deg, #7E0F13, #A8151B);
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --shadow-card: none;
+  font-family: 'Be Vietnam Pro', 'Segoe UI', system-ui, sans-serif;
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+.gov-wrap { max-width: 1352px; margin: 0 auto; padding: 0 24px; box-sizing: border-box; }
+
+/* ---------- Dau trang ---------- */
+body.theme-gov .site-header.gov-header {
+  display: block; height: auto; padding: 0; position: static;
+  background: var(--gov-red); border: none; border-image: none; box-shadow: none;
+}
+.gov-national { background: var(--gov-red-deep); color: #FCEBC0; font-size: 0.82rem; }
+.gov-national .gov-wrap { display: flex; justify-content: space-between; align-items: center; gap: 4px 16px; flex-wrap: wrap; padding-top: 6px; padding-bottom: 6px; }
+.gov-national .gov-wrap > span:first-child { font-weight: 600; letter-spacing: 0.04em; }
+.gov-clock { color: #F4DFA8; font-variant-numeric: tabular-nums; }
+.gov-mast { border-bottom: 4px solid var(--gov-gold); }
+.gov-mast .gov-wrap { padding-top: 18px; padding-bottom: 18px; }
+.gov-brand { display: flex; align-items: center; gap: 18px; text-decoration: none; color: #fff; }
+.gov-emblem { height: 88px; width: auto; flex-shrink: 0; display: block; }
+.gov-titles { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.gov-unit { font-size: 0.95rem; font-weight: 700; letter-spacing: 0.06em; color: var(--gov-gold-text); text-transform: uppercase; }
+.gov-name { font-family: 'Noto Serif', 'Times New Roman', Georgia, serif; font-size: clamp(1.25rem, 2.4vw, 1.85rem); font-weight: 700; line-height: 1.25; letter-spacing: 0.01em; }
+.gov-tag { font-size: 0.9rem; color: #FBE3E3; }
+.gov-brand:focus-visible { outline: 3px solid var(--gov-gold); outline-offset: 4px; }
+
+/* ---------- Thanh menu ---------- */
+.gov-navbar { background: #fff; border-bottom: 1px solid var(--color-border); position: sticky; top: 0; z-index: 30; }
+.gov-navbar .gov-wrap { position: relative; display: flex; align-items: stretch; }
+body.theme-gov .site-nav { gap: 2px; flex-wrap: wrap; }
+body.theme-gov .site-nav-link {
+  border-radius: 0; color: #3B322D; font-weight: 600; padding: 14px 16px; min-height: 52px;
+  border-bottom: 3px solid transparent;
+}
+body.theme-gov .site-nav-link:hover { background: #FBF5EC; color: var(--gov-red); }
+body.theme-gov .site-nav-link.active { background: transparent; color: var(--gov-red); font-weight: 700; border-bottom-color: var(--gov-red); }
+body.theme-gov .site-nav-toggle { border-radius: 6px; border-color: var(--color-border); margin: 8px 0; color: var(--gov-red); }
+
+/* Banner gio mo cua (header.js) */
+body.theme-gov .hours-banner { background: #FFF8E1; border-bottom: 1px solid #EBD9A6; color: #4A3B12; }
+
+/* ---------- Thong bao ---------- */
+.gov-notice { background: #FFF8E1; border-bottom: 1px solid #EBD9A6; color: #4A3B12; font-size: 0.95rem; }
+.gov-notice .gov-wrap { display: flex; align-items: center; gap: 12px; padding-top: 10px; padding-bottom: 10px; }
+.gov-notice-tag { background: var(--gov-red); color: #fff; font-size: 0.78rem; font-weight: 700; letter-spacing: 0.05em; padding: 5px 10px; border-radius: 4px; flex-shrink: 0; }
+
+/* ---------- Nut, the, o nhap ---------- */
+body.theme-gov .btn-primary { background: var(--gov-red); box-shadow: none; }
+body.theme-gov .btn-primary:hover:not(:disabled) { background: var(--gov-red-deep); box-shadow: none; }
+body.theme-gov .card { border: 1px solid var(--color-border); box-shadow: none; }
+body.theme-gov .card-link:hover { transform: none; box-shadow: none; }
+body.theme-gov .card-link:hover > .card { border-color: var(--gov-red); }
+body.theme-gov input:focus, body.theme-gov select:focus, body.theme-gov textarea:focus { outline-color: var(--gov-red); }
+
+/* ---------- Tra cuu (hero) ---------- */
+body.theme-gov.page-home .container { padding-top: 28px; }
+body.theme-gov .hero-banner.gov-hero {
+  display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 24px;
+  background: none; border: none; border-radius: 0; padding: 0; text-align: left; overflow: visible; margin-bottom: 40px;
+}
+body.theme-gov .gov-hero::before { content: none; }
+.gov-hero-main { background: #fff; border: 1px solid var(--color-border); border-top: 4px solid var(--gov-red); border-radius: 6px; padding: 26px 28px 24px; }
+body.theme-gov .gov-hero h1 { font-family: 'Noto Serif', 'Times New Roman', Georgia, serif; font-size: clamp(1.4rem, 2.6vw, 1.75rem); color: var(--gov-red); letter-spacing: 0; margin: 0 0 6px; }
+body.theme-gov .gov-hero p { margin: 0; max-width: none; color: var(--color-text-muted); font-size: 1rem; }
+body.theme-gov .hero-search-row {
+  max-width: none; margin: 18px 0 0; border-radius: 6px; padding: 6px 6px 6px 14px;
+  border: 2px solid #CFC5B6; box-shadow: none;
+}
+body.theme-gov .hero-search-row:focus-within { border-color: var(--gov-red); box-shadow: 0 0 0 3px rgba(168, 21, 27, 0.15); }
+body.theme-gov .hero-search-icon { opacity: 1; color: #7A6F66; display: inline-flex; }
+body.theme-gov .hero-search-row .btn { border-radius: 4px; }
+body.theme-gov .hero-quick { justify-content: flex-start; }
+body.theme-gov .hero-chip { border-radius: 4px; background: #FBF8F3; border-color: #D9CFC0; color: #3B322D; }
+body.theme-gov .hero-chip:hover { border-color: var(--gov-red); color: var(--gov-red); background: #fff; }
+
+body.theme-gov .gov-hero .hero-stats {
+  display: flex; flex-direction: column; gap: 0; margin: 0; justify-content: flex-start;
+  background: #fff; border: 1px solid var(--color-border); border-radius: 6px; overflow: hidden;
+}
+.hero-stats-title { background: var(--gov-red-deep); color: var(--gov-gold-text); font-size: 0.8rem; font-weight: 700; letter-spacing: 0.06em; padding: 12px 18px; }
+body.theme-gov .gov-hero .hero-stat {
+  display: flex; justify-content: space-between; align-items: center; min-width: 0;
+  padding: 14px 18px; border: none; border-bottom: 1px solid #EFE9DF; border-radius: 0; background: none; text-align: left;
+}
+body.theme-gov .gov-hero .hero-stat .val { background: none; -webkit-background-clip: initial; background-clip: initial; color: var(--gov-red); font-size: 1.9rem; }
+body.theme-gov .gov-hero .hero-stat .lbl { margin: 0; font-size: 1rem; color: var(--color-text-muted); }
+.hero-stats-note { margin-top: auto; font-size: 0.8rem; color: #7A6F66; padding: 10px 18px; background: #FBF8F3; }
+
+/* ---------- Tieu de khu vuc: chu do in hoa + gach vang ---------- */
+body.theme-gov .section-heading .eyebrow { display: none; }
+body.theme-gov .section-heading h2 {
+  font-size: 1.25rem; font-weight: 800; letter-spacing: 0.03em; text-transform: uppercase; color: var(--gov-red);
+}
+body.theme-gov .section-heading h2::after { content: ''; display: block; width: 64px; height: 3px; background: var(--gov-gold); margin-top: 8px; }
+body.theme-gov .section-heading .view-all { color: var(--gov-red); }
+
+/* ---------- The ho tro, quet ma, hoi dap, thu tuc ---------- */
+body.theme-gov .help-tile .help-ico { border-radius: 6px; background: #FBEAEA; color: var(--gov-red); width: 50px; height: 50px; }
+body.theme-gov .help-tile .meta, body.theme-gov .category-card .meta { color: var(--gov-red); }
+body.theme-gov .reentry-banner-card { background: #fff; border-left: 1px solid var(--color-border); }
+body.theme-gov .reentry-banner-card .help-ico { background: var(--gov-gold); color: #5A3A00; border-radius: 6px; display: flex; align-items: center; justify-content: center; }
+body.theme-gov .reentry-banner-card h3 { color: var(--color-text); }
+body.theme-gov .reentry-banner-card .meta { background: var(--gov-red); color: #fff; padding: 10px 18px; border-radius: 6px; }
+body.theme-gov .faq-quick { border-radius: 6px; box-shadow: none; border-width: 1px; }
+body.theme-gov .faq-quick:hover { border-color: var(--gov-red); background: #fff; }
+body.theme-gov .faq-quick .q-ico { background: var(--gov-gold); color: #5A3A00; }
+body.theme-gov .svc-field { background: #FBEAEA; color: var(--gov-red-deep); border-radius: 3px; }
+
+/* Bang trang thai quay: hang tieu de do dam */
+body.theme-gov .counter-status-list { border-radius: 6px; overflow: hidden; }
+body.theme-gov .counter-status-row.open .counter-status-wait { color: var(--gov-red); }
+
+/* ---------- Chan trang ---------- */
+body.theme-gov footer.site-footer {
+  background: var(--gov-red-deep); color: #FBE3E3; border-top: 4px solid var(--gov-gold); padding: 28px 0 26px;
+}
+body.theme-gov footer.site-footer .footer-inner { padding: 0 24px; }
+body.theme-gov footer.site-footer b { color: #fff; }
+body.theme-gov footer.site-footer a { color: var(--gov-gold-text); }
+.footer-brand, .footer-help { display: flex; flex-direction: column; gap: 6px; }
+.footer-unit { font-size: 0.82rem; font-weight: 700; letter-spacing: 0.05em; color: var(--gov-gold-text); text-transform: uppercase; }
+.footer-name { font-family: 'Noto Serif', 'Times New Roman', Georgia, serif; font-size: 1.2rem; font-weight: 700; color: #fff; }
+.footer-help { max-width: 420px; }
+
+/* ---------- Tro ly AI: dong mau do ---------- */
+body.theme-gov .chatbot-fab, body.theme-gov .chatbot-panel-header { background: var(--gradient-brand); }
+body.theme-gov .chatbot-msg-user { background: var(--gov-red); }
+body.theme-gov .chatbot-send { background: var(--gov-red); }
+
+/* ---------- Dien thoai ---------- */
+@media (max-width: 860px) {
+  .gov-wrap { padding: 0 14px; }
+  .gov-emblem { height: 60px; }
+  .gov-brand { gap: 12px; }
+  .gov-unit { font-size: 0.75rem; }
+  .gov-tag { display: none; }
+  .gov-national .gov-clock { display: none; }
+  .gov-navbar .gov-wrap { justify-content: flex-end; }
+  body.theme-gov .site-nav { position: absolute; top: 100%; left: 0; right: 0; border-radius: 0 0 6px 6px; }
+  body.theme-gov .site-nav-link { border-bottom: none; border-left: 3px solid transparent; }
+  body.theme-gov .site-nav-link.active { border-left-color: var(--gov-red); background: #FBF5EC; }
+  body.theme-gov .hero-banner.gov-hero { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 620px) {
+  .gov-national { font-size: 0.72rem; }
+  .gov-notice .gov-wrap { align-items: flex-start; }
+  .gov-hero-main { padding: 18px 16px; }
+  body.theme-gov .hero-search-row { padding: 10px; }
+  body.theme-gov .hero-search-icon { display: none; }
+  body.theme-gov .hero-search-row input { text-align: left; }
+  body.theme-gov .gov-hero .hero-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .hero-stats-title, .hero-stats-note { grid-column: 1 / -1; }
+  body.theme-gov .gov-hero .hero-stat { flex-direction: column-reverse; align-items: center; text-align: center; padding: 12px 6px; border-bottom: none; border-right: 1px solid #EFE9DF; }
+  body.theme-gov .gov-hero .hero-stat .lbl { font-size: 0.8rem; }
+  body.theme-gov .gov-hero .hero-stat .val { font-size: 1.6rem; }
+}
+@media print {
+  .gov-navbar, .gov-notice { display: none !important; }
+}

@@ -3,38 +3,48 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Trang chủ - Hỗ trợ Tra cứu Thủ tục Hành chính</title>
-<link rel="stylesheet" href="css/common.css?v=14" />
-<link rel="icon" href="assets/logoKiosk-icon-transparent.png" type="image/png" />
+<title>Cẩm nang số hỗ trợ Thông tin Hành chính công</title>
+<link rel="stylesheet" href="css/common.css?v=15" />
+<link rel="icon" href="assets/quoc-huy.png" type="image/png" />
 </head>
 <body data-show-hours-banner="true" class="page-home">
 
+<div class="gov-notice" role="note">
+  <div class="gov-wrap">
+    <span class="gov-notice-tag">THÔNG BÁO</span>
+    <span>Người dân vui lòng tra cứu và chuẩn bị đủ giấy tờ theo danh mục trước khi lấy số để không phải đi lại nhiều lần.</span>
+  </div>
+</div>
+
 <div class="container">
-  <section class="hero-banner">
-    <h1>Hỗ trợ Tra cứu &amp; Kiểm tra Hồ sơ Hành chính</h1>
-    <p>Tra cứu nhanh thủ tục, chuẩn bị đủ giấy tờ trước khi lấy số
-       để không phải đi lại nhiều lần.</p>
+  <section class="hero-banner gov-hero">
+    <div class="gov-hero-main">
+      <h1>Tra cứu thủ tục hành chính</h1>
+      <p>Nhập tên thủ tục để xem giấy tờ cần chuẩn bị, lệ phí, thời gian giải quyết và lấy số thứ tự.</p>
 
-    <form class="hero-search-row" id="searchForm" autocomplete="off" role="search">
-      <span class="hero-search-icon" aria-hidden="true">🔍</span>
-      <label class="sr-only" for="searchInput">Tên thủ tục</label>
-      <input id="searchInput" type="text" placeholder="Nhập tên thủ tục, ví dụ: khai sinh, sang tên sổ đỏ..." />
-      <button type="submit" class="btn btn-primary">Tra cứu →</button>
-    </form>
+      <form class="hero-search-row" id="searchForm" autocomplete="off" role="search">
+        <span class="hero-search-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg></span>
+        <label class="sr-only" for="searchInput">Tên thủ tục</label>
+        <input id="searchInput" type="text" placeholder="Ví dụ: khai sinh, kết hôn, sang tên sổ đỏ..." />
+        <button type="submit" class="btn btn-primary">Tra cứu</button>
+      </form>
 
-    <div class="hero-quick" id="heroQuick">
-      <span class="hero-quick-label">Tìm nhanh:</span>
-      <button type="button" class="hero-chip" data-q="khai sinh">Khai sinh</button>
-      <button type="button" class="hero-chip" data-q="kết hôn">Kết hôn</button>
-      <button type="button" class="hero-chip" data-q="đất">Sổ đỏ, đất đai</button>
-      <button type="button" class="hero-chip" data-q="hộ kinh doanh">Hộ kinh doanh</button>
+      <div class="hero-quick" id="heroQuick">
+        <span class="hero-quick-label">Tìm nhanh:</span>
+        <button type="button" class="hero-chip" data-q="khai sinh">Khai sinh</button>
+        <button type="button" class="hero-chip" data-q="kết hôn">Kết hôn</button>
+        <button type="button" class="hero-chip" data-q="đất">Sổ đỏ, đất đai</button>
+        <button type="button" class="hero-chip" data-q="hộ kinh doanh">Hộ kinh doanh</button>
+      </div>
     </div>
 
-    <div class="hero-stats" id="heroStats">
-      <div class="hero-stat"><div class="val" id="statOpenCounters">-</div><div class="lbl">Quầy đang mở</div></div>
-      <div class="hero-stat"><div class="val" id="statWaiting">-</div><div class="lbl">Người đang chờ</div></div>
-      <div class="hero-stat"><div class="val" id="statServices">-</div><div class="lbl">Thủ tục hỗ trợ</div></div>
-    </div>
+    <aside class="hero-stats" id="heroStats" aria-label="Tình hình tiếp nhận hôm nay">
+      <div class="hero-stats-title">TÌNH HÌNH TIẾP NHẬN HÔM NAY</div>
+      <div class="hero-stat"><div class="lbl">Quầy đang mở</div><div class="val" id="statOpenCounters">-</div></div>
+      <div class="hero-stat"><div class="lbl">Người đang chờ</div><div class="val" id="statWaiting">-</div></div>
+      <div class="hero-stat"><div class="lbl">Thủ tục hỗ trợ</div><div class="val" id="statServices">-</div></div>
+      <div class="hero-stats-note">Cập nhật tự động mỗi 15 giây</div>
+    </aside>
   </section>
 
   <div class="section-heading">
@@ -44,14 +54,14 @@
     </div>
   </div>
   <div class="grid grid-4 support-grid">
-    <a href="huong-dan-dien-mau.html" class="card-link category-card help-tile tone-blue"><div class="card"><div class="help-ico" aria-hidden="true">📝</div><h3>Cách điền giấy tờ</h3><p class="desc">Hướng dẫn điền từng ô của tờ khai, có ví dụ.</p><div class="meta">Xem hướng dẫn →</div></div></a>
-    <a href="nop-ho-so-truc-tuyen.html" class="card-link category-card help-tile tone-teal"><div class="card"><div class="help-ico" aria-hidden="true">💻</div><h3>Nộp hồ sơ qua mạng</h3><p class="desc">Các bước nộp hồ sơ trên Cổng dịch vụ công.</p><div class="meta">Xem hướng dẫn →</div></div></a>
-    <a href="ket-noi-wifi.html" class="card-link category-card help-tile tone-amber"><div class="card"><div class="help-ico" aria-hidden="true">📶</div><h3>Kết nối Wi-Fi</h3><p class="desc">Quét mã QR, có hướng dẫn cho Android và iPhone.</p><div class="meta">Xem hướng dẫn →</div></div></a>
-    <a href="hoi-dap.html" class="card-link category-card help-tile tone-violet"><div class="card"><div class="help-ico" aria-hidden="true">❓</div><h3>Hỏi đáp</h3><p class="desc">Giải đáp các thắc mắc thường gặp, có ghi rõ nguồn.</p><div class="meta">Xem hỏi đáp →</div></div></a>
+    <a href="huong-dan-dien-mau.html" class="card-link category-card help-tile tone-blue"><div class="card"><div class="help-ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6"/><path d="M8 13h8M8 17h5"/></svg></div><h3>Cách điền giấy tờ</h3><p class="desc">Hướng dẫn điền từng ô của tờ khai, có ví dụ.</p><div class="meta">Xem hướng dẫn →</div></div></a>
+    <a href="nop-ho-so-truc-tuyen.html" class="card-link category-card help-tile tone-teal"><div class="card"><div class="help-ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg></div><h3>Nộp hồ sơ trực tuyến</h3><p class="desc">Các bước nộp hồ sơ trên Cổng Dịch vụ công quốc gia.</p><div class="meta">Xem hướng dẫn →</div></div></a>
+    <a href="ket-noi-wifi.html" class="card-link category-card help-tile tone-amber"><div class="card"><div class="help-ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 9a15 15 0 0 1 20 0"/><path d="M5.5 12.5a10 10 0 0 1 13 0"/><path d="M9 16a5 5 0 0 1 6 0"/><path d="M12 19.5v.01"/></svg></div><h3>Kết nối Wi-Fi</h3><p class="desc">Quét mã QR, có hướng dẫn cho Android và iPhone.</p><div class="meta">Xem hướng dẫn →</div></div></a>
+    <a href="hoi-dap.html" class="card-link category-card help-tile tone-violet"><div class="card"><div class="help-ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .8-1 1.5V14"/><path d="M12 17.5v.01"/></svg></div><h3>Hỏi đáp</h3><p class="desc">Giải đáp các thắc mắc thường gặp, có ghi rõ nguồn.</p><div class="meta">Xem hỏi đáp →</div></div></a>
   </div>
   <!-- UC-09: cong dan da bo sung ho so quay lai Kiosk - quet ma tren phieu quay lai (quet-ma.html) -->
   <a href="quet-ma.html" class="card-link reentry-banner"><div class="card reentry-banner-card">
-    <div class="help-ico" aria-hidden="true">🔁</div>
+    <div class="help-ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3h-3zM17 17h4v4M20 14v.01M14 20v.01"/></svg></div>
     <div><h3>Đã bổ sung hồ sơ xong? Quét mã quay lại hàng đợi</h3>
     <p class="desc">Dùng phiếu quay lại cán bộ đã đưa: đưa mã QR vào camera, dùng máy quét, hoặc nhập Số thứ tự + Mã quay lại. Giữ số cũ, xếp lại ở vị trí ưu tiên — không phải lấy số mới.</p></div>
     <div class="meta">Quét mã →</div>
@@ -90,12 +100,19 @@
 
 <footer class="site-footer">
   <div class="footer-inner">
-    <div><b>Một cửa Thông minh</b> · Hệ thống hỗ trợ tra cứu thủ tục hành chính công</div>
-    <div>Không tìm thấy điều bạn cần? Xem <a href="hoi-dap.html">trang Hỏi đáp</a> hoặc bấm 💬 ở góc phải để hỏi Trợ lý AI.</div>
+    <div class="footer-brand">
+      <div class="footer-unit" data-unit-name-slot></div>
+      <div class="footer-name">Cẩm nang số hỗ trợ Thông tin Hành chính công</div>
+      <div>Hỗ trợ tra cứu thủ tục, chuẩn bị hồ sơ và lấy số thứ tự tại Trung tâm Phục vụ Hành chính công.</div>
+    </div>
+    <div class="footer-help">
+      <div class="footer-unit">CẦN HỖ TRỢ THÊM?</div>
+      <div>Xem <a href="hoi-dap.html">trang Hỏi đáp</a> hoặc bấm nút Trợ lý ở góc phải màn hình để được hướng dẫn.</div>
+    </div>
   </div>
 </footer>
 
-<script src="js/header.js?v=4"></script>
+<script src="js/header.js?v=5"></script>
 <script src="js/deviceHeartbeat.js?v=1"></script>
 <script src="js/chatbot.js?v=10"></script>
 <script src="js/searchSuggest.js"></script>
