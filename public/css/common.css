@@ -3005,3 +3005,178 @@ body.theme-gov .chatbot-send {
     display: none !important;
   }
 }
+/* =====================================================================
+   DONG BO GIAO DIEN CAC TRANG CON THEO TRANG CHU (11/2026)
+   Chi la giao dien: tieu de trang thanh khung trang vien do (giong o tra cuu
+   Trang chu), tieu de the mau do, bo mau pastel o trang Huong dan, chan trang.
+   ===================================================================== */
+
+/* Khung tieu de trang (page-hero / faq-hero) = khung "Tra cuu thu tuc" o Trang chu */
+body.theme-gov .page-hero,
+body.theme-gov .faq-hero {
+  background: #fff;
+  border: 1px solid var(--color-border);
+  border-top: 4px solid var(--gov-red);
+  border-radius: 6px;
+  padding: 26px 28px 24px;
+  margin: 12px 0 24px;
+  text-align: left;
+}
+
+body.theme-gov .page-hero h1,
+body.theme-gov .faq-hero h1 {
+  font-family: 'Noto Serif', 'Times New Roman', Georgia, serif;
+  font-size: clamp(1.4rem, 2.6vw, 1.75rem);
+  font-weight: 700;
+  color: var(--gov-red);
+  letter-spacing: 0;
+  margin: 0 0 6px;
+}
+
+body.theme-gov .page-hero p,
+body.theme-gov .faq-hero p {
+  margin: 0;
+  max-width: none;
+  color: var(--color-text-muted);
+  font-size: 1rem;
+  line-height: 1.55;
+}
+
+/* Hoi dap: o tim kiem + goi y can trai theo khung tieu de */
+body.theme-gov .faq-search-row {
+  margin-left: 0;
+  margin-right: 0;
+  max-width: none;
+}
+
+body.theme-gov .faq-search-hint {
+  text-align: left;
+}
+
+/* Tieu de trong the (h2) cua cac trang con: mau do chinh quyen */
+body.theme-gov .guide-wrap .card h2,
+body.theme-gov .faq-wrap .card h2,
+body.theme-gov .kiosk-wrap .card h2,
+body.theme-gov .container .card > h2 {
+  color: var(--gov-red);
+  font-size: 1.3rem;
+  font-weight: 800;
+  letter-spacing: 0;
+}
+
+body.theme-gov .guide-head h1 {
+  font-family: 'Noto Serif', 'Times New Roman', Georgia, serif;
+  color: var(--gov-red);
+}
+
+body.theme-gov .guide-head .eyebrow {
+  color: var(--gov-red);
+}
+
+/* Huong dan su dung: bo 5 mau pastel, dung the trang + vien trai do nhu Trang chu */
+body.theme-gov .step-item,
+body.theme-gov .step-item:nth-child(n) {
+  --step-bg: #fff;
+  --step-border: var(--color-border);
+  --step-icon-bg: var(--gov-red);
+  border-width: 1px;
+  border-left: 4px solid var(--gov-red);
+  border-radius: 6px;
+}
+
+body.theme-gov .step-icon {
+  background: #FBEAEA;
+  color: var(--gov-red);
+  border-radius: 6px;
+  box-shadow: none;
+}
+
+body.theme-gov .step-item .step-tag {
+  color: var(--gov-red);
+}
+
+body.theme-gov .faq-item summary::before {
+  background: #FBEAEA;
+  color: var(--gov-red);
+}
+
+/* Nut dang the <a> khong gach chan (Ve Trang chu, Xem trang Hoi dap...) */
+body.theme-gov a.btn,
+body.theme-gov a.btn:hover {
+  text-decoration: none;
+}
+
+/* Chan trang tach khoi noi dung tren moi trang */
+body.theme-gov footer.site-footer {
+  margin-top: 48px;
+}
+
+/* =====================================================================
+   TỰ CĂN THEO THIẾT BỊ (laptop / PC / màn 2K-4K / tivi)
+   - Bề rộng khung nội dung đổi theo từng mức màn hình (dùng chung một biến
+     cho header, menu, thông báo, nội dung, footer -> mép luôn thẳng hàng).
+   - Màn rất rộng (2K, 4K, tivi): phóng to TOÀN BỘ giao diện bằng `zoom` để chữ,
+     nút, khoảng cách to lên đồng đều thay vì chỉ kéo dài ra hai bên.
+   - Khi người dùng Ctrl +/- trên trình duyệt, bề rộng CSS thay đổi nên các mức
+     dưới đây tự áp lại, không cần tải lại trang.
+   - Tivi Full HD (báo 1920px như PC) được nhận diện trong js/header.js và gắn
+     class `screen-tv` (hoặc thêm ?tv=1 vào địa chỉ để ép chế độ tivi).
+   ===================================================================== */
+:root {
+  --page-max: 1240px;
+  --page-gutter: 24px;
+}
+
+.container,
+.gov-wrap {
+  width: 100%;
+  max-width: var(--page-max);
+  padding-left: var(--page-gutter);
+  padding-right: var(--page-gutter);
+  box-sizing: border-box;
+}
+
+footer.site-footer .footer-inner {
+  max-width: calc(var(--page-max) - 2 * var(--page-gutter));
+}
+
+/* Laptop 13-14" (1280-1440px) */
+@media (min-width: 1280px) {
+  :root { --page-max: 1320px; --page-gutter: 28px; }
+}
+
+/* Laptop 15-16" / PC nhỏ (1440-1680px) */
+@media (min-width: 1440px) {
+  :root { --page-max: 1440px; --page-gutter: 32px; }
+}
+
+/* PC Full HD (1680-2200px) */
+@media (min-width: 1680px) {
+  :root { --page-max: 1680px; --page-gutter: 32px; }
+  body.theme-gov .hero-banner.gov-hero {
+    grid-template-columns: minmax(0, 1fr) 380px;
+    gap: 28px;
+  }
+}
+
+/* Màn 2K / tivi lớn: phóng cả giao diện */
+@media (min-width: 2200px) { html { zoom: 1.25; } }
+@media (min-width: 2800px) { html { zoom: 1.6; } }
+@media (min-width: 3400px) { html { zoom: 2; } }
+
+/* Tivi Full HD xem từ xa: phóng 1.3 lần (≈ khung 1470px), chữ và nút to dễ đọc */
+html.screen-tv { zoom: 1.3; }
+@media (min-width: 2800px) { html.screen-tv { zoom: 1.9; } }
+@media (min-width: 3400px) { html.screen-tv { zoom: 2.5; } }
+html.screen-tv body.theme-gov .hero-banner.gov-hero {
+  grid-template-columns: minmax(0, 1fr) 340px;
+}
+
+/* Máy tính bảng / điện thoại */
+@media (max-width: 900px) {
+  :root { --page-gutter: 20px; }
+}
+
+@media (max-width: 620px) {
+  :root { --page-gutter: 16px; }
+}

@@ -1,3 +1,18 @@
+// Nhan dien tivi de phong to giao dien (xem css/common.css, muc "TU CAN THEO THIET BI").
+// Tivi Full HD thuong bao 1920px giong PC nen phai dua vao user-agent; ?tv=1 de ep bat,
+// ?tv=0 de tat (luu lai cho lan sau tren chinh thiet bi do).
+(function () {
+  try {
+    const q = new URLSearchParams(window.location.search).get('tv');
+    if (q === '1' || q === '0') localStorage.setItem('screenTv', q);
+    const saved = localStorage.getItem('screenTv');
+    const ua = navigator.userAgent || '';
+    const looksTv = /SmartTV|SMART-TV|Tizen|Web0S|webOS|NetCast|BRAVIA|HbbTV|Android TV|AFT[A-Z]|CrKey|GoogleTV|Roku|\bTV\b/i.test(ua);
+    const isTv = saved === '1' || (saved !== '0' && looksTv);
+    document.documentElement.classList.toggle('screen-tv', isTv);
+  } catch (e) { /* localStorage bi chan: bo qua */ }
+})();
+
 // Header dung chung, tu gan vao dau <body> - chi can nhung 1 dong <script src="js/header.js">
 // vao moi trang, khong phai lap lai markup logo/nav o tung file HTML.
 //
@@ -95,6 +110,26 @@
   }
 
   document.body.insertAdjacentHTML('afterbegin', headerHtml);
+
+  // Dong bo giao dien (11/2026): moi trang cong khai co cung chan trang nhu Trang chu.
+  // Trang nao da tu viet <footer class="site-footer"> (index.html) thi giu nguyen; Bang LED khong can.
+  if (isPublicPage && !isDisplay && !document.querySelector('footer.site-footer')) {
+    document.body.insertAdjacentHTML('beforeend', `
+    <footer class="site-footer">
+      <div class="footer-inner">
+        <div class="footer-brand">
+          <div class="footer-unit" data-unit-name-slot></div>
+          <div class="footer-name">Cẩm nang số hỗ trợ Thông tin Hành chính công</div>
+          <div>Hỗ trợ tra cứu thủ tục, chuẩn bị hồ sơ và lấy số thứ tự tại Trung tâm Phục vụ Hành chính công.</div>
+        </div>
+        <div class="footer-help">
+          <div class="footer-unit">CẦN HỖ TRỢ THÊM?</div>
+          <div>Xem <a href="hoi-dap.html">trang Hỏi đáp</a> hoặc bấm nút Trợ lý ở góc phải màn hình để được hướng dẫn.</div>
+        </div>
+      </div>
+    </footer>`);
+  }
+
   const unitEl = document.querySelector('.gov-unit');
   if (unitEl) unitEl.textContent = unitName;   // textContent: ten don vi khong bao gio duoc hieu la HTML
   document.querySelectorAll('[data-unit-name-slot]').forEach((el) => { el.textContent = unitName; });
