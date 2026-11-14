@@ -2911,7 +2911,11 @@ body.theme-gov .chatbot-send {
   }
 
   .gov-tag {
-    display: none;
+    font-size: 0;            /* an dong mo ta dai tren dien thoai, CHI giu chu thich thu nghiem */
+  }
+
+  .gov-tag .gov-beta {
+    font-size: 0.72rem;
   }
 
   .gov-national .gov-clock {
@@ -3180,3 +3184,103 @@ html.screen-tv body.theme-gov .hero-banner.gov-hero {
 @media (max-width: 620px) {
   :root { --page-gutter: 16px; }
 }
+
+
+/* =====================================================================
+   11/2026 - O "NHAP MA CHO" TREN TRANG CHU (lay lai so uu tien sau khi bo sung giay to)
+   ===================================================================== */
+.reentry-code-box {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+  gap: 20px 32px;
+  align-items: center;
+  margin: 8px 0 36px;
+  padding: 22px 26px;
+  background: #FFF8E6;
+  border: 2px solid #E9B949;
+  border-left-width: 8px;
+  border-radius: var(--radius-lg, 12px);
+}
+.reentry-code-tag { font-size: .8rem; font-weight: 800; letter-spacing: .08em; color: #8A5A00; }
+.reentry-code-box h2 { margin: 4px 0 6px; font-size: 1.35rem; color: var(--gov-red, #A8151B); }
+.reentry-code-box p { margin: 0; color: #4A3B2A; }
+.reentry-code-form { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; }
+.reentry-code-form input {
+  min-height: 56px; font-size: 1.5rem; font-family: ui-monospace, Consolas, monospace;
+  letter-spacing: 3px; text-transform: uppercase; text-align: center;
+  border: 2px solid #C9A04A; border-radius: 10px; padding: 0 12px; background: #fff;
+}
+.reentry-code-form input:focus { outline: 3px solid rgba(168, 21, 27, .35); border-color: var(--gov-red, #A8151B); }
+.reentry-code-form input.input-error { border-color: #D32F2F; background: #FFF0F0; }
+.reentry-code-form .btn { min-height: 56px; font-size: 1.05rem; white-space: nowrap; }
+.reentry-code-alt { grid-column: 1 / -1; font-weight: 600; color: var(--gov-red, #A8151B); text-decoration: none; }
+.reentry-code-alt:hover { text-decoration: underline; }
+@media (max-width: 860px) {
+  .reentry-code-box { grid-template-columns: 1fr; padding: 18px; }
+}
+@media (max-width: 480px) {
+  .reentry-code-form { grid-template-columns: 1fr; }
+}
+
+
+/* 11/2026: chu thich "ban thu nghiem" canh dong mo ta tren dau trang */
+.gov-beta {
+  display: inline-block;
+  margin-left: 4px;
+  font-style: italic;
+  font-weight: 700;
+  color: var(--gov-gold-text, #F7D774);
+}
+
+/* =====================================================================
+   11/2026 - CAM UNG: bo tre 300ms / phong to khi cham dup, khong boi den chu khi cham giu,
+   nut co vung cham toi thieu 48px. touch-action: manipulation van cho phep cuon va zoom 2 ngon.
+   ===================================================================== */
+html { touch-action: manipulation; -webkit-tap-highlight-color: rgba(168, 21, 27, .18); }
+a, button, [data-action], label, summary, .card-link, .chatbot-chip, .hero-chip, .faq-quick, [role="button"] {
+  touch-action: manipulation;
+}
+@media (pointer: coarse) {
+  button, .btn, .card-link, .hero-chip, .chatbot-chip, .faq-quick { -webkit-user-select: none; user-select: none; }
+  .btn, .hero-chip, .chatbot-chip { min-height: 48px; }
+}
+
+/* =====================================================================
+   11/2026 - MAN HINH CHO / VIDEO LUC CHO (public/js/idleVideo.js)
+   ===================================================================== */
+.idle-overlay {
+  position: fixed; inset: 0; z-index: 20000; background: #0B0605; color: #fff;
+  display: flex; align-items: center; justify-content: center; cursor: pointer;
+}
+html.idle-active body { overflow: hidden; }
+.idle-video { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+.idle-tap-layer { position: absolute; inset: 0; z-index: 1; }
+.idle-still { text-align: center; padding: 24px; max-width: 1100px; }
+.idle-emblem { width: clamp(120px, 14vw, 220px); height: auto; margin-bottom: 24px; }
+.idle-unit { font-size: clamp(1rem, 1.6vw, 1.6rem); color: #F7D774; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
+.idle-name { font-size: clamp(1.6rem, 3.2vw, 3.4rem); font-weight: 800; margin: 10px 0 14px; line-height: 1.2; }
+.idle-sub { font-size: clamp(1rem, 1.6vw, 1.6rem); color: #E8D9D6; }
+.idle-cta {
+  position: absolute; z-index: 2; left: 50%; bottom: 5vh; transform: translateX(-50%);
+  display: inline-flex; align-items: center; gap: 12px; white-space: nowrap; pointer-events: none;
+  padding: 14px 28px; border-radius: 999px; background: rgba(168, 21, 27, .92);
+  font-size: clamp(1rem, 1.6vw, 1.6rem); font-weight: 700; box-shadow: 0 8px 30px rgba(0,0,0,.4);
+  animation: idlePulse 2.4s ease-in-out infinite;
+}
+.idle-cta-dot { width: 12px; height: 12px; border-radius: 50%; background: #F7D774; }
+@keyframes idlePulse { 0%, 100% { opacity: 1; } 50% { opacity: .75; } }
+@media (prefers-reduced-motion: reduce) { .idle-cta { animation: none; } }
+
+
+/* 11/2026: ghi chu can cu phap ly tren the thu tuc + trang Doi chieu giay to */
+.svc-legal { margin-top: 8px; font-size: .82rem; line-height: 1.4; color: #5B4A45; }
+.svc-legal-box {
+  margin: 14px 0; padding: 14px 16px; border: 1px solid #E3D3CF; border-left: 5px solid var(--gov-red, #A8151B);
+  border-radius: 10px; background: #FFFBFA;
+}
+.svc-legal-box h4 { margin: 0 0 8px; display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: baseline; }
+.svc-legal-date { font-size: .82rem; font-weight: 600; color: #8A5A00; background: #FFF3D6; padding: 2px 8px; border-radius: 999px; }
+.svc-legal-box ul { margin: 0; padding-left: 20px; }
+.svc-legal-box li { margin: 4px 0; }
+.svc-legal-upcoming { margin: 10px 0 0; font-weight: 600; color: #7E0F13; }
+.svc-legal-foot { margin: 8px 0 0; font-size: .82rem; color: var(--color-text-muted, #6b7280); }

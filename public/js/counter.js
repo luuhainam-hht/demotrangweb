@@ -123,6 +123,18 @@ function renderQueue(queue) {
   renderActiveSlot();
 }
 
+async function setAway(away) {
+  if (!myCounter) return;
+  try {
+    const r = await ApiClient.post(`/api/counters/${myCounter.id}/away`, { away });
+    if (r && r.counter) myCounter = { ...myCounter, ...r.counter };
+    renderActiveSlot();
+    if (typeof showToast === 'function') showToast(away ? 'Đã báo tạm vắng.' : 'Chào mừng quay lại — quầy đã mở lại.', 'success');
+  } catch (err) {
+    if (typeof showToast === 'function') showToast(err.message || 'Không đổi được trạng thái.', 'error'); else alert(err.message);
+  }
+}
+
 function clearTimers() {
   if (countdownTimer) { clearInterval(countdownTimer); countdownTimer = null; }
   if (undoTimer) { clearInterval(undoTimer); undoTimer = null; }
@@ -136,7 +148,14 @@ function renderActiveSlot() {
   if (!activeTicket) {
     box.innerHTML = '<p class="text-muted">Chưa có vé đang xử lý</p>';
     const canCall = myCounter.status === 'OPEN';
-    actions.innerHTML = `<button class="btn btn-primary btn-lg btn-block" ${canCall ? '' : 'disabled'} ${actionAttr('callNext')}>Gọi số tiếp theo</button>`;
+    // 11/2026: nut Tam vang / Da quay lai - bang goi so chung hien VANG "Nguoi o quay di vang".
+    const awayBtn = myCounter.status === 'OPEN'
+      ? `<button class="btn btn-warning btn-block mt-16" ${actionAttr('setAway', true)}>Tạm vắng khỏi quầy</button>`
+      : myCounter.status === 'PAUSED'
+        ? `<button class="btn btn-success btn-lg btn-block mt-16" ${actionAttr('setAway', false)}>Tôi đã quay lại quầy</button>`
+        : '';
+    if (myCounter.status === 'PAUSED') box.innerHTML = '<p class="text-muted">Quầy đang <b>tạm vắng</b> — bảng gọi số hiện màu vàng. Hàng đợi vẫn được giữ nguyên.</p>';
+    actions.innerHTML = `<button class="btn btn-primary btn-lg btn-block" ${canCall ? '' : 'disabled'} ${actionAttr('callNext')}>Gọi số tiếp theo</button>${awayBtn}`;
     return;
   }
 

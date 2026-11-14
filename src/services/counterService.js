@@ -33,7 +33,9 @@ async function reassignQueue(client, { fromCounterId, fieldId, adminId, eventLab
 // Mo / Dong / Tam dung quay (1 nut chuyen trang thai khi can bo nghi giai lao, hop dot xuat...)
 // Khi chuyen sang PAUSED/CLOSED ma quay con ve dang QUEUED, tu dong chuyen sang quay khac
 // dang mo cung linh vuc (khong de cong dan cho vo thoi han o 1 quay da tam dung/dong).
-async function setCounterStatus(counterId, status, adminId, reason) {
+// opts.skipReassign: can bo tu bam "Tam vang" o trang Quay (vang vai phut) -> KHONG don hang doi
+// sang quay khac, chi tam dung goi so va bang goi so hien mau VANG "Nguoi o quay di vang".
+async function setCounterStatus(counterId, status, adminId, reason, opts = {}) {
   if (!['OPEN', 'PAUSED', 'CLOSED'].includes(status)) throw new Error('Trang thai quay khong hop le.');
 
   const outcome = await withTransaction(async (client) => {
@@ -47,7 +49,7 @@ async function setCounterStatus(counterId, status, adminId, reason) {
     });
 
     let reassign = { movedCount: 0, targetCounterId: null };
-    if (status !== 'OPEN') {
+    if (status !== 'OPEN' && !opts.skipReassign) {
       reassign = await reassignQueue(client, {
         fromCounterId: counterId, fieldId: counter.field_id, adminId,
         eventLabel: status === 'PAUSED' ? 'COUNTER_PAUSED_REASSIGN' : 'COUNTER_CLOSED_REASSIGN'

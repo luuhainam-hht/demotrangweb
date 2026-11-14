@@ -444,6 +444,28 @@ test('POST /api/kiosk/reentry-scan: nhap tay So thu tu + Ma quay lai 8 ky tu -> 
   assert.equal(calls.length, 1, 'ma qua ngan khong duoc goi toi queueEngine');
 });
 
+test('POST /api/kiosk/reentry-scan: CHI nhap Ma cho 8 ky tu (khong So thu tu) -> xep lai; trung ma -> doi So thu tu', async () => {
+  mockOpenHours();
+  const calls = mockReentryEngine();
+  const ticketRepo = require('../src/repositories/ticketRepository');
+  let matches = [{ id: SUPP_ID, reentry_qr_token: SUPP_TOKEN }];
+  ticketRepo.findSuppPendingByCode = async (client, code) => (code === 'abcdef01' ? matches : []);
+  const app = buildApp();
+  const ok = await request(app).post('/api/kiosk/reentry-scan').send({ code: 'abcd ef01' });
+  assert.equal(ok.status, 200);
+  assert.deepEqual(calls, [SUPP_TOKEN]);
+
+  const none = await request(app).post('/api/kiosk/reentry-scan').send({ code: '1234-5678' });
+  assert.equal(none.status, 400);
+  assert.match(none.body.error, /Không tìm thấy/);
+
+  matches = [{ id: 'x', reentry_qr_token: 'a' }, { id: 'y', reentry_qr_token: 'b' }];
+  const dup = await request(app).post('/api/kiosk/reentry-scan').send({ code: 'ABCD-EF01' });
+  assert.equal(dup.status, 400);
+  assert.equal(dup.body.needTicketNumber, true);
+  assert.equal(calls.length, 1);
+});
+
 test('POST /api/kiosk/reentry-scan: ngoai gio lam viec -> CLOSED, khong xep lai (UC-09 include UC-12)', async () => {
   const kioskHours = require('../src/services/kioskHours');
   kioskHours.getStatus = async () => ({ open: false, enforced: true, message: 'Het gio', hoursText: '07:30 – 17:00' });

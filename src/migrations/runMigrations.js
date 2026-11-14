@@ -228,6 +228,17 @@ async function addMindtekChatbotConfigs() {
   `);
 }
 
+// 11/2026: video luc cho tren Trang chu Kiosk - sau IDLE_VIDEO_MINUTES phut khong ai thao tac thi
+// phat video YouTube (IDLE_VIDEO_YOUTUBE). De trong lien ket = chi hien man hinh cho "Cham de bat dau".
+async function addIdleVideoConfigs() {
+  await pool.query(`
+    INSERT INTO system_configs (config_key, config_value, value_type, min_bound, max_bound, description) VALUES
+      ('IDLE_VIDEO_YOUTUBE', '', 'STRING', NULL, NULL, 'Video luc cho tren Trang chu Kiosk: dan lien ket YouTube (video hoac danh sach phat). De trong = chi hien man hinh cho'),
+      ('IDLE_VIDEO_MINUTES', '5', 'NUMBER', 1, 60, 'So phut khong ai thao tac tren Trang chu thi bat video luc cho')
+    ON CONFLICT (config_key) DO NOTHING
+  `);
+}
+
 async function run() {
   await addSoftDeleteToCounters();
   await addTrichLucHoTichService();
@@ -241,6 +252,7 @@ async function run() {
   await addUpgrade202610();
   await updateServiceFees();
   await addMindtekChatbotConfigs();
+  await addIdleVideoConfigs();
 }
 
 module.exports = { run, addSoftDeleteToCounters, updateServiceFees };

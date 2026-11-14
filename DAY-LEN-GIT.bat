@@ -17,6 +17,9 @@ rem   3. Chặn tuyệt đối file .env (mật khẩu CSDL, API key).
 rem   4. Chạy bộ test - hỏng thì dừng, không đưa code hỏng lên Render.
 rem   5. Hỏi lại, rồi commit + push vào main. Render tự deploy.
 rem  Tự dọn mọi trạng thái git dở dang (rebase/merge hỏng, nhánh feature cũ...).
+rem  11/2026: TỰ SỬA KHO GIT BỊ HỎNG ("loose object ... is corrupt", "inflate: data stream error"...):
+rem  cất .git hỏng sang .git-hong-xxxx (KHÔNG xoá), dựng lại .git sạch từ GitHub, giữ nguyên code.
+rem  Đoạn tự sửa CHỈ dùng goto, không dùng khối ( ... ): cmd + chcp 65001 đọc sai khối có chữ có dấu.
 rem =====================================================================================
 set "REPO_URL=https://github.com/luuhainam-hht/demotrangweb.git"
 set "BRANCH=main"
@@ -63,20 +66,74 @@ if exist ".git\rebase-merge" git rebase --abort >nul 2>&1
 if exist ".git\rebase-apply" git rebase --abort >nul 2>&1
 if exist ".git\MERGE_HEAD" git merge --abort >nul 2>&1
 
-echo  [1/5] Đang tải bản mới nhất từ GitHub...
-git fetch -q origin %BRANCH%
-if errorlevel 1 (
-  echo  [LỖI] Không tải được từ GitHub. Kiểm tra mạng / đăng nhập GitHub khi cửa sổ hiện ra.
-  goto loi
-)
+git rev-parse --git-dir >nul 2>&1
+if errorlevel 1 goto suachua
+
+:taive
+echo  [1/5] Đang kiểm tra kho git trên máy và tải bản mới nhất từ GitHub...
+if defined DA_SUA goto taive_fetch
+git fsck --no-dangling >"%TMPD%\fsck.log" 2>&1
+if errorlevel 1 goto suachua
+:taive_fetch
+git fetch -q origin %BRANCH% 2>"%TMPD%\fetch.log"
+if not errorlevel 1 goto taive_ok
+type "%TMPD%\fetch.log"
+git ls-remote --heads origin %BRANCH% >nul 2>&1
+if errorlevel 1 goto loi_mang
+if defined DA_SUA goto loi_suaroi
+goto suachua
+:loi_mang
+echo  [LỖI] Không kết nối được GitHub. Kiểm tra mạng / đăng nhập GitHub khi cửa sổ hiện ra.
+goto loi
+:loi_suaroi
+echo  [LỖI] Đã dựng lại kho git nhưng vẫn không tải được. Chụp màn hình gửi người hỗ trợ.
+goto loi
+:taive_ok
 rem Gắn thư mục vào main mới nhất: chỉ đổi "điểm gốc" của git, KHÔNG sửa/xoá file nào trên máy.
 git symbolic-ref HEAD refs/heads/%BRANCH%
 git reset -q origin/%BRANCH%
 if errorlevel 1 goto loi
 
+goto tieptuc
+
+rem ---------------- SỬA KHO GIT HỎNG ----------------
+:suachua
+echo.
+echo  ****************************************************************
+echo   Kho git trên máy (thư mục .git) bị HỎNG - thường do lần trước
+echo   git bị tắt ngang, mất điện, hoặc rút ổ khi đang ghi.
+echo   Code của anh KHÔNG sao. Sẽ làm:
+echo     1. Cất .git hỏng sang tên khác (không xoá)
+echo     2. Tải lại lịch sử sạch từ GitHub
+echo     3. Giữ nguyên mọi file code trên máy
+echo  ****************************************************************
+set "SUA="
+set /p "SUA=Tự sửa ngay? (y/n, Enter = y): "
+if /i "!SUA!"=="n" goto huy
+set "BK=.git-hong-%random%%random%"
+attrib -h ".git" >nul 2>&1
+ren ".git" "!BK!"
+if errorlevel 1 goto loi_doiten
+git init -q
+git remote add origin %REPO_URL%
+git config core.fileMode false
+git config core.quotePath false
+git config user.name "luuhainam-hht"
+git config user.email "luuhainam-hht@users.noreply.github.com"
+echo  Đã cất kho hỏng vào thư mục "!BK!" - đẩy lên xong, chạy ổn thì có thể xoá.
+set "DA_SUA=1"
+goto taive
+:loi_doiten
+echo  [LỖI] Không đổi tên được thư mục .git - đóng VS Code, GitHub Desktop,
+echo         cửa sổ TU-DONG-DAY-GIT rồi chạy lại file này.
+goto loi
+
+:tieptuc
 rem ---------------- 2. Chốt an toàn .env ----------------
 findstr /x /c:".env" ".gitignore" >nul 2>&1
 if errorlevel 1 echo .env>>".gitignore"
+findstr /x /c:".git-hong-*/" ".gitignore" >nul 2>&1
+if errorlevel 1 echo .git-hong-*/>>".gitignore"
 git add -A
 git diff --cached --name-only | findstr /i /r /c:"^\.env$" >nul
 if not errorlevel 1 (

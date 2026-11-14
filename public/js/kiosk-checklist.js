@@ -102,7 +102,7 @@ function renderServiceExtra(extra, service) {
     ['📍', 'Nơi nộp hồ sơ', extra.where],
     ['⏳', 'Thời hạn giải quyết theo quy định', extra.slaNote],
     ['💻', 'Nộp trực tuyến', extra.online],
-    ['⚖️', 'Căn cứ', extra.legal]
+    ['⚖️', 'Căn cứ', extra.legalBasis ? null : extra.legal]   // co legalBasis -> hien khung rieng ben duoi
   ].filter((r) => r[2]);
 
   const tips = (extra.tips || []).map((t) => `<li>${esc(t)}</li>`).join('');
@@ -112,12 +112,23 @@ function renderServiceExtra(extra, service) {
   const sources = (extra.sources || [])
     .map((sc) => `<li><a href="${esc(sc.url)}" target="_blank" rel="noopener noreferrer">${esc(sc.title)}</a></li>`).join('');
 
+  // 11/2026: khung "Can cu phap ly" - doi chieu theo van ban nao, ngay nao.
+  const lb = extra.legalBasis;
+  const legalHtml = lb ? `
+      <div class="svc-legal-box">
+        <h4>⚖️ Căn cứ pháp lý <span class="svc-legal-date">Đối chiếu ngày ${esc(lb.checkedAt)}</span></h4>
+        <ul>${lb.docs.map((d) => `<li><b>${esc(d.doc)}</b>${d.note ? ` — ${esc(d.note)}` : ''}</li>`).join('')}</ul>
+        ${lb.upcoming ? `<p class="svc-legal-upcoming">📌 ${esc(lb.upcoming)}</p>` : ''}
+        <p class="svc-legal-foot">Thông tin tham khảo; văn bản gốc và hướng dẫn của cán bộ tại quầy là căn cứ cuối cùng.</p>
+      </div>` : '';
+
   box.innerHTML = `
     <div class="svc-extra">
       <h3>Thông tin cần biết trước khi đi</h3>
       <dl class="svc-rows">
         ${rows.map((r) => `<div class="svc-row"><dt><span aria-hidden="true">${r[0]}</span> ${esc(r[1])}</dt><dd>${esc(r[2])}</dd></div>`).join('')}
       </dl>
+      ${legalHtml}
       ${tips ? `<h4>Lưu ý quan trọng</h4><ul class="svc-tips">${tips}</ul>` : ''}
       ${warnings}
       ${extra.status === 'UNVERIFIED'

@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Bảng gọi số - Cẩm nang số hỗ trợ Thông tin Hành chính công</title>
-<link rel="stylesheet" href="css/common.css?v=15" />
+<link rel="stylesheet" href="css/common.css?v=16" />
 <link rel="icon" href="assets/quoc-huy.png" type="image/png" />
 <style>
   /* BANG LED treo tuong: nguoi dan dung/ngoi cach man hinh 3-8 met, trong do co nguoi cao tuoi
@@ -22,16 +22,31 @@
     background: #22110F; border-radius: 12px; padding: 2vw 1.6vw; text-align: center;
     border: 3px solid #5A2A27;
   }
-  /* Quay dang goi so: vien xanh la + nen sang hon - nhin luot qua la thay ngay quay nao dang goi. */
-  .led-card.calling {
-    border-color: #F2C230; background: #3A1A0C;
-    box-shadow: 0 0 40px rgba(242, 194, 48, 0.45);
-    animation: ledPulse 1.6s infinite;
+  /* ===== 4 MAU TRANG THAI (11/2026) - xem src/services/boardState.js =====
+     DO = dang thuc hien tai quay | XANH LA = dang trong | VANG = can bo di vang | XANH DUONG = gio nghi.
+     Mau nam o VIEN DAY + NEN NHAT + DAI TIEU DE de nguoi mat kem / nhin xa van phan biet duoc,
+     khong chi dua vao mau (dai tieu de con ghi chu trang thai). */
+  .led-card { --st: #6B5A57; --st-bg: #22110F; --st-ink: #fff; position: relative; overflow: hidden;
+    border-color: var(--st); background: var(--st-bg); border-width: 4px; padding-top: 0; }
+  .led-card.st-BUSY  { --st: #E53935; --st-bg: #3A0F0E; --st-ink: #fff; }
+  .led-card.st-IDLE  { --st: #2EAD4B; --st-bg: #0E2A16; --st-ink: #fff; }
+  .led-card.st-AWAY  { --st: #F2C230; --st-bg: #352A08; --st-ink: #1B1500; }
+  .led-card.st-BREAK { --st: #2F7BEF; --st-bg: #0D1D3A; --st-ink: #fff; }
+  .led-card .state-band {
+    margin: 0 -1.6vw 1.2vw; padding: 0.55vw 1vw; background: var(--st); color: var(--st-ink);
+    font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase;
+    font-size: clamp(0.95rem, 1.2vw, 1.7rem);
   }
+  /* Quay dang GOI so: nhap nhay vien do de nhin luot qua la thay. */
+  .led-card.calling { animation: ledPulse 1.6s infinite; }
   @keyframes ledPulse {
-    0%, 100% { box-shadow: 0 0 24px rgba(242,194,48,0.35); }
-    50% { box-shadow: 0 0 56px rgba(242,194,48,0.7); }
+    0%, 100% { box-shadow: 0 0 20px rgba(229,57,53,0.35); }
+    50% { box-shadow: 0 0 56px rgba(229,57,53,0.8); }
   }
+  .led-legend { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.8vw 2vw; margin: 0 0 1.6vw; }
+  .led-legend span { display: inline-flex; align-items: center; gap: 0.6em; font-weight: 700;
+    font-size: clamp(0.9rem, 1.15vw, 1.6rem); color: #F3E7E4; }
+  .led-legend i { width: 1.4em; height: 1.4em; border-radius: 4px; display: inline-block; }
   .led-card .counter-name { color: #F3E7E4; font-size: clamp(1.1rem, 1.5vw, 2rem); font-weight: 700; margin-bottom: 8px; }
   .led-card .ticket-num {
     /* nowrap: "A-105" bi ngat dong ngay sau dau gach ngang thanh 2 hang, nhin tu xa rat de doc
@@ -44,8 +59,7 @@
   .led-card .ticket-num-text {
     font-size: clamp(1.5rem, 2.6vw, 3.2rem); letter-spacing: 1px; color: #B9A6A2;
   }
-  .led-card.calling .ticket-num-text { color: #F7D774; }
-  .led-card.calling .ticket-num { color: #F7D774; }
+  .led-card.st-AWAY .ticket-num-text { color: #F7D774; }
   .led-card .status-line { margin-top: 10px; font-size: clamp(0.95rem, 1.25vw, 1.7rem); color: #E8D9D6; font-weight: 600; }
   .btn-enable-audio { position: fixed; bottom: 24px; left: 24px; z-index: 50; }
 
@@ -77,6 +91,12 @@
     <h1>BẢNG GỌI SỐ</h1>
     <div id="ledClock" class="led-clock"></div>
   </div>
+  <div class="led-legend" aria-label="Chú giải màu">
+    <span><i style="background:#2EAD4B"></i>Đang trống</span>
+    <span><i style="background:#E53935"></i>Đang thực hiện tại quầy</span>
+    <span><i style="background:#F2C230"></i>Người ở quầy đi vắng</span>
+    <span><i style="background:#2F7BEF"></i>Giờ nghỉ</span>
+  </div>
   <div id="ledGrid" class="led-grid"></div>
 </div>
 <button class="btn btn-primary btn-enable-audio" id="enableAudioBtn" data-action="enableAudio">🔈 Bật âm thanh Loa PA</button>
@@ -85,7 +105,7 @@
 <script src="js/wsClient.js"></script>
 <script src="js/actionDelegate.js"></script>
 <script src="js/deviceHeartbeat.js?v=1"></script>
-<script src="js/display.js?v=5"></script>
-<script src="js/header.js?v=5"></script>
+<script src="js/display.js?v=6"></script>
+<script src="js/header.js?v=6"></script>
 </body>
 </html>

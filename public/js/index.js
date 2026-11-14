@@ -17,6 +17,7 @@ function renderCategoryCards(services, opts) {
           <span>⏱ Tiếp nhận ~${Number(s.sla_minutes) || '-'} phút</span>
           <span class="svc-fee">${escHtml(fee)}</span>
         </div>
+        ${s.legal_short ? `<div class="svc-legal" title="Căn cứ pháp lý">⚖️ Theo ${escHtml(s.legal_short)} · đối chiếu ${escHtml(s.legal_checked_at || '')}</div>` : ''}
         <div class="meta">Xem giấy tờ cần chuẩn bị →</div>
       </div>
     </a>`;
@@ -72,7 +73,7 @@ SearchSuggest.attach(document.getElementById('searchInput'), document.getElement
 
 // UC-06 Xem trang thai quay va so nguoi cho: so tong o hero + danh sach tung quay (ten, linh vuc,
 // trang thai, so nguoi dang cho). Lam moi moi 15s - khong can WebSocket cho trang cong khai.
-const COUNTER_STATUS_TEXT = { OPEN: 'Đang tiếp nhận', PAUSED: 'Tạm dừng', CLOSED: 'Đóng' };
+const COUNTER_STATUS_TEXT = { OPEN: 'Đang tiếp nhận', PAUSED: 'Cán bộ tạm vắng', CLOSED: 'Đóng' };
 const COUNTER_STATUS_CLASS = { OPEN: 'badge-green', PAUSED: 'badge-yellow', CLOSED: 'badge-gray' };
 
 function renderCounterStatus(counters) {
@@ -149,3 +150,36 @@ async function loadFaqHighlights() {
 
 loadPopularServices();
 loadFaqHighlights();
+
+
+// ===== 11/2026: o "Nhap ma cho" (nguoi dan quay lai sau khi bo sung giay to) =====
+// Gui ma cho Tro ly AI (chatbot.js) de dat lai so uu tien va tra loi ngay trong khung chat.
+// Tro ly noi bo dang tat (che do chi Mindtek) -> chuyen sang trang Quet ma voi ma dien san.
+(function () {
+  const form = document.getElementById('reentryCodeForm');
+  const input = document.getElementById('reentryCodeInput');
+  if (!form || !input) return;
+  // Tu chen dau gach sau 4 ky tu cho de doc: 3F9A2B7C -> 3F9A-2B7C.
+  input.addEventListener('input', () => {
+    const hex = input.value.toUpperCase().replace(/[^0-9A-F]/g, '').slice(0, 8);
+    input.value = hex.length > 4 ? `${hex.slice(0, 4)}-${hex.slice(4)}` : hex;
+  });
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const hex = input.value.replace(/[^0-9a-fA-F]/g, '');
+    if (hex.length !== 8) {
+      input.focus();
+      input.classList.add('input-error');
+      setTimeout(() => input.classList.remove('input-error'), 1500);
+      return;
+    }
+    const code = `${hex.slice(0, 4)}-${hex.slice(4)}`.toUpperCase();
+    input.value = '';
+    if (window.ChatbotWidget && typeof window.ChatbotWidget.reentry === 'function'
+        && !document.body.classList.contains('mindtek-only')) {
+      window.ChatbotWidget.reentry(code);
+    } else {
+      window.location.href = `quet-ma.html?code=${encodeURIComponent(code)}`;
+    }
+  });
+})();

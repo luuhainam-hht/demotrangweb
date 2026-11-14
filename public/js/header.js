@@ -8,7 +8,12 @@
     const saved = localStorage.getItem('screenTv');
     const ua = navigator.userAgent || '';
     const looksTv = /SmartTV|SMART-TV|Tizen|Web0S|webOS|NetCast|BRAVIA|HbbTV|Android TV|AFT[A-Z]|CrKey|GoogleTV|Roku|\bTV\b/i.test(ua);
-    const isTv = saved === '1' || (saved !== '0' && looksTv);
+    // SUA LOI CAM UNG 11/2026: nhieu man hinh Kiosk cam ung chay Android "TV box" nen user-agent
+    // co chu "TV" -> bi gan nham che do tivi (zoom 1.3). Tren trinh duyet/WebView cu, `zoom` lam
+    // lech toa do cham so voi nut tren man hinh: cham dung nut ma khong an. Man hinh CO CAM UNG
+    // thi khong phai tivi dieu khien tu xa -> khong tu bat che do tivi (van ep duoc bang ?tv=1).
+    const hasTouch = (navigator.maxTouchPoints || 0) > 0 || 'ontouchstart' in window;
+    const isTv = saved === '1' || (saved !== '0' && looksTv && !hasTouch);
     document.documentElement.classList.toggle('screen-tv', isTv);
   } catch (e) { /* localStorage bi chan: bo qua */ }
 })();
@@ -56,7 +61,7 @@
   // ===== Giao dien chinh quyen (11/2026) - chi ap dung cho trang cong khai =====
   // Ten don vi hien tren dau trang. Doi o day khi trien khai cho tung phuong/xa,
   // hoac dat <body data-unit-name="..."> tren tung trang de ghi de.
-  const UNIT_NAME = 'ỦY BAN NHÂN DÂN PHƯỜNG XUÂN PHƯƠNG';
+  const UNIT_NAME = 'Uỷ ban nhân dân Phường/Xã';   // CSS tu viet hoa tren dau trang
   const SITE_NAME = 'CẨM NANG SỐ HỖ TRỢ THÔNG TIN HÀNH CHÍNH CÔNG';
   const unitName = document.body.dataset.unitName || UNIT_NAME;
   const isDisplay = currentPage === 'display.html';
@@ -79,7 +84,7 @@
             <span class="gov-titles">
               <span class="gov-unit"></span>
               <span class="gov-name">${SITE_NAME}</span>
-              <span class="gov-tag">Tra cứu thủ tục, chuẩn bị hồ sơ và lấy số thứ tự tại Trung tâm Phục vụ Hành chính công</span>
+              <span class="gov-tag">Tra cứu thủ tục, chuẩn bị hồ sơ và lấy số thứ tự tại Trung tâm Phục vụ Hành chính công <span class="gov-beta">(Trang web là bản đang trong quá trình thử nghiệm.)</span></span>
             </span>
           </a>
         </div>
@@ -215,6 +220,44 @@
       if (header) header.insertAdjacentElement('afterend', banner);
     });
   }
+
+  // ===== SUA LOI MAN HINH CAM UNG (11/2026) =====
+  // Hien tuong: man hinh Kiosk cam ung nhung cham vao nut/the khong an (chuot thi van bam duoc).
+  // Mot so driver cam ung (khung hong ngoai/IR tren Windows, WebView Android cu) chi phat su kien
+  // touch ma KHONG sinh ra su kien click tuong ung, nen moi nut dung 'click' deu "chet".
+  // Cach xu ly: ghi nhan cham ngan (khong phai vuot/cuon); neu sau 450 ms trinh duyet van khong
+  // tu sinh click tren dung phan tu do thi tu bam ho (el.click()). Trinh duyet binh thuong da sinh
+  // click thi doan nay khong lam gi -> khong bao gio bam 2 lan.
+  (function touchClickFallback() {
+    if (!((navigator.maxTouchPoints || 0) > 0 || 'ontouchstart' in window)) return;
+    const TAPPABLE = 'a[href], button, [data-action], label, summary, [role="button"], .card-link, .chatbot-chip, .hero-chip, .faq-quick, input[type="checkbox"], input[type="radio"], input[type="submit"]';
+    let start = null;
+    let lastClickAt = 0;
+    document.addEventListener('click', () => { lastClickAt = Date.now(); }, true);
+    document.addEventListener('touchstart', (e) => {
+      if (e.touches.length !== 1) { start = null; return; }
+      const t = e.touches[0];
+      start = { x: t.clientX, y: t.clientY, at: Date.now(), target: e.target };
+    }, { capture: true, passive: true });
+    document.addEventListener('touchmove', (e) => {
+      if (!start) return;
+      const t = e.touches[0];
+      if (Math.abs(t.clientX - start.x) > 12 || Math.abs(t.clientY - start.y) > 12) start = null; // dang cuon
+    }, { capture: true, passive: true });
+    document.addEventListener('touchend', () => {
+      const s = start;
+      start = null;
+      if (!s || Date.now() - s.at > 900) return;               // cham giu lau: khong phai bam
+      const el = s.target && s.target.closest ? s.target.closest(TAPPABLE) : null;
+      if (!el || el.disabled || el.getAttribute('aria-disabled') === 'true') return;
+      const touchedAt = Date.now();
+      setTimeout(() => {
+        if (lastClickAt >= touchedAt - 50) return;              // trinh duyet da tu sinh click
+        if (!document.contains(el)) return;
+        el.click();
+      }, 450);
+    }, { capture: true, passive: true });
+  })();
 
   // ===== Nang cap 10/2026: che do mat mang tam thoi (xem public/sw.js) =====
   // Chi trang cong khai dang ky Service Worker; Bang LED (display.html) can du lieu song nen bo qua.

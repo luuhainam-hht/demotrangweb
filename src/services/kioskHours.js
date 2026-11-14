@@ -151,4 +151,22 @@ async function getStatus(now = new Date()) {
   return evaluate({ enforced: Number(enforced) === 1, openTime, closeTime, workingDays, timeSlots }, now);
 }
 
-module.exports = { evaluate, getStatus, parseTimeToMinutes, parseWorkingDays, parseTimeSlots, describeWorkingDays };
+// Bang goi so (display.html) can biet "dang trong gio lam viec hay gio nghi" DU Admin co tat che do
+// chan cap so ngoai gio (KIOSK_HOURS_ENFORCED = 0) hay khong: chan cap so la mot viec, hien mau
+// "Gio nghi" tren bang la viec khac. Bien moi truong KIOSK_HOURS_ENFORCED=false (che do demo) van
+// tat luon ca 2 de demo ban dem khong bi toan bang xanh duong.
+async function getScheduleStatus(now = new Date()) {
+  if (envSwitchesOff()) return { inWorkingHours: true, onBreak: false };
+  try {
+    const [openTime, closeTime, workingDays] = await Promise.all([
+      configService.get('KIOSK_OPEN_TIME'), configService.get('KIOSK_CLOSE_TIME'), configService.get('KIOSK_WORKING_DAYS')
+    ]);
+    const timeSlots = await configService.get('KIOSK_TIME_SLOTS').catch(() => '');
+    const r = evaluate({ enforced: true, openTime, closeTime, workingDays, timeSlots }, now);
+    return { inWorkingHours: r.open, onBreak: !!r.onBreak };
+  } catch (e) {
+    return { inWorkingHours: true, onBreak: false }; // loi cau hinh: khong to xanh ca bang
+  }
+}
+
+module.exports = { evaluate, getStatus, getScheduleStatus, parseTimeToMinutes, parseWorkingDays, parseTimeSlots, describeWorkingDays };

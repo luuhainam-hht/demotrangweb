@@ -22,7 +22,12 @@ router.get('/services', async (req, res) => {
   try {
     const keyword = req.query.q;
     const rows = keyword ? await serviceRepo.searchServices(pool, keyword) : await serviceRepo.listServices(pool);
-    res.json(rows);
+    // 11/2026: ghi chu can cu phap ly ngan + ngay doi chieu cho the thu tuc (src/data/legalBasis.js)
+    const { getLegalBasis } = require('../data/legalBasis');
+    res.json(rows.map((r) => {
+      const lb = getLegalBasis(r.code);
+      return lb ? { ...r, legal_short: lb.short, legal_checked_at: lb.checkedAt } : r;
+    }));
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -145,6 +150,20 @@ async function readConfiguredWifi() {
 }
 
 // INTENT 1: Wi-Fi QR 1 cham (du lieu cau hinh - xem readConfiguredWifi).
+// 11/2026: cau hinh video luc cho cho Trang chu Kiosk (public/js/idleVideo.js). Cong khai, chi tra
+// ma video/danh sach phat da kiem tra - khong tra nguyen chuoi Admin nhap.
+router.get('/idle-video', async (req, res) => {
+  const { parseYoutube } = require('../utils/youtube');
+  const raw = await configService.get('IDLE_VIDEO_YOUTUBE').catch(() => '');
+  const minutes = await configService.get('IDLE_VIDEO_MINUTES').catch(() => 5);
+  const yt = parseYoutube(raw);
+  res.json({
+    minutes: Math.min(60, Math.max(1, Number(minutes) || 5)),
+    videoId: yt ? yt.videoId : null,
+    playlistId: yt ? yt.playlistId : null
+  });
+});
+
 router.get('/wifi-qr', async (req, res) => {
   try {
     res.json(await readConfiguredWifi());
@@ -357,7 +376,7 @@ router.post('/tickets/:id/feedback', async (req, res) => {
 
 // Cong dan quet lai ma QR Re-entry sau khi bo sung ho so tai Ban ke khai (UC-09). Hai cach goi:
 //   { token }                 - may quet/camera tai Kiosk, chatbot, lien ket ?reentry=<token>
-//   { ticketNumber, code }    - nhap tay so thu tu + ma quay lai 8 ky tu in tren phieu
+//   { code [, ticketNumber] } - nhap tay Ma cho 8 ky tu in tren phieu (So thu tu tuy chon)
 // UC-09 «include» UC-12: ngoai gio lam viec cung khong xep lai (quay da dong, khong ai goi).
 router.post('/reentry-scan', async (req, res) => {
   try {
@@ -373,12 +392,24 @@ router.post('/reentry-scan', async (req, res) => {
     if (!token) {
       const ticketNumber = normalizeTicketNumber(body.ticketNumber);
       const code = normalizeShortCode(body.code);
-      if (!ticketNumber || code.length < 8) {
-        return res.status(400).json({ error: 'Vui lòng quét mã QR trên phiếu, hoặc nhập đủ Số thứ tự và Mã quay lại (8 ký tự).' });
+      if (code.length < 8) {
+        return res.status(400).json({ error: 'Vui lòng nhập đủ Mã chờ 8 ký tự in trên phiếu (ví dụ 3F9A-2B7C), hoặc quét mã QR trên phiếu.' });
       }
-      const found = await ticketRepo.findSuppPendingByNumberAndCode(pool, ticketNumber, code);
-      if (!found) return res.status(400).json({ error: 'Không tìm thấy vé chờ bổ sung khớp Số thứ tự và Mã quay lại này. Vui lòng kiểm tra lại phiếu hoặc nhờ cán bộ hỗ trợ.' });
-      token = found.reentry_qr_token;
+      if (ticketNumber) {
+        const found = await ticketRepo.findSuppPendingByNumberAndCode(pool, ticketNumber, code);
+        if (!found) return res.status(400).json({ error: 'Không tìm thấy vé chờ bổ sung khớp Số thứ tự và Mã chờ này. Vui lòng kiểm tra lại phiếu hoặc nhờ cán bộ hỗ trợ.' });
+        token = found.reentry_qr_token;
+      } else {
+        // 11/2026: chi nhap Ma cho (khong can So thu tu).
+        const matches = await ticketRepo.findSuppPendingByCode(pool, code);
+        if (matches.length === 0) {
+          return res.status(400).json({ error: 'Không tìm thấy vé chờ bổ sung với Mã chờ này. Mã chỉ dùng được trong ngày được cấp — vui lòng kiểm tra lại phiếu hoặc nhờ cán bộ hỗ trợ.' });
+        }
+        if (matches.length > 1) {
+          return res.status(400).json({ error: 'Mã chờ này cần thêm Số thứ tự để xác định. Vui lòng nhập cả Số thứ tự in to trên phiếu.', needTicketNumber: true });
+        }
+        token = matches[0].reentry_qr_token;
+      }
     }
 
     const ticket = await queueEngine.reentryScan(token);

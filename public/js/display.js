@@ -154,22 +154,38 @@ async function refreshBoard() {
   } catch (err) { console.error(err); }
 }
 
+const STATE_LABEL = {
+  BUSY: 'Đang thực hiện tại quầy', IDLE: 'Đang trống', AWAY: 'Người ở quầy đi vắng', BREAK: 'Giờ nghỉ'
+};
+function escHtml(v) {
+  return String(v == null ? '' : v).replace(/[&<>"']/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
+}
+
+// May chu cu (chua co board_state) -> tu suy ra theo cung quy tac voi src/services/boardState.js.
+function fallbackState(c) {
+  if (c.ticket_number && (c.ticket_status === 'CALLING' || c.ticket_status === 'PROCESSING')) return 'BUSY';
+  if (c.status === 'PAUSED') return 'AWAY';
+  if (c.status === 'CLOSED') return 'BREAK';
+  return 'IDLE';
+}
+
 function renderBoard(counters) {
   const grid = document.getElementById('ledGrid');
   grid.innerHTML = counters.map((c) => {
+    const state = c.board_state || fallbackState(c);
     const calling = c.ticket_status === 'CALLING';
-    const label = c.ticket_number
-      ? `${c.ticket_number}`
-      : (c.status === 'OPEN' ? '— sẵn sàng —' : c.status === 'PAUSED' ? 'TẠM DỪNG' : 'ĐÓNG QUẦY');
-    // So thu tu ("A-105") rat ngan nen de duoc co chu cuc dai cho de doc tu xa; con cac trang
-    // thai bang CHU ("ĐÓNG QUẦY", "— sẵn sàng —") dai gap doi, de nguyen co do thi tran ra ngoai
-    // the va bi cat mat o man hinh rong. Danh dau bang class rieng de CSS ha co chu xuong.
-    const isText = !c.ticket_number;
+    const busy = state === 'BUSY';
+    // So thu tu ("A-105") rat ngan nen de co chu cuc dai; cac trang thai bang CHU dai hon nhieu nen
+    // dung class rieng de ha co chu (tranh tran ra ngoai the).
+    const big = busy ? c.ticket_number
+      : state === 'IDLE' ? 'SẴN SÀNG' : state === 'AWAY' ? 'TẠM VẮNG' : 'NGHỈ';
+    const sub = c.board_text || (busy ? (calling ? 'Đang gọi số' : 'Đang phục vụ') : '');
     return `
-      <div class="led-card ${calling ? 'calling' : ''}">
-        <div class="counter-name">${c.name}</div>
-        <div class="ticket-num${isText ? ' ticket-num-text' : ''}">${label}</div>
-        <div class="status-line">${c.ticket_status ? (c.ticket_status === 'CALLING' ? 'Đang gọi' : c.ticket_status === 'PROCESSING' ? 'Đang phục vụ' : '') : ''}</div>
+      <div class="led-card st-${state}${calling ? ' calling' : ''}">
+        <div class="state-band">${STATE_LABEL[state]}</div>
+        <div class="counter-name">${escHtml(c.name)}</div>
+        <div class="ticket-num${busy ? '' : ' ticket-num-text'}">${escHtml(big)}</div>
+        <div class="status-line">${escHtml(sub)}</div>
       </div>`;
   }).join('');
 }

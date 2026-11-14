@@ -448,7 +448,9 @@ INSERT INTO system_configs (config_key, config_value, value_type, min_bound, max
   ('KIOSK_TIME_SLOTS',            '',                   'STRING', NULL, NULL, 'Nhiều khung giờ/ngày (nghỉ trưa), VD 07:30-11:30,13:30-17:00. Để trống = dùng KIOSK_OPEN_TIME - KIOSK_CLOSE_TIME'),
   ('DEVICE_OFFLINE_SECONDS',      '120',                'NUMBER', 30,  3600, 'Thiết bị (Kiosk/Bảng LED) im lặng quá số giây này bị đánh dấu OFFLINE và cảnh báo lên Dashboard'),
   ('CHATBOT_MODE',                'both',               'STRING', NULL, NULL, 'Chatbot hiện trên web: internal = chỉ trợ lý nội bộ, mindtek = chỉ bot Mindtek, both = cả hai'),
-  ('MINDTEK_BOT_ID',              '',                   'STRING', NULL, NULL, 'Bot ID trên bot.mindtek.ai (dán Bot ID hoặc nguyên đoạn mã nhúng). Để trống = tắt Mindtek')
+  ('MINDTEK_BOT_ID',              '',                   'STRING', NULL, NULL, 'Bot ID trên bot.mindtek.ai (dán Bot ID hoặc nguyên đoạn mã nhúng). Để trống = tắt Mindtek'),
+  ('IDLE_VIDEO_YOUTUBE',          '',                   'STRING', NULL, NULL, 'Video lúc chờ trên Trang chủ Kiosk: dán liên kết YouTube (video hoặc danh sách phát). Để trống = chỉ hiện màn hình chờ'),
+  ('IDLE_VIDEO_MINUTES',          '5',                  'NUMBER', 1,   60,  'Số phút không ai thao tác trên Trang chủ thì bật video lúc chờ')
 ON CONFLICT (config_key) DO NOTHING;
 
 -- Lĩnh vực chuyên môn

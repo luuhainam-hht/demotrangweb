@@ -126,11 +126,20 @@
     e.preventDefault();
     const ticketNumber = $('manualNumber').value.trim();
     const code = $('manualCode').value.trim();
-    if (!ticketNumber || code.replace(/[^0-9a-fA-F]/g, '').length < 8) {
-      return showToast('Vui lòng nhập Số thứ tự và đủ 8 ký tự Mã quay lại in trên phiếu.', 'error');
+    // 11/2026: chi can Ma cho 8 ky tu; So thu tu tuy chon (chi can khi may chu yeu cau).
+    if (code.replace(/[^0-9a-fA-F]/g, '').length < 8) {
+      return showToast('Vui lòng nhập đủ 8 ký tự Mã chờ in trên phiếu (ví dụ 3F9A-2B7C).', 'error');
     }
-    submitReentry({ ticketNumber, code });
+    submitReentry(ticketNumber ? { ticketNumber, code } : { code });
   });
+
+  // Trang chu chuyen sang voi ?code=XXXX-XXXX (khi Tro ly AI dang tat): dien san va gui luon.
+  (function prefillFromUrl() {
+    const code = new URLSearchParams(window.location.search).get('code');
+    if (!code) return;
+    $('manualCode').value = code.toUpperCase();
+    if (code.replace(/[^0-9a-fA-F]/g, '').length >= 8) submitReentry({ code });
+  })();
 
   // ---------- Cach 1: camera ----------
   function loadJsQr() {

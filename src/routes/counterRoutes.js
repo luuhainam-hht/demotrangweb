@@ -47,6 +47,27 @@ router.post('/counters/:counterId/call-next', assertOwnCounterOrAdmin, async (re
   }
 });
 
+// 11/2026: can bo tu bao "Tam vang" / "Da quay lai" (bang goi so: VANG <-> XANH LA).
+// Chi chuyen OPEN <-> PAUSED; khong dong quay (viec cua Dieu phoi), khong don hang doi sang
+// quay khac (vang ngan), va khong cho vang khi dang goi/phuc vu 1 so.
+router.post('/counters/:counterId/away', assertOwnCounterOrAdmin, async (req, res) => {
+  try {
+    const counterService = require('../services/counterService');
+    const away = !!(req.body && req.body.away);
+    const counter = await counterRepo.findById(pool, Number(req.params.counterId));
+    if (!counter) return res.status(404).json({ error: 'Quay khong ton tai.' });
+    if (counter.status === 'CLOSED') return res.status(400).json({ error: 'Quầy đang đóng - liên hệ Điều phối để mở quầy.' });
+    if (away && counter.active_ticket_id) return res.status(400).json({ error: 'Vui lòng hoàn tất số đang phục vụ trước khi tạm vắng.' });
+    const target = away ? 'PAUSED' : 'OPEN';
+    if (counter.status === target) return res.json({ counter });
+    const outcome = await counterService.setCounterStatus(counter.id, target, req.staff.staffId,
+      away ? 'Can bo tam vang (tu bao tai quay)' : 'Can bo da quay lai quay', { skipReassign: true });
+    res.json(outcome);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
 router.post('/tickets/:ticketId/accept', async (req, res) => {
   try {
     const ticket = await queueEngine.acceptTicket(req.params.ticketId, req.staff.staffId);

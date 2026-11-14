@@ -1,6 +1,8 @@
 const express = require('express');
 const { pool } = require('../config/db');
 const configService = require('../config/configService');
+const kioskHours = require('../services/kioskHours');
+const { computeBoardState } = require('../services/boardState');
 
 const router = express.Router();
 
@@ -13,7 +15,13 @@ router.get('/counters', async (req, res) => {
     LEFT JOIN tickets t ON t.id = c.active_ticket_id
     ORDER BY c.code ASC
   `);
-  res.json(rows);
+  // 11/2026: kem trang thai hien thi 4 mau (xem services/boardState.js) - tinh o may chu de moi
+  // man hinh LED hien giong nhau, khong phu thuoc gio cua tung may.
+  const schedule = await kioskHours.getScheduleStatus();
+  res.json(rows.map((r) => {
+    const b = computeBoardState(r, schedule);
+    return { ...r, board_state: b.state, board_text: b.text };
+  }));
 });
 
 // Cau hinh Loa PA / TTS (giong doc, toc do, am luong, khoang lang)

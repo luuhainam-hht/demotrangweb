@@ -66,6 +66,12 @@ const STRING_VALIDATORS = {
       throw new Error('CHATBOT_MODE chi nhan: internal (chi tro ly noi bo), mindtek (chi bot Mindtek) hoac both (ca hai).');
     }
   },
+  // Video luc cho tren Trang chu Kiosk: de trong (tat video, chi hien man hinh cho) hoac lien ket YouTube.
+  IDLE_VIDEO_YOUTUBE(value) {
+    if (String(value).trim() !== '' && !require('../utils/youtube').parseYoutube(value)) {
+      throw new Error('IDLE_VIDEO_YOUTUBE phai la lien ket YouTube (VD https://www.youtube.com/watch?v=..., https://youtu.be/..., hoac danh sach phat ?list=...) hoac de trong.');
+    }
+  },
   MINDTEK_BOT_ID(value) {
     if (String(value) !== '' && !MINDTEK_BOT_ID_PATTERN.test(String(value))) {
       throw new Error('MINDTEK_BOT_ID khong hop le. Dan Bot ID (chu, so, dau - hoac _) hoac dan nguyen doan ma nhung <script ... data-bot-id="..."> lay tu bot.mindtek.ai.');
@@ -79,6 +85,7 @@ const STRING_VALIDATORS = {
 const MINDTEK_BOT_ID_PATTERN = /^[A-Za-z0-9_-]{4,100}$/;
 const STRING_NORMALIZERS = {
   CHATBOT_MODE: (v) => String(v).trim().toLowerCase(),
+  IDLE_VIDEO_YOUTUBE: (v) => String(v || '').trim().slice(0, 255),
   MINDTEK_BOT_ID(v) {
     const raw = String(v || '').trim();
     const fromAttr = /data-bot-id\s*=\s*["']?([A-Za-z0-9_-]+)/i.exec(raw);

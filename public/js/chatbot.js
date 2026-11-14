@@ -15,7 +15,7 @@
     'Kết nối Wi-Fi',
     'Nộp hồ sơ trực tuyến (DVC)',
     'Cách điền tờ khai',
-    'Quét mã Bổ sung hồ sơ'
+    'Nhập mã chờ bổ sung giấy tờ'
   ];
   // Goi y sau khi hien the Wi-Fi: cho nguoi dan chon cach phu hop voi dien thoai cua ho.
   const WIFI_FOLLOWUPS = ['Wi-Fi Android', 'Wi-Fi iPhone', 'Wi-Fi: điện thoại không quét được'];
@@ -45,9 +45,17 @@
   // het vao ngay o day (goi y phia tren o nhap) - DVC va Re-entry can hoi lai 1 thong tin (muc
   // VNeID, ma Re-entry) truoc khi goi API that, nen dung 1 "hanh dong dang cho tra loi" doc lap
   // voi lich su chat thong thuong.
-  let pendingAction = null; // null | 'AWAIT_VNEID_LEVEL' | 'AWAIT_REENTRY_TOKEN'
+  let pendingAction = null; // null | 'AWAIT_VNEID_LEVEL' | 'AWAIT_REENTRY_TOKEN' | 'AWAIT_REENTRY_NUMBER'
+  let pendingReentryCode = null; // ma cho dang doi nguoi dan nhap them So thu tu (truong hop trung ma)
   const DVC_KEYWORDS = ['dvc', 'dich vu cong', 'nop truc tuyen', 'vneid', 'nop online', 'nop qua mang', 'nop ho so truc tuyen', 'ho so truc tuyen', 'nop ho so online', 'nop ho so qua mang', 'nop ho so tren mang'];
-  const REENTRY_KEYWORDS = ['bo sung ho so', 'quet ma', 're-entry', 'reentry', 'ma qr', 'quet qr'];
+  const REENTRY_KEYWORDS = ['bo sung ho so', 'bo sung giay to', 'quet ma', 're-entry', 'reentry', 'ma qr', 'quet qr', 'ma cho', 'nhap ma', 'dat lai so', 'lay lai so'];
+  // Ma cho in tren phieu bo sung: 8 ky tu hex, thuong viet "3F9A-2B7C". Chi tu nhan dien khi CA tin
+  // nhan chi la ma (co the kem chu "ma"/"ma cho") - tranh nham so dien thoai nam giua cau hoi.
+  const SHORT_CODE_ONLY = /^(?:ma(?:\s*cho)?\s*[:\-]?\s*)?([0-9a-f]{4})[\s-]?([0-9a-f]{4})$/i;
+  function extractShortCode(text) {
+    const m = SHORT_CODE_ONLY.exec(unaccentVi(String(text)).trim());
+    return m ? `${m[1]}${m[2]}`.toUpperCase() : null;
+  }
   // Cho phep thoat khoi 1 luong dang cho tra loi (pendingAction) giua chung, vd dang duoc hoi
   // "Muc 1 hay Muc 2" nhung nguoi dung doi y muon hoi chuyen khac - neu khong co loi thoat nay,
   // moi tin nhan tiep theo se bi "nuot" vao luong cu mai (xem sendMessage() ben duoi).
@@ -114,7 +122,7 @@
       });
     });
     messagesBox.appendChild(row);
-    messagesBox.scrollTop = messagesBox.scrollHeight;
+    keepAnchor();
     currentSuggestionsRow = row;
   }
   renderSuggestions();
@@ -190,6 +198,27 @@
     return html;
   }
 
+  // ---- Cuon khung chat (sua 11/2026) ----
+  // Truoc day moi lan them noi dung deu cuon XUONG DAY: cau tra loi dai bi troi qua, nguoi dan
+  // chi thay phan cuoi + hang goi y, phai tu keo nguoc len de doc tu dau. Gio: khi tro ly tra
+  // loi, khung chat dung lai NGAY DAU cau tra loi (answerAnchor); cac phan them sau (the Wi-Fi,
+  // goi y) KHONG keo khung xuong nua. Tin cua nguoi dung / dau "dang go" van cuon xuong day.
+  var answerAnchor = null; // var (khong phai let): renderSuggestions() goi keepAnchor() truoc dong nay
+  function scrollToBottom() {
+    answerAnchor = null;
+    messagesBox.scrollTop = messagesBox.scrollHeight;
+  }
+  function scrollToAnswer(el) {
+    answerAnchor = el;
+    const delta = el.getBoundingClientRect().top - messagesBox.getBoundingClientRect().top - 8;
+    messagesBox.scrollTop += delta;
+  }
+  // Noi dung moi them vao SAU cau tra loi: chi cuon neu khong lam mat dau cau tra loi.
+  function keepAnchor() {
+    if (answerAnchor && messagesBox.contains(answerAnchor)) scrollToAnswer(answerAnchor);
+    else messagesBox.scrollTop = messagesBox.scrollHeight;
+  }
+
   function appendMessage(text, role) {
     const isBot = role !== 'user';
     const row = document.createElement('div');
@@ -212,7 +241,7 @@
     row.appendChild(bubble);
 
     messagesBox.appendChild(row);
-    messagesBox.scrollTop = messagesBox.scrollHeight;
+    if (isBot) scrollToAnswer(row); else scrollToBottom();
     return bubble;
   }
 
@@ -232,7 +261,7 @@
     row.appendChild(bubble);
 
     messagesBox.appendChild(row);
-    messagesBox.scrollTop = messagesBox.scrollHeight;
+    scrollToBottom();
   }
 
   function removeTypingIndicator() {
@@ -320,7 +349,7 @@
         <div class="chatbot-wifi-note">Mạng này không tạo được mã QR. Bạn hãy nhập tay theo hướng dẫn bên dưới.</div>`;
       row.appendChild(bubble);
       messagesBox.appendChild(row);
-      messagesBox.scrollTop = messagesBox.scrollHeight;
+      keepAnchor();
       return;
     }
 
@@ -328,7 +357,7 @@
       bubble.innerHTML = `<p class="chatbot-line">${escapeHtml(data.error || 'Máy này hiện không kết nối Wi-Fi nào.')}</p>`;
       row.appendChild(bubble);
       messagesBox.appendChild(row);
-      messagesBox.scrollTop = messagesBox.scrollHeight;
+      keepAnchor();
       return;
     }
 
@@ -344,7 +373,7 @@
     `;
     row.appendChild(bubble);
     messagesBox.appendChild(row);
-    messagesBox.scrollTop = messagesBox.scrollHeight;
+    keepAnchor();
 
     const copyBtn = bubble.querySelector('#chatbotWifiCopyBtn');
     if (copyBtn) {
@@ -360,7 +389,7 @@
     try {
       await loadQrLibrary();
       new window.QRCode(bubble.querySelector('#chatbotWifiQr'), { text: data.qrString, width: 140, height: 140 });
-      messagesBox.scrollTop = messagesBox.scrollHeight;
+      keepAnchor();
     } catch (e) { /* Khong tai duoc thu vien QR - SSID/mat khau van con hien de doc thu cong */ }
   }
 
@@ -399,21 +428,30 @@
     }
   }
 
-  // ---- Re-entry: hoi ma roi goi API chen lai vao hang doi that ----
+  // ---- Re-entry / Ma cho: hoi ma roi goi API xep lai vao hang doi that (uu tien) ----
+  // 11/2026: nguoi dan chi can go MA CHO 8 ky tu in tren phieu bo sung (hoac quet QR) - tro ly
+  // dat lai so uu tien ngay, khong phai lay so moi.
   async function handleReentryRequest() {
     pendingAction = 'AWAIT_REENTRY_TOKEN';
-    appendMessage('Vui lòng nhập mã Re-entry được cán bộ cấp cho bạn khi yêu cầu bổ sung hồ sơ:', 'bot');
+    appendMessage('Bạn vui lòng nhập **Mã chờ** gồm 8 ký tự in trên phiếu bổ sung giấy tờ cán bộ đã đưa (ví dụ: **3F9A-2B7C**). Tôi sẽ xếp bạn trở lại hàng đợi ở vị trí **ưu tiên**, giữ nguyên số cũ.', 'bot');
   }
-  async function processReentryToken(token) {
+  async function processReentry(payload) {
     appendTypingIndicator();
     try {
       const res = await fetch('/api/kiosk/reentry-scan', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token })
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
       });
       const result = await res.json();
       removeTypingIndicator();
       if (!res.ok) {
-        appendMessage(result.error || 'Mã Re-entry không hợp lệ hoặc đã hết hạn.', 'bot');
+        // Truong hop (rat hiem) 2 phieu trung ma: hoi them So thu tu.
+        if (result.needTicketNumber && payload.code) {
+          pendingAction = 'AWAIT_REENTRY_NUMBER';
+          pendingReentryCode = payload.code;
+          appendMessage('Mã chờ này cần thêm **Số thứ tự** để xác định đúng phiếu của bạn. Bạn nhập Số thứ tự in to trên phiếu (ví dụ A-105):', 'bot');
+          return;
+        }
+        appendMessage(result.error || 'Mã chờ không hợp lệ hoặc đã được sử dụng.', 'bot');
         renderSuggestions();
         return;
       }
@@ -424,21 +462,42 @@
         return;
       }
       const ahead = result.tracking && typeof result.tracking.aheadCount === 'number'
-        ? ` Phía trước còn ${result.tracking.aheadCount} người.` : '';
-      const counter = result.counterName ? ` Vui lòng đến ${result.counterName}.` : '';
-      appendMessage(`Đã xác nhận! Số thứ tự ${result.ticket.ticket_number} của bạn đã được xếp trở lại hàng đợi ở vị trí ưu tiên.${counter}${ahead} Vui lòng theo dõi Bảng LED/Loa.`, 'bot');
+        ? (result.tracking.aheadCount === 0 ? '\n- Bạn là **người tiếp theo** — vui lòng ở gần quầy.' : `\n- Phía trước còn **${result.tracking.aheadCount} người**.`) : '';
+      const counter = result.counterName ? `\n- Vui lòng đến **${result.counterName}**.` : '';
+      const track = result.ticket && result.ticket.id ? `\n\n[Theo dõi số của bạn](theo-doi.html?t=${encodeURIComponent(result.ticket.id)})` : '';
+      appendMessage(`✅ Đã đặt lại số ưu tiên cho bạn!\n- Số thứ tự: **${result.ticket.ticket_number}** (giữ nguyên số cũ, xếp ở vị trí ưu tiên)${counter}${ahead}\n- Vui lòng chú ý Bảng gọi số và loa.${track}`, 'bot');
       renderSuggestions();
     } catch (err) {
       removeTypingIndicator();
-      appendMessage('Không xử lý được mã Re-entry, vui lòng thử lại.', 'bot');
+      appendMessage('Không xử lý được mã chờ, vui lòng thử lại hoặc nhờ cán bộ hỗ trợ.', 'bot');
       renderSuggestions();
     }
   }
+  // Giu ten cu cho cac cho dang goi (link ?reentry=<token> tu ma QR).
+  function processReentryToken(token) { return processReentry({ token }); }
+
   async function handleReentryAnswer(text) {
-    const token = text.trim();
-    if (!token) { appendMessage('Vui lòng nhập mã Re-entry hợp lệ.', 'bot'); return; }
+    const raw = text.trim();
+    if (!raw) { appendMessage('Vui lòng nhập Mã chờ 8 ký tự in trên phiếu.', 'bot'); return; }
+    const code = extractShortCode(raw);
+    const hex = raw.replace(/[^0-9a-fA-F]/g, '');
+    // Dan ca token dai / URL ?reentry= (quet QR bang may quet) van chap nhan.
+    if (!code && (/[?&]reentry=/.test(raw) || /^[0-9a-fA-F]{16,}$/.test(raw))) {
+      pendingAction = null;
+      return processReentry({ token: raw });
+    }
+    if (!code && hex.length !== 8) {
+      appendMessage('Mã chờ gồm đúng **8 ký tự** (chữ số 0–9 và chữ A–F), ví dụ **3F9A-2B7C**. Bạn kiểm tra lại phiếu và nhập lại giúp tôi nhé (gõ "huỷ" để hỏi việc khác).', 'bot');
+      return;
+    }
     pendingAction = null;
-    await processReentryToken(token);
+    await processReentry({ code: code || hex.toUpperCase() });
+  }
+  async function handleReentryNumberAnswer(text) {
+    const code = pendingReentryCode;
+    pendingAction = null;
+    pendingReentryCode = null;
+    await processReentry({ code, ticketNumber: text.trim() });
   }
 
   // presetText: cho phep trang chu (VD nut Thao tac nhanh tren Kiosk) tu goi 1 cau hoi dinh
@@ -472,6 +531,11 @@
     // /api/chatbot/ask (chi tra loi van ban, khong thuc hien duoc hanh dong that).
     if (pendingAction === 'AWAIT_VNEID_LEVEL') return handleVneidAnswer(text);
     if (pendingAction === 'AWAIT_REENTRY_TOKEN') return handleReentryAnswer(text);
+    if (pendingAction === 'AWAIT_REENTRY_NUMBER') return handleReentryNumberAnswer(text);
+
+    // Nguoi dan go thang Ma cho (VD "3F9A-2B7C" / "ma cho 3f9a2b7c") khong can bam goi y truoc.
+    const directCode = extractShortCode(text);
+    if (directCode) return processReentry({ code: directCode });
 
     if (!wifiTopic && DVC_KEYWORDS.some((k) => normalizedTrigger.includes(k))) return handleDvcRequest();
     if (!wifiTopic && REENTRY_KEYWORDS.some((k) => normalizedTrigger.includes(k))) return handleReentryRequest();
@@ -533,7 +597,7 @@
     if (!token) return;
     togglePanel(true);
     clearSuggestions();
-    appendMessage(`Mã Re-entry: ${token}`, 'user');
+    appendMessage('Quét mã QR trên phiếu bổ sung giấy tờ', 'user');
     processReentryToken(token);
   })();
 
@@ -541,7 +605,15 @@
   // va gui san 1 cau hoi huong dan, khong can dong lai voi cach widget dung DOM noi bo.
   window.ChatbotWidget = {
     open: () => togglePanel(true),
-    ask: (message) => { togglePanel(true); sendMessage(message); }
+    ask: (message) => { togglePanel(true); sendMessage(message); },
+    // Trang chu: o "Nhap ma cho" -> mo tro ly va dat lai so uu tien ngay.
+    reentry: (code) => {
+      togglePanel(true);
+      clearSuggestions();
+      pendingAction = null;
+      appendMessage(`Mã chờ: ${String(code).toUpperCase()}`, 'user');
+      return processReentry({ code: String(code) });
+    }
   };
 
   // Chatbot Mindtek (bot.mindtek.ai) - tu nap tren moi trang dang co Tro ly noi bo, bat/tat va

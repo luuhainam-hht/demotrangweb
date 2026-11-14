@@ -22,6 +22,7 @@
 // Ngay doc nguon: 22/09/2026.
 // ============================================================================
 
+const { getLegalBasis, legalSummary } = require('./legalBasis');
 const ACCESSED = '22/09/2026';
 
 const FEES_ACCESSED = '08/10/2026';
@@ -1090,7 +1091,7 @@ function buildAiGuideText() {
 function buildServiceExtraText() {
   return Object.keys(SERVICE_EXTRA).map((code) => {
     const e = SERVICE_EXTRA[code];
-    return `- [${code}] Nơi nộp: ${e.where} | Thời hạn giải quyết: ${e.slaNote} | Nộp trực tuyến: ${e.online} | Căn cứ: ${e.legal}`;
+    return `- [${code}] Nơi nộp: ${e.where} | Thời hạn giải quyết: ${e.slaNote} | Nộp trực tuyến: ${e.online} | Căn cứ: ${legalSummary(code) || e.legal}`;
   }).join('\n');
 }
 
@@ -1098,8 +1099,12 @@ function getServiceExtra(code) {
   if (!code) return null;
   const extra = SERVICE_EXTRA[String(code).toUpperCase()];
   if (!extra) return null;
+  const legalBasis = getLegalBasis(code);
   return {
     ...extra,
+    // 11/2026: can cu phap ly co cau truc (van ban + ngay doi chieu) - xem src/data/legalBasis.js
+    legal: legalBasis ? `${legalBasis.short} (đối chiếu ngày ${legalBasis.checkedAt})` : extra.legal,
+    legalBasis,
     statusLabel: STATUS_LABELS[extra.status] || extra.status,
     sources: (extra.sources || []).map((k) => SOURCES[k]).filter(Boolean),
     relatedFaqs: (extra.faqIds || []).map(findFaqById).filter(Boolean).map((f) => ({ id: f.id, q: f.q, short: f.short }))
