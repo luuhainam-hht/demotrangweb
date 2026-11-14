@@ -71,6 +71,7 @@ services:
       <<: *db-urls
       PORT: "3000"
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GEMINI_API_KEYS: ${GEMINI_API_KEYS:-}
       KIOSK_HOURS_ENFORCED: ${KIOSK_HOURS_ENFORCED:-}
       # Kenh realtime dung chung qua Postgres LISTEN/NOTIFY: goi so tren web Render thi Bang LED
       # mo tu ban Docker cung cap nhat ngay (va nguoc lai). Dat off neu chi chay 1 ban.

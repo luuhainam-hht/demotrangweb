@@ -314,6 +314,10 @@ khẩu riêng (tối thiểu 8 ký tự, có cả chữ và số) trước khi v
   liệu thật lấy trực tiếp từ database (danh mục thủ tục, checklist giấy tờ, trạng thái quầy hiện
   tại) làm căn cứ bắt buộc — đúng tinh thần RAG mô tả trong tài liệu `Chat bot.pdf` gốc.
   - Lấy API key miễn phí tại <https://aistudio.google.com/apikey> → dán vào `GEMINI_API_KEY=` trong `.env`.
+  - **Nhiều key (khuyến nghị):** `GEMINI_API_KEYS=key1,key2,key3` (mỗi key từ một tài khoản/project
+    Google khác nhau). `src/services/geminiKeyPool.js` xoay vòng đều các key; key nào hết hạn mức
+    (429) thì nghỉ ~60 giây, key sai/bị khoá (401/403) nghỉ 1 giờ, tự chuyển sang key còn lại.
+    Xem tình trạng (key đã che) tại `GET /api/admin/system/gemini-keys` (quyền CONFIG).
   - Chưa cấu hình key thì chatbot vẫn không làm sập server — trả lời lỗi thân thiện
     "Trợ lý AI chưa được cấu hình...".
   - Có giới hạn tốc độ hỏi (tối đa 15 câu/phút/IP) vì đây là endpoint công khai, tránh bị lạm

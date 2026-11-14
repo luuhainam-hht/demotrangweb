@@ -269,6 +269,14 @@ router.get('/system/status', requirePermission('MONITOR'), safe(async (req, res)
   res.json(await systemStatus.collect());
 }));
 
+// Tinh trang kho API key Gemini (so key, key nao dang nghi vi het han muc/khong hop le).
+// Chi tra key da che (AIza…xyz1), KHONG BAO GIO tra key that.
+router.get('/system/gemini-keys', requirePermission('CONFIG'), (req, res) => {
+  const { getKeyPoolStatus } = require('../services/chatbotService');
+  const keys = getKeyPoolStatus();
+  res.json({ total: keys.length, ready: keys.filter((k) => k.state === 'READY').length, keys });
+});
+
 router.get('/audit-logs', requirePermission('REPORTS'), async (req, res) => {
   res.json(await analyticsService.getAuditLogs(Number(req.query.limit) || 100));
 });

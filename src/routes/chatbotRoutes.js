@@ -39,16 +39,16 @@ router.post('/ask', async (req, res) => {
   } catch (err) {
     if (err instanceof chatbotService.ChatbotConfigError) {
       console.error('[chatbot]', err.message);
-      return res.status(503).json({ error: 'Tro ly AI chua duoc cau hinh (thieu GEMINI_API_KEY trong .env). Vui long lien he quan tri vien.' });
+      return res.status(503).json({ error: 'Tro ly AI chua duoc cau hinh (thieu GEMINI_API_KEYS / GEMINI_API_KEY trong .env). Vui long lien he quan tri vien.' });
     }
     // Loi tu Gemini API duoc SDK @google/genai tra ve dang { name, message, status }
     // (khong co lop exception rieng cho tung loai nhu Anthropic), nen phan loai theo status.
     if (err.status === 401 || err.status === 403) {
-      console.error('[chatbot] GEMINI_API_KEY khong hop le hoac khong co quyen truy cap.');
+      console.error('[chatbot] Tat ca API key Gemini deu khong hop le hoac khong co quyen truy cap.');
       return res.status(503).json({ error: 'Tro ly AI chua duoc cau hinh dung (API key khong hop le). Vui long lien he quan tri vien.' });
     }
     if (err.status === 429) {
-      return res.status(503).json({ error: 'He thong AI dang qua tai, vui long thu lai sau.' });
+      return res.status(503).json({ error: 'Tat ca API key Gemini dang het han muc, vui long thu lai sau.' });
     }
     if (typeof err.status === 'number' && err.status >= 500) {
       console.error('[chatbot] Gemini API error:', err.status, err.message);

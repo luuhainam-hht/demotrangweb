@@ -50,3 +50,6 @@ services:
       # API key Google Gemini cho tro ly ao tren Kiosk - nhap tay, khong commit.
       - key: GEMINI_API_KEY
         sync: false
+      # Nhieu key Gemini, cach nhau dau phay - tu xoay vong khi 1 key het han muc (geminiKeyPool.js).
+      - key: GEMINI_API_KEYS
+        sync: false

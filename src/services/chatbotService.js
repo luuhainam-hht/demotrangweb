@@ -4,6 +4,7 @@ const serviceRepo = require('../repositories/serviceRepository');
 const kioskFeatureGuide = require('./kioskFeatureGuide');
 const faqKnowledge = require('../data/faqKnowledge');
 const { formatFeeAmount } = require('../data/serviceFees');
+const { GeminiKeyPool, parseKeys } = require('./geminiKeyPool');
 
 // gemini-2.5-flash da bi Google ngung ho tro tai khoan moi (loi 404 "no longer available").
 // Chuyen sang gemini-3.6-flash theo dung khuyen nghi tra ve tu chinh API cua Google.
@@ -14,16 +15,27 @@ const MAX_HISTORY_TURNS = 6; // gioi han ngu canh gui len de kiem soat chi phi
 // bao loi mo ho khi goi API.
 class ChatbotConfigError extends Error {}
 
-// Client duoc tao lazy (chi khoi tao khi co request dau tien) de khong crash luc boot
-// server neu GEMINI_API_KEY chua duoc cau hinh - loi se duoc bao ro rang khi hoi chatbot.
-let client = null;
-function getClient() {
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) {
-    throw new ChatbotConfigError('Chua cau hinh GEMINI_API_KEY trong file .env.');
+// NHIEU API key + xoay vong tu dong (xem geminiKeyPool.js). Kho key va client duoc tao lazy
+// (chi khi co cau hoi dau tien) de khong crash luc boot neu chua cau hinh key nao.
+let keyPool = null;
+const clients = new Map(); // key -> GoogleGenAI (moi key 1 client, tao 1 lan)
+function getKeyPool() {
+  if (!keyPool) {
+    const keys = parseKeys();
+    if (keys.length === 0) {
+      throw new ChatbotConfigError('Chua cau hinh GEMINI_API_KEYS / GEMINI_API_KEY trong file .env.');
+    }
+    keyPool = new GeminiKeyPool(keys);
+    console.log(`[gemini] Da nap ${keys.length} API key (xoay vong tu dong).`);
   }
-  if (!client) client = new GoogleGenAI({ apiKey });
-  return client;
+  return keyPool;
+}
+function getClient(apiKey) {
+  if (!clients.has(apiKey)) clients.set(apiKey, new GoogleGenAI({ apiKey }));
+  return clients.get(apiKey);
+}
+function getKeyPoolStatus() {
+  try { return getKeyPool().status(); } catch (e) { return []; }
 }
 
 // Tang 3: RAG rut gon - vi danh muc thu tuc trong he thong nho (vai chuc thu tuc), ghep toan bo
@@ -86,6 +98,7 @@ async function askAssistant(userMessage, history = []) {
   const trimmedMessage = String(userMessage || '').trim().slice(0, 800);
   if (!trimmedMessage) throw new Error('Vui long nhap noi dung cau hoi.');
 
+  const keys = getKeyPool(); // bao loi cau hinh som, truoc khi truy van DB
   const groundingContext = await buildGroundingContext();
   const systemInstruction = buildSystemPrompt(groundingContext);
 
@@ -101,7 +114,7 @@ async function askAssistant(userMessage, history = []) {
 
   const contents = [...safeHistory, { role: 'user', parts: [{ text: trimmedMessage }] }];
 
-  const response = await getClient().models.generateContent({
+  const response = await keys.run((apiKey) => getClient(apiKey).models.generateContent({
     model: MODEL,
     contents,
     config: {
@@ -115,7 +128,7 @@ async function askAssistant(userMessage, history = []) {
       // model nay chua/khong ho tro tham so nay qua @google/genai). Xu ly viec lo "thinking" ra
       // cau tra loi chi bang prompt (quy tac 9 o tren) + loc phan thought=true ben duoi.
     }
-  });
+  }));
 
   const text = extractFinalAnswerText(response);
   return text || 'Xin loi, hien tai tro ly chua the tra loi. Vui long thu lai.';
@@ -129,4 +142,4 @@ function extractFinalAnswerText(response) {
   return parts.filter((p) => !p.thought && typeof p.text === 'string').map((p) => p.text).join('').trim();
 }
 
-module.exports = { askAssistant, ChatbotConfigError };
+module.exports = { askAssistant, ChatbotConfigError, getKeyPoolStatus };

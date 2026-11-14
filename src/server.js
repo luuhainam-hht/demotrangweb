@@ -113,6 +113,11 @@ app.post('/api/display/heartbeat', rateLimit({
   windowMs: 60 * 1000, limit: 30, standardHeaders: true, legacyHeaders: false,
   message: { error: 'Qua nhieu heartbeat.' }
 }));
+// Giong doc tieng Viet cho Loa PA: cong khai (Bang LED khong dang nhap) -> chan dung lam proxy TTS.
+app.get('/api/display/tts', rateLimit({
+  windowMs: 60 * 1000, limit: 60, standardHeaders: true, legacyHeaders: false,
+  message: { error: 'Qua nhieu yeu cau doc.' }
+}));
 // Quay lai hang doi (UC-09) nay nhan ca "So thu tu + Ma quay lai 8 ky tu" nhap tay -> gioi han
 // tan suat de khong the do ma: 20 lan / 10 phut / IP (1 may Kiosk dung chung IP van du dung).
 const reentryLimiter = rateLimit({
