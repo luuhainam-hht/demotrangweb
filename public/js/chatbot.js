@@ -45,8 +45,14 @@
   // het vao ngay o day (goi y phia tren o nhap) - DVC va Re-entry can hoi lai 1 thong tin (muc
   // VNeID, ma Re-entry) truoc khi goi API that, nen dung 1 "hanh dong dang cho tra loi" doc lap
   // voi lich su chat thong thuong.
-  let pendingAction = null; // null | 'AWAIT_VNEID_LEVEL' | 'AWAIT_REENTRY_TOKEN' | 'AWAIT_REENTRY_NUMBER'
-  let pendingReentryCode = null; // ma cho dang doi nguoi dan nhap them So thu tu (truong hop trung ma)
+  let pendingAction = null; // null | 'AWAIT_VNEID_LEVEL' | 'AWAIT_REENTRY_TOKEN' | 'AWAIT_REENTRY_NUMBER' | 'AWAIT_REENTRY_CONFIRM'
+  let pendingReentryCode = null;
+  let pendingReentryTicket = null; // so thu tu buoi sang dang cho nguoi dan xac nhan 'Dung la toi'
+  const TICKET_NUMBER = /^(?:so\s*(?:thu\s*tu)?\s*[:\-]?\s*)?([a-z]{1,2})\s*-?\s*(\d{1,4})$/i;
+  function extractTicketNumber(text) {
+    const m = TICKET_NUMBER.exec(unaccentVi(String(text)).trim());
+    return m ? `${m[1].toUpperCase()}-${m[2]}` : null;
+  } // ma cho dang doi nguoi dan nhap them So thu tu (truong hop trung ma)
   const DVC_KEYWORDS = ['dvc', 'dich vu cong', 'nop truc tuyen', 'vneid', 'nop online', 'nop qua mang', 'nop ho so truc tuyen', 'ho so truc tuyen', 'nop ho so online', 'nop ho so qua mang', 'nop ho so tren mang'];
   const REENTRY_KEYWORDS = ['bo sung ho so', 'bo sung giay to', 'quet ma', 're-entry', 'reentry', 'ma qr', 'quet qr', 'ma cho', 'nhap ma', 'dat lai so', 'lay lai so'];
   // Ma cho in tren phieu bo sung: 8 ky tu hex, thuong viet "3F9A-2B7C". Chi tu nhan dien khi CA tin
@@ -433,7 +439,7 @@
   // dat lai so uu tien ngay, khong phai lay so moi.
   async function handleReentryRequest() {
     pendingAction = 'AWAIT_REENTRY_TOKEN';
-    appendMessage('Bạn vui lòng nhập **Mã chờ** gồm 8 ký tự in trên phiếu bổ sung giấy tờ cán bộ đã đưa (ví dụ: **3F9A-2B7C**). Tôi sẽ xếp bạn trở lại hàng đợi ở vị trí **ưu tiên**, giữ nguyên số cũ.', 'bot');
+    appendMessage('Bạn vui lòng nhập **số thứ tự buổi sáng** (ví dụ **A-105**) hoặc **Mã chờ** 8 ký tự in trên phiếu bổ sung giấy tờ (ví dụ **3F9A-2B7C**). Tôi sẽ xếp bạn trở lại hàng đợi ở vị trí **ưu tiên**, giữ nguyên số cũ.', 'bot');
   }
   async function processReentry(payload) {
     appendTypingIndicator();
@@ -476,9 +482,53 @@
   // Giu ten cu cho cac cho dang goi (link ?reentry=<token> tu ma QR).
   function processReentryToken(token) { return processReentry({ token }); }
 
+  // 11/2026: chi nhap SO THU TU buoi sang -> kiem tra truoc (preview), hoi "Dung la ban?" roi moi dat lai.
+  async function checkTicketNumber(ticketNumber) {
+    appendTypingIndicator();
+    try {
+      const res = await fetch('/api/kiosk/reentry-scan', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ticketNumber, preview: true })
+      });
+      const result = await res.json();
+      removeTypingIndicator();
+      if (result.status === 'CLOSED') {
+        appendMessage(result.message || 'Trung tâm đang ngoài giờ làm việc, chưa thể xếp lại hàng đợi lúc này.', 'bot');
+        renderSuggestions();
+        return;
+      }
+      if (!res.ok || result.status !== 'FOUND') {
+        if (result.needCode) { pendingAction = 'AWAIT_REENTRY_TOKEN'; }
+        appendMessage(result.error || `Không tìm thấy số ${ticketNumber} đang chờ bổ sung giấy tờ.`, 'bot');
+        if (!result.needCode) renderSuggestions();
+        return;
+      }
+      pendingAction = 'AWAIT_REENTRY_CONFIRM';
+      pendingReentryTicket = result.ticketNumber;
+      const docs = (result.missingDocs || []).length
+        ? `\nGiấy tờ cần bổ sung:\n${result.missingDocs.map((d) => `- ${d}`).join('\n')}` : '';
+      appendMessage(`Tôi tìm thấy số **${result.ticketNumber}**${result.serviceName ? ` (thủ tục **${result.serviceName}**)` : ''} đang chờ bổ sung giấy tờ.${docs}\n\nĐây có đúng là số của bạn và bạn đã mang đủ giấy tờ chưa?`, 'bot');
+      renderSuggestions(['Đúng, số của tôi', 'Không phải số của tôi']);
+    } catch (err) {
+      removeTypingIndicator();
+      appendMessage('Không kiểm tra được số thứ tự, vui lòng thử lại hoặc nhờ cán bộ hỗ trợ.', 'bot');
+      renderSuggestions();
+    }
+  }
+  async function handleReentryConfirm(text) {
+    const n = unaccentVi(text).toLowerCase();
+    const ticketNumber = pendingReentryTicket;
+    pendingAction = null;
+    pendingReentryTicket = null;
+    if (/^(dung|co|ok|vang|da|yes)\b/.test(n.trim())) return processReentry({ ticketNumber });
+    appendMessage('Đã huỷ. Bạn có thể nhập **Mã chờ** 8 ký tự trên phiếu, hoặc nhờ cán bộ tại bàn hướng dẫn hỗ trợ.', 'bot');
+    renderSuggestions();
+  }
+
   async function handleReentryAnswer(text) {
     const raw = text.trim();
-    if (!raw) { appendMessage('Vui lòng nhập Mã chờ 8 ký tự in trên phiếu.', 'bot'); return; }
+    if (!raw) { appendMessage('Vui lòng nhập số thứ tự buổi sáng hoặc Mã chờ 8 ký tự in trên phiếu.', 'bot'); return; }
+    const ticketNumber = extractTicketNumber(raw);
+    if (ticketNumber) { pendingAction = null; return checkTicketNumber(ticketNumber); }
     const code = extractShortCode(raw);
     const hex = raw.replace(/[^0-9a-fA-F]/g, '');
     // Dan ca token dai / URL ?reentry= (quet QR bang may quet) van chap nhan.
@@ -532,6 +582,7 @@
     if (pendingAction === 'AWAIT_VNEID_LEVEL') return handleVneidAnswer(text);
     if (pendingAction === 'AWAIT_REENTRY_TOKEN') return handleReentryAnswer(text);
     if (pendingAction === 'AWAIT_REENTRY_NUMBER') return handleReentryNumberAnswer(text);
+    if (pendingAction === 'AWAIT_REENTRY_CONFIRM') return handleReentryConfirm(text);
 
     // Nguoi dan go thang Ma cho (VD "3F9A-2B7C" / "ma cho 3f9a2b7c") khong can bam goi y truoc.
     const directCode = extractShortCode(text);
@@ -606,6 +657,14 @@
   window.ChatbotWidget = {
     open: () => togglePanel(true),
     ask: (message) => { togglePanel(true); sendMessage(message); },
+    // Trang chu: nhap SO THU TU buoi sang -> kiem tra, hoi xac nhan roi dat lai uu tien.
+    reentryByNumber: (ticketNumber) => {
+      togglePanel(true);
+      clearSuggestions();
+      pendingAction = null;
+      appendMessage(`Số thứ tự buổi sáng: ${String(ticketNumber).toUpperCase()}`, 'user');
+      return checkTicketNumber(String(ticketNumber).toUpperCase());
+    },
     // Trang chu: o "Nhap ma cho" -> mo tro ly va dat lai so uu tien ngay.
     reentry: (code) => {
       togglePanel(true);

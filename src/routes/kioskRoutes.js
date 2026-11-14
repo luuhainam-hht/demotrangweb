@@ -377,6 +377,7 @@ router.post('/tickets/:id/feedback', async (req, res) => {
 // Cong dan quet lai ma QR Re-entry sau khi bo sung ho so tai Ban ke khai (UC-09). Hai cach goi:
 //   { token }                 - may quet/camera tai Kiosk, chatbot, lien ket ?reentry=<token>
 //   { code [, ticketNumber] } - nhap tay Ma cho 8 ky tu in tren phieu (So thu tu tuy chon)
+//   { ticketNumber [, preview] } - CHI So thu tu buoi sang (ve phai dang SUPP_PENDING trong ngay)
 // UC-09 «include» UC-12: ngoai gio lam viec cung khong xep lai (quay da dong, khong ai goi).
 router.post('/reentry-scan', async (req, res) => {
   try {
@@ -392,14 +393,14 @@ router.post('/reentry-scan', async (req, res) => {
     if (!token) {
       const ticketNumber = normalizeTicketNumber(body.ticketNumber);
       const code = normalizeShortCode(body.code);
-      if (code.length < 8) {
-        return res.status(400).json({ error: 'Vui lòng nhập đủ Mã chờ 8 ký tự in trên phiếu (ví dụ 3F9A-2B7C), hoặc quét mã QR trên phiếu.' });
+      if (code.length < 8 && !ticketNumber) {
+        return res.status(400).json({ error: 'Vui lòng nhập Số thứ tự buổi sáng (ví dụ A-105) hoặc Mã chờ 8 ký tự in trên phiếu (ví dụ 3F9A-2B7C).' });
       }
-      if (ticketNumber) {
-        const found = await ticketRepo.findSuppPendingByNumberAndCode(pool, ticketNumber, code);
+      let found = null;
+      if (ticketNumber && code.length >= 8) {
+        found = await ticketRepo.findSuppPendingByNumberAndCode(pool, ticketNumber, code);
         if (!found) return res.status(400).json({ error: 'Không tìm thấy vé chờ bổ sung khớp Số thứ tự và Mã chờ này. Vui lòng kiểm tra lại phiếu hoặc nhờ cán bộ hỗ trợ.' });
-        token = found.reentry_qr_token;
-      } else {
+      } else if (code.length >= 8) {
         // 11/2026: chi nhap Ma cho (khong can So thu tu).
         const matches = await ticketRepo.findSuppPendingByCode(pool, code);
         if (matches.length === 0) {
@@ -408,8 +409,30 @@ router.post('/reentry-scan', async (req, res) => {
         if (matches.length > 1) {
           return res.status(400).json({ error: 'Mã chờ này cần thêm Số thứ tự để xác định. Vui lòng nhập cả Số thứ tự in to trên phiếu.', needTicketNumber: true });
         }
-        token = matches[0].reentry_qr_token;
+        found = matches[0];
+      } else {
+        // 11/2026: CHI nhap So thu tu buoi sang (nguoi cao tuoi khong biet nhap Ma cho). Kiem tra so
+        // do co dang "cho bo sung giay to" khong; co thi dat lai uu tien voi chinh ma cua phieu do.
+        const matches = await ticketRepo.findSuppPendingByNumber(pool, ticketNumber);
+        if (matches.length === 0) {
+          return res.status(400).json({ error: `Số ${ticketNumber} hiện không ở trạng thái chờ bổ sung giấy tờ trong hôm nay. Nếu bạn chưa từng được cán bộ yêu cầu bổ sung, vui lòng lấy số mới; nếu cần hỗ trợ, hãy hỏi cán bộ tại bàn hướng dẫn.` });
+        }
+        if (matches.length > 1) {
+          return res.status(400).json({ error: 'Có nhiều phiếu cùng số này. Vui lòng nhập thêm Mã chờ in trên phiếu hoặc nhờ cán bộ hỗ trợ.', needCode: true });
+        }
+        found = matches[0];
       }
+      // preview: chi kiem tra, CHUA dat lai - giao dien hien "So A-105 dang cho bo sung: ... Dung la ban?"
+      if (body.preview) {
+        const info = await ticketRepo.getTrackingInfo(pool, found.id).catch(() => null);
+        const t = info ? toPublicTracking(info) : null;
+        return res.json({
+          status: 'FOUND', ticketNumber: found.ticket_number,
+          serviceName: t ? t.serviceName : null,
+          missingDocs: t && t.missingDocs ? t.missingDocs.map((d) => d.name) : []
+        });
+      }
+      token = found.reentry_qr_token;
     }
 
     const ticket = await queueEngine.reentryScan(token);

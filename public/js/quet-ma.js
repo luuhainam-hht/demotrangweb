@@ -127,15 +127,20 @@
     const ticketNumber = $('manualNumber').value.trim();
     const code = $('manualCode').value.trim();
     // 11/2026: chi can Ma cho 8 ky tu; So thu tu tuy chon (chi can khi may chu yeu cau).
-    if (code.replace(/[^0-9a-fA-F]/g, '').length < 8) {
-      return showToast('Vui lòng nhập đủ 8 ký tự Mã chờ in trên phiếu (ví dụ 3F9A-2B7C).', 'error');
+    const codeOk = code.replace(/[^0-9a-fA-F]/g, '').length >= 8;
+    // 11/2026: chi can Ma cho, HOAC chi So thu tu buoi sang (nguoi cao tuoi).
+    if (!codeOk && !ticketNumber) {
+      return showToast('Vui lòng nhập Số thứ tự buổi sáng (VD A-105) hoặc đủ 8 ký tự Mã chờ trên phiếu.', 'error');
     }
-    submitReentry(ticketNumber ? { ticketNumber, code } : { code });
+    submitReentry(codeOk ? (ticketNumber ? { ticketNumber, code } : { code }) : { ticketNumber });
   });
 
   // Trang chu chuyen sang voi ?code=XXXX-XXXX (khi Tro ly AI dang tat): dien san va gui luon.
   (function prefillFromUrl() {
-    const code = new URLSearchParams(window.location.search).get('code');
+    const qs = new URLSearchParams(window.location.search);
+    const so = qs.get('so');
+    if (so) { $('manualNumber').value = so.toUpperCase(); return; }   // de nguoi dan tu bam xac nhan
+    const code = qs.get('code');
     if (!code) return;
     $('manualCode').value = code.toUpperCase();
     if (code.replace(/[^0-9a-fA-F]/g, '').length >= 8) submitReentry({ code });

@@ -105,6 +105,25 @@
   .field-actions .btn[disabled] { opacity: .45; cursor: not-allowed; }
   .field-edit { display: flex; gap: 8px; flex-wrap: wrap; }
   .field-edit input { flex: 1; min-width: 160px; }
+  /* ===== Tab Thong ke theo thoi gian (11/2026) ===== */
+  .stats-filters { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: flex-end; margin-top: 10px; }
+  .stats-filters label { display: flex; flex-direction: column; gap: 4px; font-size: 0.85rem; font-weight: 600; color: var(--color-text-muted); }
+  .stats-filters input, .stats-filters select { width: auto; min-width: 150px; }
+  .stats-preset.active { background: var(--color-primary); color: #fff; border-color: var(--color-primary); }
+  .stats-chart-wrap { overflow-x: auto; border: 1px solid var(--color-border); border-radius: 10px; padding: 12px 12px 6px; }
+  .stats-chart { display: flex; gap: 4px; align-items: flex-end; height: 190px; min-width: 100%; }
+  .stats-col { flex: 1 0 22px; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 3px; }
+  .stats-bar { width: 100%; max-width: 30px; background: #cbd5e1; border-radius: 5px 5px 2px 2px; display: flex; align-items: flex-end; overflow: hidden; }
+  .stats-bar-done { width: 100%; background: var(--color-primary); }
+  .stats-legend { display: flex; gap: 16px; font-size: 0.8rem; color: var(--color-text-muted); margin-top: 6px; }
+  .stats-legend i { display: inline-block; width: 12px; height: 12px; border-radius: 3px; background: #cbd5e1; margin-right: 6px; vertical-align: -1px; }
+  .stats-legend i.done { background: var(--color-primary); }
+  .stats-table td, .stats-table th { text-align: right; white-space: nowrap; }
+  .stats-table td:first-child, .stats-table th:first-child { text-align: left; }
+  .stats-table tfoot td { font-weight: 800; border-top: 2px solid var(--color-border); }
+  .stats-table tr.stats-empty td { color: var(--color-text-muted); }
+  #statsSummary .kpi-mini .val { font-size: 1.35rem; }
+  #statsSummary .kpi-mini small { font-size: 0.75rem; font-weight: 600; color: var(--color-text-muted); }
   @media (max-width: 640px) {
     .field-item { flex-wrap: wrap; }
     .field-actions { width: 100%; justify-content: flex-end; }
@@ -131,6 +150,7 @@
     <button class="tab-btn" data-tab="fields" data-action="switchTab" data-args='["fields"]' id="fieldsTabBtn"><span class="tab-emoji"></span><span>Lĩnh vực</span></button>
     <button class="tab-btn" data-tab="services" data-action="switchTab" data-args='["services"]' id="servicesTabBtn"><span class="tab-emoji"></span><span>Thủ tục</span></button>
     <button class="tab-btn" data-tab="reports" data-action="switchTab" data-args='["reports"]'><span class="tab-emoji"></span><span>Báo cáo</span></button>
+    <button class="tab-btn" data-tab="stats" data-action="switchTab" data-args='["stats"]' id="statsTabBtn"><span class="tab-emoji"></span><span>Thống kê</span></button>
     <button class="tab-btn" data-tab="staff" data-action="switchTab" data-args='["staff"]' id="staffTabBtn"><span class="tab-emoji"></span><span>Tài khoản</span></button>
   </div>
 
@@ -327,6 +347,51 @@
     </div>
   </div>
 
+  <!-- ============ TAB: THONG KE THEO THOI GIAN (11/2026 - SUPER_ADMIN, MANAGER) ============ -->
+  <div id="tab-stats" class="tab-content hidden">
+    <div class="card">
+      <div class="counter-card-head" style="flex-wrap:wrap;gap:10px;">
+        <h3>Thống kê theo thời gian</h3>
+        <div class="flex gap-8" style="flex-wrap:wrap;">
+          <button class="btn btn-outline action-chip stats-preset" data-preset="today" data-action="statsPreset" data-args='["today"]'>Hôm nay</button>
+          <button class="btn btn-outline action-chip stats-preset" data-preset="d7" data-action="statsPreset" data-args='["d7"]'>7 ngày</button>
+          <button class="btn btn-outline action-chip stats-preset" data-preset="d30" data-action="statsPreset" data-args='["d30"]'>30 ngày</button>
+          <button class="btn btn-outline action-chip stats-preset" data-preset="month" data-action="statsPreset" data-args='["month"]'>Tháng này</button>
+          <button class="btn btn-outline action-chip stats-preset" data-preset="quarter" data-action="statsPreset" data-args='["quarter"]'>90 ngày</button>
+          <button class="btn btn-outline action-chip stats-preset" data-preset="year" data-action="statsPreset" data-args='["year"]'>Năm nay</button>
+        </div>
+      </div>
+      <div class="stats-filters">
+        <label>Từ ngày <input type="date" id="statsFrom" /></label>
+        <label>Đến ngày <input type="date" id="statsTo" /></label>
+        <label>Gom theo
+          <select id="statsGroup">
+            <option value="hour">Khung giờ trong ngày</option>
+            <option value="day" selected>Ngày</option>
+            <option value="week">Tuần</option>
+            <option value="month">Tháng</option>
+          </select>
+        </label>
+        <label>Lĩnh vực <select id="statsField"><option value="">Tất cả lĩnh vực</option></select></label>
+        <button class="btn btn-primary action-chip" data-action="loadStats">Xem thống kê</button>
+        <button class="btn btn-outline action-chip" data-action="exportStatsCsv">Tải CSV</button>
+      </div>
+      <p class="text-muted" id="statsCaption" style="font-size:0.9rem;margin:6px 0 12px;"></p>
+      <div id="statsSummary" class="grid grid-4" style="margin-bottom:16px;"></div>
+      <div class="stats-chart-wrap">
+        <div id="statsChart" class="stats-chart"></div>
+        <div class="stats-legend"><span><i class="done"></i>Hoàn tất</span><span><i></i>Còn lại (bổ sung, huỷ, đang chờ...)</span></div>
+      </div>
+      <div style="overflow-x:auto;" class="mt-16">
+        <table id="statsTable" class="stats-table">
+          <thead><tr><th>Kỳ</th><th>Tổng vé</th><th>Hoàn tất</th><th>Tỷ lệ HT</th><th>Bổ sung</th><th>Huỷ/vắng</th><th>Ưu tiên</th><th>Chờ TB (phút)</th><th>Xử lý TB (phút)</th><th>Đúng SLA</th></tr></thead>
+          <tbody id="statsTableBody"></tbody>
+          <tfoot id="statsTableFoot"></tfoot>
+        </table>
+      </div>
+    </div>
+  </div>
+
   <!-- ============ TAB: STAFF ============ -->
   <div id="tab-staff" class="tab-content hidden">
     <div class="card">
@@ -373,7 +438,8 @@
 <script src="js/admin-fields.js?v=20261101"></script>
 <script src="js/admin-services.js?v=20261101"></script>
 <script src="js/admin-insights.js?v=2"></script>
-<script src="js/admin.js?v=5"></script>
+<script src="js/admin-stats.js?v=1"></script>
+<script src="js/admin.js?v=6"></script>
 <script src="js/chatbot.js?v=11"></script>
 </body>
 </html>

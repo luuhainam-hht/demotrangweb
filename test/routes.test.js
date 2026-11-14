@@ -466,6 +466,30 @@ test('POST /api/kiosk/reentry-scan: CHI nhap Ma cho 8 ky tu (khong So thu tu) ->
   assert.equal(calls.length, 1);
 });
 
+test('POST /api/kiosk/reentry-scan: CHI nhap So thu tu buoi sang -> xem truoc (preview) roi dat lai uu tien', async () => {
+  mockOpenHours();
+  const calls = mockReentryEngine();
+  const ticketRepo = require('../src/repositories/ticketRepository');
+  ticketRepo.findSuppPendingByNumber = async (client, n) => (n === 'A-105' ? [{ id: SUPP_ID, ticket_number: 'A-105', reentry_qr_token: SUPP_TOKEN }] : []);
+  ticketRepo.getTrackingInfo = async () => ({ ticket_number: 'A-105', status: 'SUPP_PENDING', service_name: 'Đăng ký khai sinh',
+    missing_doc_codes: ['GCN_SINH'], required_docs: [{ code: 'GCN_SINH', name: 'Giấy chứng sinh' }] });
+  const app = buildApp();
+  const pv = await request(app).post('/api/kiosk/reentry-scan').send({ ticketNumber: 'a 105', preview: true });
+  assert.equal(pv.status, 200);
+  assert.equal(pv.body.status, 'FOUND');
+  assert.deepEqual(pv.body.missingDocs, ['Giấy chứng sinh']);
+  assert.equal(pv.body.reentry_qr_token, undefined, 'khong lo token');
+  assert.equal(calls.length, 0, 'preview khong duoc dat lai');
+
+  const ok = await request(app).post('/api/kiosk/reentry-scan').send({ ticketNumber: 'A105' });
+  assert.equal(ok.status, 200);
+  assert.deepEqual(calls, [SUPP_TOKEN]);
+
+  const none = await request(app).post('/api/kiosk/reentry-scan').send({ ticketNumber: 'B-999' });
+  assert.equal(none.status, 400);
+  assert.match(none.body.error, /không ở trạng thái chờ bổ sung/);
+});
+
 test('POST /api/kiosk/reentry-scan: ngoai gio lam viec -> CLOSED, khong xep lai (UC-09 include UC-12)', async () => {
   const kioskHours = require('../src/services/kioskHours');
   kioskHours.getStatus = async () => ({ open: false, enforced: true, message: 'Het gio', hoursText: '07:30 – 17:00' });

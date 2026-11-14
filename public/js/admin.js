@@ -10,6 +10,8 @@ if (staff.role === 'OFFICER') window.location.href = 'counter.html';
 document.getElementById('staffName').textContent = `${staff.fullName} (${staff.role})`;
 // Tab Quan ly Tai khoan chi danh cho SUPER_ADMIN (khop voi STAFF_MANAGEMENT trong middleware/auth.js).
 if (staff.role !== 'SUPER_ADMIN') document.getElementById('staffTabBtn').remove();
+// Tab Thong ke theo thoi gian: nhom quyen REPORTS = SUPER_ADMIN, MANAGER (xem middleware/auth.js).
+if (!['SUPER_ADMIN', 'MANAGER'].includes(staff.role)) document.getElementById('statsTabBtn').remove();
 // Tab Thu tuc (UC-60/61) khop nhom quyen SERVICE_DOCS: Supervisor, Manager, Super Admin (xem middleware/auth.js).
 if (!['SUPER_ADMIN', 'MANAGER', 'SUPERVISOR'].includes(staff.role)) {
   document.getElementById('servicesTabBtn').remove();
@@ -28,6 +30,7 @@ function switchTab(name) {
   if (name === 'config') loadConfig();
   if (name === 'reports') { loadReports(); loadInsights(); }
   if (name === 'staff') loadStaffTab();
+  if (name === 'stats') loadStatsTab();
   if (name === 'services') loadServicesTab();
   if (name === 'fields') loadFieldsTab();
 }

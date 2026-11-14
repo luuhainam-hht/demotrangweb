@@ -71,6 +71,20 @@ async function findSuppPendingByCode(client, shortCode) {
   return rows.map(mapTicket);
 }
 
+// 11/2026: nguoi cao tuoi khong biet nhap Ma cho -> chi can nhap SO THU TU buoi sang (VD A-105).
+// Chi khop ve DANG CHO BO SUNG GIAY TO (SUPP_PENDING) trong ngay. Tra toi da 2 dong de route biet
+// truong hop trung so (hiem) -> yeu cau nhap them Ma cho.
+async function findSuppPendingByNumber(client, ticketNumber) {
+  const { rows } = await client.query(
+    `SELECT * FROM tickets
+     WHERE ticket_number = ? AND status = 'SUPP_PENDING' AND DATE(created_at) = CURRENT_DATE
+       AND reentry_qr_token IS NOT NULL
+     ORDER BY created_at DESC LIMIT 2`,
+    [ticketNumber]
+  );
+  return rows.map(mapTicket);
+}
+
 // Vé QUEUED tiếp theo của 1 quầy, ưu tiên is_priority rồi tới queue_position/created_at (FIFO).
 async function findNextQueuedForCounter(client, counterId) {
   const { rows } = await client.query(
@@ -251,7 +265,7 @@ async function getTrackingInfo(client, ticketId) {
 
 module.exports = {
   lockFieldForNumbering, getTrackingInfo,
-  insertTicket, lockTicketById, findTicketById, findByReentryToken, findSuppPendingByNumberAndCode, findSuppPendingByCode,
+  insertTicket, lockTicketById, findTicketById, findByReentryToken, findSuppPendingByNumberAndCode, findSuppPendingByCode, findSuppPendingByNumber,
   findNextQueuedForCounter, countActiveForCounter, maxQueuePositionForCounter,
   updateStatus, insertHistory, listQueueForCounter, listTailQueued, listActionableForAdmin,
   reassignCounter, findExpiredForPurge, findAllQueuedAndCallingForEOD, countTodayByField

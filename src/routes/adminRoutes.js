@@ -231,6 +231,18 @@ router.get('/analytics/officer-kpi', requirePermission('REPORTS'), async (req, r
   res.json(await analyticsService.getOfficerKpi());
 });
 
+// 11/2026: Thong ke theo thoi gian (gio / ngay / tuan / thang) - tab "Thong ke" (SUPER_ADMIN, MANAGER).
+router.get('/analytics/time-series', requirePermission('REPORTS'), async (req, res) => {
+  try {
+    const timeStats = require('../services/timeStatsService');
+    res.json(await timeStats.getTimeSeries({
+      from: req.query.from, to: req.query.to, group: req.query.group, fieldId: req.query.fieldId
+    }));
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
 router.get('/analytics/peak-hour', requirePermission('REPORTS'), async (req, res) => {
   res.json(await analyticsService.getPeakHourAnalysis());
 });

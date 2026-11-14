@@ -152,34 +152,44 @@ loadPopularServices();
 loadFaqHighlights();
 
 
-// ===== 11/2026: o "Nhap ma cho" (nguoi dan quay lai sau khi bo sung giay to) =====
-// Gui ma cho Tro ly AI (chatbot.js) de dat lai so uu tien va tra loi ngay trong khung chat.
-// Tro ly noi bo dang tat (che do chi Mindtek) -> chuyen sang trang Quet ma voi ma dien san.
+// ===== 11/2026: o "Nhap so thu tu / ma cho" (nguoi dan quay lai sau khi bo sung giay to) =====
+// Nhan 2 kieu: SO THU TU buoi sang (A-105 - nguoi cao tuoi chi can nhin so to tren phieu) hoac MA CHO
+// 8 ky tu (3F9A-2B7C). Gui cho Tro ly AI (chatbot.js) kiem tra va dat lai so uu tien ngay trong khung
+// chat. Tro ly noi bo dang tat (che do chi Mindtek) -> chuyen sang trang Quet ma voi gia tri dien san.
 (function () {
   const form = document.getElementById('reentryCodeForm');
   const input = document.getElementById('reentryCodeInput');
   if (!form || !input) return;
-  // Tu chen dau gach sau 4 ky tu cho de doc: 3F9A2B7C -> 3F9A-2B7C.
+  const TICKET = /^([A-Z]{1,2})-?(\d{1,4})$/;          // A-105, A105, B7
   input.addEventListener('input', () => {
-    const hex = input.value.toUpperCase().replace(/[^0-9A-F]/g, '').slice(0, 8);
+    const raw = input.value.toUpperCase().replace(/\s+/g, '');
+    if (TICKET.test(raw) || /^[A-Z]{1,2}-?$/.test(raw)) { input.value = raw; return; }   // dang go so thu tu
+    const hex = raw.replace(/[^0-9A-F]/g, '').slice(0, 8);
     input.value = hex.length > 4 ? `${hex.slice(0, 4)}-${hex.slice(4)}` : hex;
   });
+  function flagError() {
+    input.focus();
+    input.classList.add('input-error');
+    setTimeout(() => input.classList.remove('input-error'), 1500);
+  }
   form.addEventListener('submit', (e) => {
     e.preventDefault();
-    const hex = input.value.replace(/[^0-9a-fA-F]/g, '');
-    if (hex.length !== 8) {
-      input.focus();
-      input.classList.add('input-error');
-      setTimeout(() => input.classList.remove('input-error'), 1500);
+    const raw = input.value.toUpperCase().replace(/\s+/g, '');
+    const t = TICKET.exec(raw);
+    const hex = raw.replace(/[^0-9A-F]/g, '');
+    const useChat = window.ChatbotWidget && typeof window.ChatbotWidget.reentry === 'function'
+      && !document.body.classList.contains('mindtek-only');
+    if (t) {
+      const ticketNumber = `${t[1]}-${t[2]}`;
+      input.value = '';
+      if (useChat && window.ChatbotWidget.reentryByNumber) window.ChatbotWidget.reentryByNumber(ticketNumber);
+      else window.location.href = `quet-ma.html?so=${encodeURIComponent(ticketNumber)}`;
       return;
     }
-    const code = `${hex.slice(0, 4)}-${hex.slice(4)}`.toUpperCase();
+    if (hex.length !== 8) return flagError();
+    const code = `${hex.slice(0, 4)}-${hex.slice(4)}`;
     input.value = '';
-    if (window.ChatbotWidget && typeof window.ChatbotWidget.reentry === 'function'
-        && !document.body.classList.contains('mindtek-only')) {
-      window.ChatbotWidget.reentry(code);
-    } else {
-      window.location.href = `quet-ma.html?code=${encodeURIComponent(code)}`;
-    }
+    if (useChat) window.ChatbotWidget.reentry(code);
+    else window.location.href = `quet-ma.html?code=${encodeURIComponent(code)}`;
   });
 })();
